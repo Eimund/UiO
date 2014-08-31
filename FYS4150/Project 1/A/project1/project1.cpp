@@ -22,14 +22,14 @@ using namespace std;
 template<class T> class GetPointer {
 };
 template<class T> class GetPointer<T*> {
-    typedef T Type;                             // Used to get the type the pointer points to at compile time
+    public: typedef T Type;                             // Used to get the type the pointer points to at compile time
 };
 template<unsigned int Type, class V> class TridiagonalMatrix {              // General tridiagonal matrix solver
     public: static void Solve(V* a, V* b, V* c, V* f, unsigned int n) {     // 8n FLOPS
         /* a are elements a_{i,i-1} in tridiagonal matrix, a[0] = a_{2,1}
          * b are elements a_{i,i} in tridiagonal matrix, b[0] = a_{1,1}
          * c are elements a_{i,i+1} in tridiagonal matrix, c[0] = a_{1,2}
-         * f are sorce elements b_{i}, f[0] = b_{1}
+         * f are source elements b_{i}, f[0] = b_{1}
          */
 
         V temp;
@@ -66,7 +66,7 @@ template<class V> class TridiagonalMatrix<1,V> {                            // T
     }
     public: static void Solve(V* f, unsigned int n, unsigned int cutoff) {
         /*
-         * f are sorce elements b_{i}, f[0] = b_{1}
+         * f are source elements b_{i}, f[0] = b_{1}
          * The values of i >= cutoff is when (i+1)/i is approximated to 1
          */
 
@@ -83,6 +83,81 @@ template<class V> class TridiagonalMatrix<1,V> {                            // T
             *f += *f--;                 // Eq (10) with (i+1)/i = 1
         while(f > start) {
             *f /= (V)i--/i;             // Eq (11)
+            *f += *f--;                 // Eq (10)
+        }
+        *f /= 2;
+    }
+};
+template<class V> class TridiagonalMatrix<2,V> {                            // Tridiagonal matrix -1,2,-1 with memory usage
+    public: V* factor;                   // Precalculated values
+    public: class _cutoff{               // Number of precalculated values
+        private: TridiagonalMatrix<2,V>* owner;
+        private: unsigned int value;
+        public: _cutoff() {
+        }
+        public: _cutoff(TridiagonalMatrix<2,V>* owner) {
+            value = 0;
+            this->owner = owner;
+        }
+        public: ~_cutoff() {
+            if(value)
+                delete [] owner->factor;
+        }
+        public: unsigned int & operator = (const unsigned int &i) {
+            if(value != i) {
+                V* arr = new V[i];
+                V* start;
+                if(value < i) {                     // Extend values
+                    start = &arr[value];
+                    arr = &arr[i-1];
+                    unsigned int j = i+1;
+                    while(arr >= start)
+                        *arr-- = (V)j--/j;          // Calculate (i+1)/i values
+                }
+                if(value != 0) {
+                    start = owner->factor;
+                    if(value < i)
+                        owner->factor= &owner->factor[value-1];
+                    else {
+                        arr = &arr[i-1];
+                        owner->factor= &owner->factor[i-1];
+                    }
+                    while(owner->factor >= start)   // Copy already calculated values
+                        *arr-- = *(owner->factor--);
+                    delete [] start;
+                }
+                owner->factor = ++arr;
+            }
+            return value = i;
+        }
+        public: operator unsigned int () const {
+            return value;
+        }
+    }cutoff;
+    public: TridiagonalMatrix(unsigned int cutoff) {
+        this->cutoff = _cutoff(this);
+        this->cutoff = cutoff;
+    }
+    public: ~TridiagonalMatrix() {
+    }
+    public: void Solve(V* f, unsigned int n) {         // 4n FLOPS
+        /*
+         * f are source elements b_{i}, f[0] = b_{1}
+         */
+
+        V* start = f;
+        V* mid = &f[cutoff-1];
+        V* end = &f[n-1];
+        V* fac = factor;
+        unsigned int i = 1;
+        while(f < mid)
+            *f += (*f++)/(*fac++);      // Eq (8)
+        while(f < end)
+            *f += *f++;                 // Eq (8) with (i+1)/i = 1
+        while(f > mid)
+            *f += *f--;                 // Eq (10) with (i+1)/i = 1
+        while(f > start) {
+            *f /= *fac--;               // Eq (11)
             *f += *f--;                 // Eq (10)
         }
         *f /= 2;
@@ -109,24 +184,28 @@ int main() {
         }
         double* f_tmp = CopyOfArray(f, n[i]);     // Backup array f
 
-        TridiagonalMatrix<0,GetPointer<decltype(f)>::Type>::Solve(a, b, a, f, n[i]);
-        double s1 = f[0];
-        double s2 = f[1];
-        double s3 = f[2];
-        double s4 = f[3];
+        TridiagonalMatrix<0,GetPointer<decltype(f)>::Type>::Solve(a, b, a, f, n[i]);    // Solve general tridiagonal matrix
 
         delete [] f;
         f = f_tmp;
         f_tmp = CopyOfArray(f, n[i]);
-        TridiagonalMatrix<1,GetPointer<decltype(f)>::Type>::Solve(f, n[i],3);
-        double t1 = f[0];
-        double t2 = f[1];
-        double t3 = f[2];
-        double t4 = f[3];
+        TridiagonalMatrix<1,GetPointer<decltype(f)>::Type>::Solve(f, n[i]);             // Solve -1,2,-1 tridiagonal matrix without memory usage
+
+        delete [] f;
+        f = f_tmp;
+        f_tmp = CopyOfArray(f, n[i]);
+        TridiagonalMatrix<2,GetPointer<decltype(f)>::Type>(n[i]).Solve(f, n[i]);        // Solve -1,2,-1 tridiagonal matrix without precalculated values but with memory usage
+
+        delete [] f;
+        f = f_tmp;
+        f_tmp = CopyOfArray(f, n[i]);
+        auto tri = TridiagonalMatrix<2,GetPointer<decltype(f)>::Type>(n[i]);            // Precalculate values for
+        tri.Solve(f, n[i]);                                                             // solving -1,2,-1 tridiagonal matrix with memory usage
 
         delete [] a;        // Deallocate dynamic memory
         delete [] b;
         delete [] f;
+        delete [] f_tmp;
     }
     return 0;
 }
