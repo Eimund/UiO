@@ -145,13 +145,13 @@ template<class T> class TridiagonalMatrix<2,T> {                            // T
         T* mid = &f[n < _cutoff ? n-1 : _cutoff-1];
         T* end = &f[n-1];
         T* fac = factor;
-        while(f < mid)
+        while(f != mid)
             *f += (*f++)*(*fac++);      // Eq (8)
-        while(f < end)
+        while(f != end)
             *f += *f++;                 // Eq (8) with (i+1)/i = 1
-        while(f > mid)
+        while(f != mid)
             *f += *f--;                 // Eq (10) with (i+1)/i = 1
-        while(f > start) {
+        while(f != start) {
             *f *= *fac--;               // Eq (11)
             *f += *f--;                 // Eq (10)
         }
