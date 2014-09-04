@@ -44,7 +44,7 @@ which again can be rewritten
 In this project I will solve the following case of the one-dimensional Poisson's equation with Dirichlet boundary condition
 
 \begin{align}
--u^{\prime\prime}\p{x} = f\p{x}\,,  \qquad x\in\p{0,1}\,,\quad u\p{0} = u\p{1} = 1 \,.
+-u^{\prime\prime}\p{x} = f\p{x}\,,  \qquad x\in\p{0,1}\,,\quad u\p{0} = u\p{1} = 0 \,.
 \label{eq_1}
 \end{align}
 
@@ -141,6 +141,9 @@ We can show \eqref{eq_9} by induction. Clearly \eqref{eq_9} satisfy the initial 
 \end{align*}
 
 Since \eqref{eq_9} is actually a constant that doesn't change with the source terms $b_i$, it can be pre calculated and reused for solving the tridiagonal matrix. That means that \eqref{eq_9} might not contribute to number of FLOPS that needs to be calculated, and furthermore $\lim_{i\to \infty} \frac{i+1}{i} = 1$, so when $i$ is large we don't need to calculate $\check a_{i,i}$ because it is so close to 1 that we don't do any numerical error by setting $\check a_{i,i}$ to 1 for large $i$. So the calculation start by  \eqref{eq_8} which requires 2 FLOPS, and then \eqref{eq_11} requires 1 FLOP and \eqref{eq_10} also requires 1 FLOP. Hence the total number of flops to needed to solve \eqref{eq_2} is $4n$.
+
+\begin{tabell}{|r|c|c|c|c|}{}{Number of steps & 8n & 6n & 5n & 4n \\}{\input{build-project1-Desktop-Debug/time.dat}}{Time used in seconds to solve problem for each of the tridiagonal matrix solvers}{}
+\end{tabell}
 
 \end{flushleft}
 \end{document}

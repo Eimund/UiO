@@ -36,12 +36,12 @@ template<unsigned int Type, class T> class TridiagonalMatrix {              // G
         T temp;
         T* start = f;
         T* end = &f[n-1];
-        while(f < end) {
+        while(f != end) {
             temp = (*a++)/(*b++);
             *b -= temp*(*c++);          // Eq (4) in report
             *f -= temp*(*f++);          // Eq (3)
         }
-        while(f > start) {
+        while(f != start) {
             *f /= (*b--);               // Eq (7)
             *f -= (*--c)*(*f--);        // Eq (6)
         }
@@ -76,14 +76,14 @@ template<class T> class TridiagonalMatrix<1,T> {                            // T
         T* mid = &f[n < cutoff ? n-1 : cutoff-1];
         T* end = &f[n-1];
         T i = 1;                        // Faster to use double than int here
-        while(f < mid)
+        while(f != mid)
             *f += i++/i*(*f++);         // Eq (8)
-        while(f < end)
+        while(f != end)
             *f += *f++;                 // Eq (8) with (i+1)/i = 1
         i++;
-        while(f > mid)
+        while(f != mid)
             *f += *f--;                 // Eq (10) with (i+1)/i = 1
-        while(f > start) {
+        while(f != start) {
             *f *= (T)1/(i--)*i;         // Eq (11) (faster than *f /= i--/i)
             *f += *f--;                 // Eq (10)
         }
@@ -104,23 +104,23 @@ template<class T> class TridiagonalMatrix<2,T> {                            // T
                 T* arr = new T[cutoff];
                 T* start;
                 if(owner->_cutoff < cutoff) {       // Extend values
-                    start = &arr[owner->_cutoff];
+                    start = &arr[owner->_cutoff]-1;
                     arr = &arr[cutoff-1];
                     double i = cutoff+1;
-                    while(arr >= start)
+                    while(arr != start)
                         *arr-- = (T)1/(i--)*i;          // Calculate (i-1)/i values
                 }
                 if(owner->_cutoff!= 0) {
-                    start = owner->factor;
+                    start = owner->factor-1;
                     if(owner->_cutoff < cutoff)
                         owner->factor= &owner->factor[owner->_cutoff-1];
                     else {
                         arr = &arr[cutoff-1];
                         owner->factor= &owner->factor[cutoff-1];
                     }
-                    while(owner->factor >= start)   // Copy already calculated values
+                    while(owner->factor != start)   // Copy already calculated values
                         *arr-- = *(owner->factor--);
-                    delete [] start;
+                    delete [] ++start;
                 }
                 owner->factor = ++arr;
             }
@@ -162,11 +162,13 @@ template<class T> class TridiagonalMatrix<2,T> {                            // T
 
 // Declartion of global functions
 template<class T> T* CopyOfArray(T* arr, unsigned int n);
+template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n);
 
 int main() {
-    unsigned int n[] = {4,100,1000,100000000};  // Size of matrix to solve
+    unsigned int n[] = {4,100,1000,10000,100000000};  // Size of matrix to solve
     double _x = 0, x_ = 1;                      // Solution interval
-    ofstream timefile;
+    char filename[50];
+    ofstream timefile, file;
     timefile.open("time.dat");
 
     for(unsigned int i = 0; i < ARRAY_SIZE(n); i++) {
@@ -174,23 +176,31 @@ int main() {
         double* a = new double[n[i]];           // a_{i,i pm 1} elements in tridiagonal matrix
         double* b = new double[n[i]];           // a_{i,i} elements in tridiagonal matrix
         double* f = new double[n[i]];           // Sorce term
+        double* x = new double[n[i]];           // the variable x
+        double* u = new double[n[i]];         // the closed form solution
 
         for(unsigned int j = 0; j < n[i]; j++) {        // Initialize values
             a[j] = -1;
             b[j] = 2;
-            f[j] = h*100.0*exp(-10.0*(j+1)*h);
+            x[j] = (j+1)*h;
+            f[j] = h*100.0*exp(-10.0*x[j]);
+            u[j] = (1-(1-exp(-10))*x[j]-exp(-10*x[j]));
         }
         double* f_tmp = CopyOfArray(f, n[i]);     // Backup array f
         timefile << n[i] << " & ";
+        if(n[i] <= 1000) {
+            sprintf(filename,"result_\%d.dat",n[i]);
+            file.open(filename);
+            WriteArrayToFile(&file, x, n[i]);
+            WriteArrayToFile(&file, u, n[i]);
+        }
 
         clock_t t0 = clock();
         f = TridiagonalMatrix<0,GetPointer<decltype(f)>::Type>::Solve(a, b, a, f, n[i]); // Solve general tridiagonal matrix
         auto t1 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t1 << " & ";
-        double s1 = f[0];
-        double s2 = f[1];
-        double s3 = f[2];
-        double s4 = f[3];
+        if(n[i] <= 1000)
+            WriteArrayToFile(&file, f, n[i]);
 
         delete [] f;
         f = f_tmp;
@@ -199,10 +209,8 @@ int main() {
         f = TridiagonalMatrix<1,GetPointer<decltype(f)>::Type>::Solve(f, n[i]);         // Solve -1,2,-1 tridiagonal matrix without memory usage
         auto t2 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t2 << " & ";
-        double r1 = f[0];
-        double r2 = f[1];
-        double r3 = f[2];
-        double r4 = f[3];
+        if(n[i] <= 1000)
+            WriteArrayToFile(&file, f, n[i]);
 
         delete [] f;
         f = f_tmp;
@@ -211,10 +219,8 @@ int main() {
         f = TridiagonalMatrix<2,GetPointer<decltype(f)>::Type>(n[i]).Solve(f, n[i]);    // Solve -1,2,-1 tridiagonal matrix without precalculated values but with memory usage
         auto t3 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t3 << " & ";
-        double u1 = f[0];
-        double u2 = f[1];
-        double u3 = f[2];
-        double u4 = f[3];
+        if(n[i] <= 1000)
+            WriteArrayToFile(&file, f, n[i]);
 
         delete [] f;
         f = f_tmp;
@@ -224,15 +230,14 @@ int main() {
         f = tri.Solve(f, n[i]);                                                         // solving -1,2,-1 tridiagonal matrix with memory usage
         auto t4 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t4 << " \\\\" << endl;
-        double v1 = f[0];
-        double v2 = f[1];
-        double v3 = f[2];
-        double v4 = f[3];
+        if(n[i] <= 1000)
+            WriteArrayToFile(&file, f, n[i]);
 
         delete [] a;        // Deallocate dynamic memory
         delete [] b;
         delete [] f;
         delete [] f_tmp;
+        file.close();
     }
     timefile.close();
     return 0;
@@ -242,4 +247,9 @@ template<class T> T* CopyOfArray(T* arr, unsigned int n) {
     for(unsigned int i = 0; i < n; i++)
         arr2[i] = arr[i];
     return arr2;
+}
+template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n) {
+    for(unsigned int i = 0; i < n; i++)
+        *file << array[i] << '\t';
+    *file << endl;
 }
