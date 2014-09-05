@@ -63,7 +63,7 @@ template<unsigned int Type, class T> class TridiagonalMatrix {              // G
     }
 };
 template<class T> class TridiagonalMatrix<1,T> {                            // Tridiagonal matrix -1,2,-1 without memory usage
-    public: static T* Solve(T* f, unsigned int n) {                       // 6n FLOPS => 2n FLOPS when n >> cutoff
+    public: static T* Solve(T* f, unsigned int n) {                         // 6n FLOPS => 2n FLOPS when n >> cutoff
         return Solve(f, n, n);
     }
     public: static T* Solve(T* f, unsigned int n, unsigned int cutoff) {
@@ -87,7 +87,7 @@ template<class T> class TridiagonalMatrix<1,T> {                            // T
             *f *= (T)1/(i--)*i;         // Eq (11) (faster than *f /= i--/i)
             *f += *f--;                 // Eq (10)
         }
-        *f /= 2;
+        *f /= (T)2;
         return f;
     }
 };
@@ -155,7 +155,7 @@ template<class T> class TridiagonalMatrix<2,T> {                            // T
             *f *= *fac--;               // Eq (11)
             *f += *f--;                 // Eq (10)
         }
-        *f /= 2.0;
+        *f /= (T)2;
         return f;
     }
 };
@@ -165,11 +165,15 @@ template<class T> T* CopyOfArray(T* arr, unsigned int n);
 template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n);
 
 int main() {
-    unsigned int n[] = {4,100,1000,10000,100000000};  // Size of matrix to solve
+    unsigned int n[] = {10,100,1000,10000/*,100000000*/};  // Size of matrix to solve
     double _x = 0, x_ = 1;                      // Solution interval
     char filename[50];
     ofstream timefile, file;
     timefile.open("time.dat");
+    mat A = mat(5,5);
+    double ver = A[6,6];
+    A[6,6] = 10;
+    cout << "hei" << endl;
 
     for(unsigned int i = 0; i < ARRAY_SIZE(n); i++) {
         double h = (x_-_x)/(n[i]+1);            // Step length
@@ -183,7 +187,7 @@ int main() {
             a[j] = -1;
             b[j] = 2;
             x[j] = (j+1)*h;
-            f[j] = h*100.0*exp(-10.0*x[j]);
+            f[j] = h*h*100.0*exp(-10.0*x[j]);
             u[j] = (1-(1-exp(-10))*x[j]-exp(-10*x[j]));
         }
         double* f_tmp = CopyOfArray(f, n[i]);     // Backup array f
@@ -192,15 +196,19 @@ int main() {
             sprintf(filename,"result_\%d.dat",n[i]);
             file.open(filename);
             WriteArrayToFile(&file, x, n[i]);
+            file << endl;
             WriteArrayToFile(&file, u, n[i]);
+            file << endl;
         }
 
         clock_t t0 = clock();
         f = TridiagonalMatrix<0,GetPointer<decltype(f)>::Type>::Solve(a, b, a, f, n[i]); // Solve general tridiagonal matrix
         auto t1 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t1 << " & ";
-        if(n[i] <= 1000)
+        if(n[i] <= 1000) {
             WriteArrayToFile(&file, f, n[i]);
+            file << endl;
+        }
 
         delete [] f;
         f = f_tmp;
@@ -209,8 +217,10 @@ int main() {
         f = TridiagonalMatrix<1,GetPointer<decltype(f)>::Type>::Solve(f, n[i]);         // Solve -1,2,-1 tridiagonal matrix without memory usage
         auto t2 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t2 << " & ";
-        if(n[i] <= 1000)
+        if(n[i] <= 1000) {
             WriteArrayToFile(&file, f, n[i]);
+            file << endl;
+        }
 
         delete [] f;
         f = f_tmp;
@@ -219,8 +229,10 @@ int main() {
         f = TridiagonalMatrix<2,GetPointer<decltype(f)>::Type>(n[i]).Solve(f, n[i]);    // Solve -1,2,-1 tridiagonal matrix without precalculated values but with memory usage
         auto t3 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t3 << " & ";
-        if(n[i] <= 1000)
+        if(n[i] <= 1000) {
             WriteArrayToFile(&file, f, n[i]);
+            file << endl;
+        }
 
         delete [] f;
         f = f_tmp;
@@ -249,7 +261,7 @@ template<class T> T* CopyOfArray(T* arr, unsigned int n) {
     return arr2;
 }
 template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n) {
-    for(unsigned int i = 0; i < n; i++)
+    for(unsigned int i = 0; i < n-1; i++)
         *file << array[i] << '\t';
-    *file << endl;
+    *file << array[n-1];
 }
