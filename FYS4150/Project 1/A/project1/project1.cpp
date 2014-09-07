@@ -30,17 +30,17 @@ template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n
 
 int main() {
     unsigned int n[] = {10,100,1000,10000,100000000};  // Size of matrix to solve
-    double _x = 0, x_ = 1;                      // Solution interval
+    FLOAT _x = 0, x_ = 1;                      // Solution interval
     char filename[50];
     ofstream timefile, file, errorfile;
     timefile.open("time.dat");
     errorfile.open("error.dat");
 
     for(unsigned int i = 0; i < ARRAY_SIZE(n); i++) {
-        double h = (x_-_x)/(n[i]+1);            // Step length
-        double* f = new double[n[i]];           // Sorce term
-        double* x = new double[n[i]+2];         // the variable x
-        double* u = new double[n[i]+2];         // the closed form solution
+        FLOAT h = (x_-_x)/(n[i]+1);             // Step length
+        FLOAT* f = new FLOAT[n[i]];             // Sorce term
+        FLOAT* x = new FLOAT[n[i]+2];           // the variable x
+        FLOAT* u = new FLOAT[n[i]+2];           // the closed form solution
 
         x[n[i]+1] = x_;
         for(unsigned int j = 0; j < n[i]; j++) {    // Initialize values
@@ -56,7 +56,7 @@ int main() {
             WriteArrayToFile(&file, u, n[i]+2);
             file << endl;
         }
-        double* f_tmp = CopyOfArray(f, n[i]);       // Backup array f
+        FLOAT* f_tmp = CopyOfArray(f, n[i]);       // Backup array f
         timefile << n[i] << " & ";
         errorfile << n[i] << " & ";
 
