@@ -4,6 +4,8 @@
  *  Written by: Eimund Smestad
  *
  *  30.08.2014
+ *
+ *  c11 compiler
  */
 
 // Include files
@@ -17,6 +19,7 @@ using namespace arma;
 using namespace std;
 
 // Macros
+#define FLOAT double
 #define ARRAY_SIZE(X) sizeof(X)/sizeof(*X)      // Calculate static array size at compile time
 
 // Classes
@@ -94,7 +97,7 @@ template<class T> class TridiagonalMatrix<1,T> {                            // T
 template<class T> class TridiagonalMatrix<2,T> {                            // Tridiagonal matrix -1,2,-1 with memory usage
     public: T* factor;                   // Precalculated values
     private: unsigned int _cutoff;
-    public: class _cutoff_{              // property class
+    public: class _cutoff_ {             // property class
         private: TridiagonalMatrix<2,T>* owner;
         public: _cutoff_(TridiagonalMatrix<2,T>* owner) : owner(owner) {
             this->owner->_cutoff = 0;
@@ -159,40 +162,50 @@ template<class T> class TridiagonalMatrix<2,T> {                            // T
         return f;
     }
 };
+template<class T> class LUMatrix {
+    public: inline static void Solve(Mat<T>* X, T* f) {
+        Mat<T> L, U;
+        lu(L, U, *X);                   // Armadillo LU decomposition
+        int i = 0, j, n = X->n_rows;
+        T* f_;
+        while(++i < n) {                // Forward solve Ly = f
+            f_ = &f[i];
+            for(j = 0; j < i; j++)
+                *f_ -= L(i,j)*f[j];
+        }
+        n--;
+        while(i--) {                    // Backward solve Ux = y
+            f_ = &f[i];
+            for(j = n; j > i; --j)
+                *f_ -= U(i,j)*f[j];
+            *f_ /= U(i,i);
+        }
+    }
+};
 
 // Declartion of global functions
 template<class T> T* CopyOfArray(T* arr, unsigned int n);
 template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n);
 
 int main() {
-    unsigned int n[] = {10,100,1000,10000/*,100000000*/};  // Size of matrix to solve
+    unsigned int n[] = {4,100,1000,10000,100000000};  // Size of matrix to solve
     double _x = 0, x_ = 1;                      // Solution interval
     char filename[50];
     ofstream timefile, file;
     timefile.open("time.dat");
-    mat A = mat(5,5);
-    double ver = A[6,6];
-    A[6,6] = 10;
-    cout << "hei" << endl;
 
     for(unsigned int i = 0; i < ARRAY_SIZE(n); i++) {
+        mat A;                                  // Matrix for armadillo
         double h = (x_-_x)/(n[i]+1);            // Step length
         double* a = new double[n[i]];           // a_{i,i pm 1} elements in tridiagonal matrix
         double* b = new double[n[i]];           // a_{i,i} elements in tridiagonal matrix
         double* f = new double[n[i]];           // Sorce term
         double* x = new double[n[i]];           // the variable x
-        double* u = new double[n[i]];         // the closed form solution
+        double* u = new double[n[i]];           // the closed form solution
 
-        for(unsigned int j = 0; j < n[i]; j++) {        // Initialize values
-            a[j] = -1;
-            b[j] = 2;
-            x[j] = (j+1)*h;
-            f[j] = h*h*100.0*exp(-10.0*x[j]);
-            u[j] = (1-(1-exp(-10))*x[j]-exp(-10*x[j]));
-        }
-        double* f_tmp = CopyOfArray(f, n[i]);     // Backup array f
-        timefile << n[i] << " & ";
         if(n[i] <= 1000) {
+            A = mat(n[i],n[i],fill::zeros);
+
             sprintf(filename,"result_\%d.dat",n[i]);
             file.open(filename);
             WriteArrayToFile(&file, x, n[i]);
@@ -200,6 +213,23 @@ int main() {
             WriteArrayToFile(&file, u, n[i]);
             file << endl;
         }
+        for(unsigned int j = 0; j < n[i]; j++) {        // Initialize values
+            a[j] = -1;
+            b[j] = 2;
+            x[j] = (j+1)*h;
+            f[j] = h*h*100.0*exp(-10.0*x[j]);
+            u[j] = (1-(1-exp(-10))*x[j]-exp(-10*x[j]));
+
+            if(n[i] <= 1000) {
+                A(j,j)= 2;
+                if(j) {
+                    A(j,j-1) = -1;
+                    A(j-1,j) = -1;
+                }
+            }
+        }        
+        double* f_tmp = CopyOfArray(f, n[i]);     // Backup array f
+        timefile << n[i] << " & ";
 
         clock_t t0 = clock();
         f = TridiagonalMatrix<0,GetPointer<decltype(f)>::Type>::Solve(a, b, a, f, n[i]); // Solve general tridiagonal matrix
@@ -241,14 +271,34 @@ int main() {
         t0 = clock();
         f = tri.Solve(f, n[i]);                                                         // solving -1,2,-1 tridiagonal matrix with memory usage
         auto t4 = (double)(clock()-t0)/CLOCKS_PER_SEC;
-        timefile << t4 << " \\\\" << endl;
+        timefile << t4 << " & ";
         if(n[i] <= 1000)
             WriteArrayToFile(&file, f, n[i]);
+        double r1 = f[0];
+        double r2 = f[1];
+        double r3 = f[2];
+        double r4 = f[3];
+
+        delete [] f;
+        f = f_tmp;
+        if(n[i] <= 1000) {
+            t0 = clock();
+            LUMatrix<double>::Solve(&A, f);                                             // Solve with LU decomposition amardillo
+            auto t5 = (double)(clock()-t0)/CLOCKS_PER_SEC;
+            timefile << t5 << " \\\\" << endl;
+        } else
+            timefile << "- \\\\" << endl;
+
+        double s1 = f[0];
+        double s2 = f[1];
+        double s3 = f[2];
+        double s4 = f[3];
 
         delete [] a;        // Deallocate dynamic memory
         delete [] b;
         delete [] f;
-        delete [] f_tmp;
+        delete [] x;
+        delete [] u;
         file.close();
     }
     timefile.close();
