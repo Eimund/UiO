@@ -151,5 +151,9 @@ Since \eqref{eq_9} is actually a constant that doesn't change with the source te
 
 \figur{0.8}{n_1000.eps}{Result from different tridiagonal matrix solvers for $n=1000$ steps compared to the closed form solution. All tridiagonal matrix solvers have overlapping line.}{} 
 
+\begin{tabell}{|r|c|c|c|c|c|}{}{Number of steps & 8n & 6n & 5n & 4n & Armadillo LU \\}{\input{build-project1-Desktop-Debug/error.dat}}{Order of relative error for the different solvers.}{}
+\end{tabell}
+
+
 \end{flushleft}
 \end{document}

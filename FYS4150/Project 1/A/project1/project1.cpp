@@ -78,7 +78,7 @@ template<class T> class TridiagonalMatrix<1,T> {                            // T
         T* start = f;
         T* mid = &f[n < cutoff ? n-1 : cutoff-1];
         T* end = &f[n-1];
-        T i = 1;                        // Faster to use double than int here
+        T i = 1;                        // Faster to use double than int here, and bad accuracy with int
         while(f != mid)
             *f += i++/i*(*f++);         // Eq (8)
         while(f != end)
@@ -185,14 +185,16 @@ template<class T> class LUMatrix {
 
 // Declartion of global functions
 template<class T> T* CopyOfArray(T* arr, unsigned int n);
+template<class T> T RelativeError(T* u, T* v, unsigned int n);
 template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n);
 
 int main() {
-    unsigned int n[] = {4,100,1000,10000,100000000};  // Size of matrix to solve
+    unsigned int n[] = {10,100,1000,10000,100000000};  // Size of matrix to solve
     double _x = 0, x_ = 1;                      // Solution interval
     char filename[50];
-    ofstream timefile, file;
+    ofstream timefile, file, errorfile;
     timefile.open("time.dat");
+    errorfile.open("error.dat");
 
     for(unsigned int i = 0; i < ARRAY_SIZE(n); i++) {
         mat A;                                  // Matrix for armadillo
@@ -230,11 +232,13 @@ int main() {
         }        
         double* f_tmp = CopyOfArray(f, n[i]);     // Backup array f
         timefile << n[i] << " & ";
+        errorfile << n[i] << " & ";
 
         clock_t t0 = clock();
         f = TridiagonalMatrix<0,GetPointer<decltype(f)>::Type>::Solve(a, b, a, f, n[i]); // Solve general tridiagonal matrix
         auto t1 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t1 << " & ";
+        errorfile << RelativeError(u, f, n[i]) << " & ";
         if(n[i] <= 1000) {
             WriteArrayToFile(&file, f, n[i]);
             file << endl;
@@ -247,6 +251,7 @@ int main() {
         f = TridiagonalMatrix<1,GetPointer<decltype(f)>::Type>::Solve(f, n[i]);         // Solve -1,2,-1 tridiagonal matrix without memory usage
         auto t2 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t2 << " & ";
+        errorfile << RelativeError(u, f, n[i]) << " & ";
         if(n[i] <= 1000) {
             WriteArrayToFile(&file, f, n[i]);
             file << endl;
@@ -259,6 +264,7 @@ int main() {
         f = TridiagonalMatrix<2,GetPointer<decltype(f)>::Type>(n[i]).Solve(f, n[i]);    // Solve -1,2,-1 tridiagonal matrix without precalculated values but with memory usage
         auto t3 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t3 << " & ";
+        errorfile << RelativeError(u, f, n[i]) << " & ";
         if(n[i] <= 1000) {
             WriteArrayToFile(&file, f, n[i]);
             file << endl;
@@ -272,6 +278,7 @@ int main() {
         f = tri.Solve(f, n[i]);                                                         // solving -1,2,-1 tridiagonal matrix with memory usage
         auto t4 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t4 << " & ";
+        errorfile << RelativeError(u, f, n[i]) << " & ";
         if(n[i] <= 1000)
             WriteArrayToFile(&file, f, n[i]);
         double r1 = f[0];
@@ -286,8 +293,11 @@ int main() {
             LUMatrix<double>::Solve(&A, f);                                             // Solve with LU decomposition amardillo
             auto t5 = (double)(clock()-t0)/CLOCKS_PER_SEC;
             timefile << t5 << " \\\\" << endl;
-        } else
+            errorfile << RelativeError(u, f, n[i]) << " \\\\" << endl;
+        } else {
             timefile << "- \\\\" << endl;
+            errorfile << "- \\\\" << endl;
+        }
 
         double s1 = f[0];
         double s2 = f[1];
@@ -302,6 +312,7 @@ int main() {
         file.close();
     }
     timefile.close();
+    errorfile.close();
     return 0;
 }
 template<class T> T* CopyOfArray(T* arr, unsigned int n) {
@@ -310,8 +321,18 @@ template<class T> T* CopyOfArray(T* arr, unsigned int n) {
         arr2[i] = arr[i];
     return arr2;
 }
+template<class T> T RelativeError(T* u, T* v, unsigned int n) {
+    T e, error = 0;
+    for(unsigned int i = 0; i < n; i++) {
+        e = abs((v[0]-u[0])/u[0]);
+        if(e > error)
+            error = e;
+    }
+    return log10(error);
+}
 template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n) {
     for(unsigned int i = 0; i < n-1; i++)
         *file << array[i] << '\t';
     *file << array[n-1];
 }
+
