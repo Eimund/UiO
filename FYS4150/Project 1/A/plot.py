@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 f = open('build-project1-Desktop-Debug/result_1000.dat', 'r')
 line = f.read().split('\n')
-data=[[0 for i in range(1000)] for i in range(len(line))]
+data=[[0 for i in range(1002)] for i in range(len(line))]
 for i in range(len(line)) :
     buf = line[i].split('\t')
     for j in range(len(buf)) :
@@ -15,11 +15,11 @@ for i in range(2,len(line)) :
 plt.title('n=1000')
 plt.xlabel('x')
 plt.ylabel('u')
-plt.legend(['exact','8n','6n','5n','4n'])
+plt.legend(['exact','4n'])
 f.close()
 f = open('build-project1-Desktop-Debug/result_100.dat', 'r')
 line = f.read().split('\n')
-data=[[0 for i in range(100)] for i in range(len(line))]
+data=[[0 for i in range(102)] for i in range(len(line))]
 for i in range(len(line)) :
     buf = line[i].split('\t')
     for j in range(len(buf)) :
@@ -31,11 +31,11 @@ for i in range(2,len(line)) :
 plt.title('n=100')
 plt.xlabel('x')
 plt.ylabel('u')
-plt.legend(['exact','8n','6n','5n','4n'])
+plt.legend(['exact','4n'])
 f.close()
 f = open('build-project1-Desktop-Debug/result_10.dat', 'r')
 line = f.read().split('\n')
-data=[[0 for i in range(10)] for i in range(len(line))]
+data=[[0 for i in range(12)] for i in range(len(line))]
 for i in range(len(line)) :
     buf = line[i].split('\t')
     for j in range(len(buf)) :
@@ -47,6 +47,6 @@ for i in range(2,len(line)) :
 plt.title('n=10')
 plt.xlabel('x')
 plt.ylabel('u')
-plt.legend(['exact','8n','6n','5n','4n'])
+plt.legend(['exact','4n'])
 f.close()
 plt.show()
