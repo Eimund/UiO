@@ -126,12 +126,12 @@ template<class T> class Matrix<MatrixType::TridiagonalGeneral, T> : MatrixDiagon
         T* end = &f[n-1];
         while(f != end) {
             temp = (*a++)/(*b++);
-            *b -= temp*(*c++);          // Eq (4) in report
-            *f -= temp*(*f++);          // Eq (3)
+            *b -= temp*(*c++);          // Eq (6) in report
+            *f -= temp*(*f++);          // Eq (5)
         }
         while(f != start) {
-            *f /= (*b--);               // Eq (7)
-            *f -= (*--c)*(*f--);        // Eq (6)
+            *f /= (*b--);               // Eq (9)
+            *f -= (*--c)*(*f--);        // Eq (8)
         }
         *f /= *b;
         return true;
@@ -199,11 +199,11 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : 
         T* end = &f[n-1];
         T i = 1;                        // Faster to use double than int here, and bad accuracy with int
         while(f != end)
-            *f += i++/i*(*f++);         // Eq (8)
+            *f += i++/i*(*f++);         // Eq (10)
         i++;
         while(f != start) {
-            *f *= 1/(i--)*i;            // Eq (11) (faster than *f /= i--/i)
-            *f += *f--;                 // Eq (10)
+            *f *= 1/(i--)*i;            // Eq (13) (faster than *f /= i--/i)
+            *f += *f--;                 // Eq (12)
         }
         *f /= 2;
         return true;
@@ -219,15 +219,15 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : 
         T* end = &f[n-1];
         T i = 1;                        // Faster to use double than int here, and bad accuracy with int
         while(f != mid)
-            *f += i++/i*(*f++);         // Eq (8)
+            *f += i++/i*(*f++);         // Eq (10)
         while(f != end)
-            *f += *f++;                 // Eq (8) with (i+1)/i = 1
+            *f += *f++;                 // Eq (10) with (i+1)/i = 1
         i++;
         while(f != mid)
-            *f += *f--;                 // Eq (10) with (i+1)/i = 1
+            *f += *f--;                 // Eq (12) with (i+1)/i = 1
         while(f != start) {
-            *f *= 1/(i--)*i;            // Eq (11) (faster than *f /= i--/i)
-            *f += *f--;                 // Eq (10)
+            *f *= 1/(i--)*i;            // Eq (13) (faster than *f /= i--/i)
+            *f += *f--;                 // Eq (12)
         }
         *f /= 2;
         return true;
@@ -241,11 +241,11 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : 
         T* end = &f[n-1];
         unsigned int i = 1;
         while(f != end)
-            *f += (T)(i++)/i*(*f++);  // Eq (8)
+            *f += (T)(i++)/i*(*f++);  // Eq (10)
         i++;
         while(f != start) {
-            *f *= (T)1/(i--)*i;         // Eq (11) (faster than *f /= i--/i)
-            *f += *f--;                 // Eq (10)
+            *f *= (T)1/(i--)*i;         // Eq (13) (faster than *f /= i--/i)
+            *f += *f--;                 // Eq (12)
         }
         *f /= 2;
         return true;
@@ -263,12 +263,12 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : 
         T* end = &f[n-1];
         while(f != end) {
             temp = (T)1/(*b++);
-            *b = 2 - temp;              // Eq (9) in report
-            *f += temp*(*f++);          // Eq (8)
+            *b = 2 - temp;              // Eq (11) in report
+            *f += temp*(*f++);          // Eq (10)
         }
         while(f != start) {
-            *f /= (*b--);               // Eq (11)
-            *f += (*f--);               // Eq (10)
+            *f /= (*b--);               // Eq (13)
+            *f += (*f--);               // Eq (12)
         }
         *f /= *b;
         return true;
@@ -333,10 +333,10 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_4n, T> : 
         T* end = &f[n-1];
         T* factor = this->factor;
         while(f != end)
-            *f += (*f++)*(*factor++);   // Eq (8)
+            *f += (*f++)*(*factor++);   // Eq (10)
         while(f != start) {
-            *f *= *factor--;            // Eq (11)
-            *f += *f--;                 // Eq (10)
+            *f *= *factor--;            // Eq (13)
+            *f += *f--;                 // Eq (12)
         }
         *f /= 2;
         return true;
