@@ -44,6 +44,7 @@ template<class M, class T> class MatrixDiagonal {
     }
 };
 template<class T> class Matrix<MatrixType::TridiagonalGeneral, T> : MatrixDiagonal<Matrix<MatrixType::TridiagonalGeneral, T>, T> {
+    private: T other;
     private: T *a, *b, *c;
     private: unsigned int _n;
     private: class _n_ {             // property class
@@ -97,8 +98,8 @@ template<class T> class Matrix<MatrixType::TridiagonalGeneral, T> : MatrixDiagon
             return a[col];
         else if(row == col-1)
             return c[row];
-        T dummy = 0;
-        return dummy;
+        other = 0;
+        return other;
     }
     public: void Diagonal(const int diagonal, const T value) {
         Diagonal(diagonal, value, _n);
@@ -161,7 +162,35 @@ template<class T> class TridiagonalElements_minus1_2_minus1 {
     }
 };
 template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : public TridiagonalElements_minus1_2_minus1<T> {
-    public: static bool Solve(T* f, unsigned int n) {                       // 6n FLOPS
+    private: T* b;
+    private: unsigned int _n;
+    private: class _n_ {             // property class
+        private: Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T>* owner;
+        public: _n_(Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T>* owner) : owner(owner) {
+            this->owner->_n = 0;
+            owner->b = new T[0];
+        }
+        public: unsigned int& operator = (const unsigned int& n) {  // set function
+            if(n && n != owner->_n) {
+                delete [] owner->b;
+                owner->b = new T[n];
+            }
+            return owner->_n = n;
+        }
+        public: operator unsigned int () const {                    // get function
+            return owner->_n;
+        }
+    };
+    public: _n_ n;
+    public: Matrix() : n(this) {
+    }
+    public: Matrix(unsigned int n) : n(this) {
+        this->n = n;
+    }
+    public: ~Matrix() {
+        delete [] b;
+    }
+    public: static bool Solve(T* f, unsigned int n) {
         /*
          * f are source elements b_{i}, f[0] = b_{1}
          * The values of i >= cutoff is when (i+1)/i is approximated to 1
@@ -223,13 +252,14 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : 
         *f /= 2;
         return true;
     }
-    public: static bool SolveTrue(T* f, unsigned int n) {                       // 6n FLOPS
+    public: bool SolveTrue(T* f, unsigned int n) {                       // 6n FLOPS (True)
         /*
          * f are source elements b_{i}, f[0] = b_{1}
          * The values of i >= cutoff is when (i+1)/i is approximated to 1
          */
 
-        T* b = new T[n];
+        if(_n < n)
+            this->n = n;
         b[0] = 2;
         T temp;
         T* start = f;
@@ -244,7 +274,6 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : 
             *f += (*f--);               // Eq (10)
         }
         *f /= *b;
-        delete [] b;
         return true;
     }
 };

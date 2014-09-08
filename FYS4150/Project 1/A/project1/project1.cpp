@@ -100,8 +100,9 @@ int main() {
         delete [] f;
         f = f_tmp;
         f_tmp = CopyOfArray(f, n[i]);
+        auto matrix3 = Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, FLOAT>(n[i]);
         t0 = clock();
-        Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, FLOAT>::SolveTrue(f,n[i]);   // Solve -1,2,-1 tridiagonal matrix without memory usage, true 6n FLOPS
+        matrix3.SolveTrue(f,n[i]);                                                      // Solve -1,2,-1 tridiagonal matrix without memory usage, true 6n FLOPS
         auto t5 = (double)(clock()-t0)/CLOCKS_PER_SEC;
         timefile << t5 << " & ";
         errorfile << RelativeError(&u[1], f, n[i]) << " & ";
