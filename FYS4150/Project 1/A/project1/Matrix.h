@@ -382,7 +382,7 @@ template<class T> class Matrix<MatrixType::LU_decomposition, T> : public MatrixD
             n--;
             while(i--) {                    // Backward solve Ux = y
                 f_ = &f[i];
-                for(j = n; j > i; --j)
+                for(j = n; j > i; j--)
                     *f_ -= U(i,j)*f[j];
                 *f_ /= U(i,i);
             }
