@@ -193,7 +193,6 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : 
     public: static bool Solve(T* f, unsigned int n) {
         /*
          * f are source elements b_{i}, f[0] = b_{1}
-         * The values of i >= cutoff is when (i+1)/i is approximated to 1
          */
 
         T* start = f;
@@ -236,7 +235,6 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : 
     public: static bool SolveInt(T* f, unsigned int n) {
         /*
          * f are source elements b_{i}, f[0] = b_{1}
-         * The values of i >= cutoff is when (i+1)/i is approximated to 1
          */
 
         T* start = f;
@@ -255,7 +253,6 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_6n, T> : 
     public: bool SolveTrue(T* f, unsigned int n) {                       // 6n FLOPS (True)
         /*
          * f are source elements b_{i}, f[0] = b_{1}
-         * The values of i >= cutoff is when (i+1)/i is approximated to 1
          */
 
         if(_n < n)
