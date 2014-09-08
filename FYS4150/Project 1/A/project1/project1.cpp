@@ -138,6 +138,7 @@ int main() {
             matrix2.Diagonal(0,2);
             matrix2.Diagonal(-1,-1);
             matrix2.Diagonal(1,-1);
+            matrix2.LU();
             t0 = clock();
             matrix2.Solve(f, n[i]);                                                     // Solve with LU decomposition amardillo
             auto t8 = (double)(clock()-t0)/CLOCKS_PER_SEC;

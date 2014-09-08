@@ -343,7 +343,7 @@ template<class T> class Matrix<MatrixType::Tridiagonal_minus1_2_minus1_4n, T> : 
     }
 };
 template<class T> class Matrix<MatrixType::LU_decomposition, T> : public MatrixDiagonal<Matrix<MatrixType::LU_decomposition, T>, T> {
-    public: Mat<T> matrix;
+    public: Mat<T> matrix, L, U;
     private: unsigned int _n;
     private: class _n_ {             // property class
         private: Matrix<MatrixType::LU_decomposition, T>* owner;
@@ -367,12 +367,13 @@ template<class T> class Matrix<MatrixType::LU_decomposition, T> : public MatrixD
     public: T& operator() (const unsigned int row, const unsigned int col) { // Matrix indexing
         return matrix(row, col);
     }
+    public: void LU() {
+        lu(L, U, matrix);                   // Armadillo LU decomposition
+    }
     public: bool Solve(T* f, unsigned int n) {
         if(n == _n) {
-            Mat<T> L, U;
-            lu(L, U, matrix);                   // Armadillo LU decomposition
-            int i = 0, j, n = matrix.n_rows;
             T* f_;
+            int i = 0, j;
             while(++i < n) {                // Forward solve Ly = f
                 f_ = &f[i];
                 for(j = 0; j < i; j++)
