@@ -1,0 +1,219 @@
+\documentclass[11pt,english,a4paper]{article}
+\include{mitt_oppsett}
+\usepackage{fullpage}
+
+\renewcommand\title{FYS4150 - Computational Physics - Project 2}
+
+\renewcommand\author{Eimund Smestad}
+%\newcommand\adress{}
+\renewcommand\date{\today}
+\newcommand\email{\href{mailto:eimundsm@fys.uio.no}{eimundsm@fys.uio.no}}
+
+\lstset{language=[Visual]C++,caption={Descriptive Caption Text},label=DescriptiveLabel}
+
+\begin{document}
+\maketitle
+\begin{flushleft}
+
+\begin{abstract}
+This report looks at different algorithms to solve the one-dimensional Poisson's equation with Dirichlet boundary condition. The algorithms are compared by speed and floating point error in the solution. The results show how different ways of writing code effect speed and floating point error, and discusses how the machines architecture and functionally are the reason for the performance difference.
+\end{abstract}
+
+\section{Theory}
+
+Side 24
+
+\begin{align*}
+\im \hbar \frac{\partial \Psi}{\partial t} =- \frac{\hbar^2}{2m} \nabla^2 \Psi + V \Psi
+\end{align*}
+
+\begin{align*}
+\Psi\p{\vec{x},t} = \psi\p{\vec{x}} \varphi\p{t}
+\end{align*}
+
+\begin{align*}
+-\frac{\hbar^2}{2m} \frac{\mathrm{d}^2 \psi}{\mathrm{d} x^2} + V \psi = E \psi
+\end{align*}
+
+Side 133
+
+\begin{align*}
+\nabla^2 = \frac{1}{r^2} \frac{\partial}{\partial r}\p{r^2 \frac{\partial }{\partial r}} + \frac{1}{r^2 \sin \theta} \frac{\partial}{\partial \theta}\p{\sin \theta \frac{\partial }{\partial \theta}} + \frac{1}{r^2 \sin^2 \theta} \frac{\partial^2}{\partial \phi^2}
+\end{align*}
+
+\begin{align*}
+-\frac{\hbar^2}{2m}\kl{\frac{1}{r^2} \frac{\partial}{\partial r}\p{r^2 \frac{\partial \psi}{\partial r}} + \frac{1}{r^2 \sin \theta} \frac{\partial}{\partial \theta}\p{\sin\theta \frac{\partial \psi}{\partial \theta}} + \frac{1}{r^2 \sin^2 \theta} \frac{\partial^2 \psi}{\partial \phi}} + V \psi = E \psi
+\end{align*}
+
+\begin{align*}
+\psi\p{r,\theta,\phi} = R\p{r} Y\p{\theta, \phi} + C
+\end{align*}
+
+\begin{align*}
+\frac{1}{R}\frac{\mathrm{d}}{\mathrm{d}r}\p{r^2 \frac{\mathrm{d} R}{\mathrm{d} r}} - \frac{2m r^2}{\hbar^2}\p{V-E} + \frac{1}{Y}\p{\frac{1}{\sin \theta} \frac{\partial}{\partial \theta}\p{\sin\theta \frac{\partial Y}{\partial \theta}} + \frac{1}{\sin^2\theta}\frac{\partial^2 Y}{\partial \phi^2}} = \frac{2m r^2 C}{R Y \hbar^2}\p{V-E}
+\end{align*}
+
+\section{Eigenvalue algorithms}
+
+\subsection{Diagonalize by matrix similarity}\label{sec_Diagonalize}
+
+If we have a eigenvalue problem for a matrix $\mathbb{A}$ with eigenvector $\mathbf{x}$ and eigenvalue $\lambda$
+
+\begin{align*}
+\mathbf{A}\mathbf{x} = \lambda \mathbf{x} \,,
+\end{align*}
+
+we can transform it by a basis matrix $\mathbf{S}$ to a similar matrix $\mathbf{B} = \mathbf{S}^{-1}\mathbf{A}\mathbf{S}$ with the same eigenvalue $\lambda$ but with a different eigenvector $\mathbf{S}^{-1} \mathbf{x}$;
+
+\begin{align*}
+\lambda \mathbf{S}^{-1} \mathbf{x} = \mathbf{S}^{-1}\mathbf{A}\mathbf{x} = \mathbf{S}^{-1}\mathbf{A}\mathbf{S} \mathbf{S}^{-1}\mathbf{x} = \mathbf{B}\mathbf{S}^{-1}\mathbf{x} \,.
+\end{align*}
+
+If we are able to diagonalize out matrix $\mathbf{A}$ the eigenvalue problem becomes trivial to solve. However to directly diagonalize matrix $\mathbf{A}$ of size $n\times n$ requires to solve a $n$-th polynomial problem, which is a very hard task. So we choose a easier way by iteratively zero out more and more non-diagonal elements of matrix $\mathbf{A}$, which will eventually give us the diagonal matrix
+
+\begin{align*}
+\mathbf{D} = \prod_i \mathbf{S}_i^{-1} \mathbf{A} \prod_i \mathbf{S}_i\,.
+\end{align*}
+
+To make the problem simple to solve we define a basis matrix for transformation as such
+
+\begin{align}
+\mathbf{S} = \begin{bmatrix} 1 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 0  \\ 0 & 1 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots  \\ 0 & 0 & \cdots & s_{ii} & \cdots & s_{ij} & \cdots & 0\\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ji} & \cdots & s_{jj} & \cdots & 0\\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 1\\\end{bmatrix} \,,
+\label{eq_1}
+\end{align}
+
+where the strategy is for this basis matrix $\mathbf{S}$ will make $b_{ij} = b_{ji} = 0$ when we do a matrix similarity transformation of $\mathbf{A}$ to $\mathbf{B}$. The matrix elements of $\mathbf{S}^{-1}$ is then given by
+
+\begin{align*}
+s_{k\ell}^- = \begin{cases} \frac{s_{jj}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=\ell=i$} \\ -\frac{s_{ij}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=i$ and $\ell=j$} \\ -\frac{s_{ji}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=j$ and $\ell=i$} \\ \frac{s_{ii}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=\ell=j$} \\ 1 & \text{for $k=\ell\in\mathbb{N}_1^n/\kr{i,j}$} \\ 0 & \text{elsewhere.} \end{cases}
+\end{align*}
+
+To see how this matrix similarity transformation behaves we must do the cumbersome matrix multiplication of the transformation;
+
+\begin{align*}
+\mathbf{B} &= \mathbf{S}^{-1} \mathbf{A}\mathbf{S} 
+\\
+&= \begin{bmatrix} 1 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ 0 & 1 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ii}^- & \cdots & s_{ij}^- & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ji}^- & \cdots & s_{jj}^- & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 1 \end{bmatrix}\begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1i} & \cdots & a_{1j} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2i} & \cdots & a_{2j} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{i1} & a_{i2} & \cdots & a_{ii} & \cdots & a_{ij} & \cdots & a_{in} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{j1} & a_{j2} & \cdots & a_{ji} & \cdots & a_{jj} & \cdots & a_{jn} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \cdots & a_{ni} & \cdots & a_{nj} & \cdots &a_{nn}\end{bmatrix}\mathbf{S}
+\\
+&= \begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1i} & \cdots & a_{1j} & \cdots & a_{1n}  \\ a_{21} & a_{22} & \cdots & a_{2i} & \cdots & a_{2j} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ s_{ii}^- a_{i1} + s_{ij}^- a_{j1} & s_{ii}^- a_{i2} + s_{ij}^- a_{j2} & \cdots & s_{ii}^- a_{ii} + s_{ij}^- a_{ji} & \cdots & s_{ii}^- a_{ij} + s_{ij}^- a_{jj} & \cdots & s_{ii}^- a_{in} + s_{ij}^- a_{jn} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ s_{ji}^- a_{i1} + s_{jj}^- a_{j1} & s_{ji}^- a_{i2} + s_{jj}^- a_{j2} & \cdots & s_{ji}^- a_{ii} + s_{jj}^- a_{ji} & \cdots & s_{ji}^- a_{ij} + s_{jj}^- a_{jj} & \cdots & s_{ji}^- a_{in} + s_{jj}^- a_{jn} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \cdots & a_{ni} & \cdots & a_{nj} & \cdots &a_{nn}\end{bmatrix} \mathbf{S}
+\\ 
+&= \begin{bmatrix} a_{11}^- & a_{12}^- & \cdots & a_{1i}^- & \cdots & a_{1j}^- & \cdots & a_{1n}^- \\ a_{21}^- & a_{22}^- & \cdots & a_{2i}^- & \cdots & a_{2j}^- & \cdots & a_{2n}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{i1}^- & a_{i2}^- & \cdots & a_{ii}^- & \cdots & a_{ij}^- & \cdots & a_{in}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{j1}^- & a_{j2}^- & \cdots & a_{ji}^- & \cdots & a_{jj}^- & \cdots & a_{jn}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{n1}^- & a_{n2}^- & \cdots & a_{ni}^- & \cdots & a_{nj}^- & \cdots &a_{nn}\end{bmatrix}\begin{bmatrix} 1 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ 0 & 1 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ii} & \cdots & s_{ij} & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ji} & \cdots & s_{jj} & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 1 \end{bmatrix}
+\\
+&= \begin{bmatrix} a_{11}^- & a_{12}^- & \cdots & a_{1i}^- s_{ii} + a_{1j}^- s_{ji} & \cdots & a_{1i}^- s_{ij} + a_{1j}^- s_{jj} & \cdots & a_{1n}^- \\  a_{21}^- & a_{22}^- & \cdots & a_{2i}^- s_{ii} + a_{2j}^- s_{ji} & \cdots & a_{2i}^- s_{ij} + a_{2j}^- s_{jj} & \cdots & a_{2n}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\  a_{i1}^- & a_{i2}^- & \cdots & a_{ii}^- s_{ii} + a_{ij}^- s_{ji} & \cdots & a_{ii}^- s_{ij} + a_{ij}^- s_{jj} & \cdots & a_{in}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{j1}^- & a_{j2}^- & \cdots & a_{ji}^- s_{ii} + a_{jj}^- s_{ji} & \cdots & a_{ji}^- s_{ij} + a_{jj}^- s_{jj} & \cdots & a_{jn}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{n1}^- & a_{n2}^- & \cdots & a_{ni}^- s_{ii} + a_{nj}^- s_{ji} & \cdots & a_{ni}^- s_{ij} + a_{nj}^- s_{jj} & \cdots & a_{nn}^-\end{bmatrix} \,,
+\end{align*}
+
+which gives us the matrix elements of the similarity matrix $\mathbf{B}$
+
+\begin{align}
+b_{k\ell} = \begin{cases} s_{ii}^- a_{ii} s_{ii} + s_{ij}^- a_{ji} s_{ii} + s_{ii}^- a_{ij} s_{ji} + s_{ij}^- a_{jj} s_{ji} & \text{for $k=\ell=i$} \\ s_{ii}^- a_{ii} s_{ij} + s_{ij}^- a_{ji} s_{ij} + s_{ii}^- a_{ij} s_{jj} + s_{ij}^- a_{jj} s_{jj} & \text{for $k=i$ and $\ell = j$} \\ s_{ji}^- a_{ii} s_{ii} + s_{jj}^- a_{ji} s_{ii} + s_{ji}^- a_{ij} s_{ji} + s_{jj}^- a_{jj} s_{ji} & \text{for $k=j$ and $\ell=i$} \\ s_{ji}^- a_{ii} s_{ij} + s_{jj}^- a_{ji} s_{ij} + s_{ji}^- a_{ij} s_{jj} + s_{jj}^- a_{jj} s_{jj} & \text{for $k=\ell=j$} \\ s_{ki}^- a_{i \ell} + s_{kj}^- a_{j\ell} & \text{for $k\in\kr{i,j}$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} s_{i\ell} + a_{kj}s_{j\ell} & \text{for $\ell\in\kr{i,j}$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
+\label{eq_2}
+\end{align}
+
+What we want our matrix similarity transformation to do is to set $b_{ij} = b_{ji} = 0$, but we also need to ensure that the basis matrix $\mathbf{S}$ for the transformation is invertible. Hence we have the following three equation we want to solve 
+
+\begin{align}
+s_{ii} s_{jj} - s_{ij} s_{ji} &= 1 
+\label{eq_3}\\
+a_{ji} {s_{ij}}^2-\p{a_{ii}-a_{jj}}s_{jj}s_{ij} - a_{ij}{s_{jj}}^2 &= 0 \label{eq_4}\\
+a_{ij} {s_{ji}}^2 - \p{a_{jj}-a_{ii}}s_{ii}s_{ji} - a_{ji}{s_{ii}}^2 &= 0 \,. \label{eq_5}
+\end{align} 
+
+If the matrix $\mathbf{A}$ is indeed diagonalizable then the above three equations above solvable. We further observer that we have four unknowns in the three equations, which means that we can choose one of them as we want, I suggest $s_{ii}=1$. I will not show the solution here, but it involves in principle in two second order equations $a x^2 + b x + c = 0$ which has a well known analytical solution $x = \frac{-b\pm\sqrt{b^2 - 4ac}}{2a}$. Be aware of that the coefficient $a$ may be zero which would make it a first order equations to solve instead. If the coefficient $b=0$ in addition to $a=0$, then the matrix $\mathbf{A}$ is not diagonalizable. \linebreak
+
+There are on last thing we need to consider regarding the diagonalizing algorithm, and that is that the matrix elements $b_{ix}$, $b_{jx}$, $b_{xi}$ and $b_{xj}$ for all $x\in\mathbb{N}_1^n / \kr{i,j}$ may change from zero to a value if we are not careful. Which may undermine the work we try to do when we diagonalize the matrix. What we see in \eqref{eq_2} is if we lock $k$ to $i$ and let $\ell$ go through all possibilities $\ell\in\mathbb{N}_1^n / \kr{k}$ exactly once, we ensure that the values we have zeroed out for $k=i$ does not change when we do successive transformation with the same $k=i$;
+
+\begin{align*}
+&\begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \cdots & a_{nn} \end{bmatrix} 
+\sim \begin{bmatrix} b_{11}^{(1)} & b_{12}^{(1)} & \cdots & 0 \\ b_{21}^{(1)} & b_{22}^{(1)} & \cdots & b_{2n}^{(1)} \\ \vdots & \vdots & \ddots & \vdots \\ 0 & b_{n2}^{(1)} & \cdots & b_{nn}^{(1)} \end{bmatrix}
+\sim \begin{bmatrix} b_{11}^{(n-1)} & 0 & \cdots & 0 \\ 0 & b_{22}^{(n-1)} & \cdots & b_{2n}^{(n-1)} \\ \vdots & \vdots & \ddots & \vdots \\ 0 & b_{n2}^{(n-1)} & \cdots & b_{nn}^{(n-1)} \end{bmatrix} \to \begin{bmatrix} a_{11} & 0 & \cdots & 0 \\ 0 & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ 0 & a_{n2} & \cdots & a_{nn} \end{bmatrix} 
+\end{align*} 
+
+Note that we have now transformed such that $a_{ki} = a_{ii}\delta_{ik} = a_{ki}$, where $\delta_{ik}$ is the Kronecker delta function. Now we change indices to $i^\prime\neq i$ and let $j\in\mathbb{N}_1^n / \kr{i,i'}$, because we are done with the row and column $i$.  What we now realize in \eqref{eq_2} is that the elements of matrix $\mathbb{B}$ in the row or column $i$ is given by  $b_{i\ell}= a_{ii^\prime} s_{i^\prime \ell} + a_{ij} s_{j\ell} = 0$ because $k\not\in\kr{i^\prime, j}$ and $i^\prime \neq i \neq j$ which means that $a_{ii^\prime}=0$ and $a_{ij}=0$, and $b_{ki} = s_{ki^\prime}^- a_{i^\prime i} + s_{kj}^- a_{ji} = 0$ because $\ell\not\in\kr{i^\prime, j}$ and $i^\prime \neq i \neq j$ which means that $a_{i^\prime i} = 0$ and $a_{ji} = 0$. In other words the matrix elements in row or column $i$ that was zeroed out does not change when we continue to zero out matrix elements on row and column $i^\prime$, which means that we can continue the iteration until the matrix $\mathbf{A}$ is completely diagonalized;
+
+\begin{align*}
+\begin{bmatrix} a_{11} & 0 & 0 & \cdots & 0 \\ 0 & a_{22} & a_{23} & \cdots & a_{2n} \\ 0 & a_{32} & a_{33} & \cdots & a_{3n} \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 0 & a_{n2} & a_{n3} & \cdots & a_{nn} \end{bmatrix}
+&\sim \begin{bmatrix} b_{11}^{(1)} & 0 & 0 & \cdots & 0 \\ 0 & b_{22}^{(1)} & b_{23}^{(1)} & \cdots & 0 \\ 0 & b_{32}^{(1)} & b_{33}^{(1)} & \cdots & b_{3n}^{(1)} \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & b_{n3}^{(1)} & \cdots & b_{nn}^{(1)} \end{bmatrix}
+\sim \begin{bmatrix} b_{11}^{(n-2)} & 0 & 0 & \cdots & 0 \\ 0 & b_{22}^{(n-2)} & 0 & \cdots & 0 \\ 0 & 0 & b_{33}^{(n-2)} & \cdots & b_{3n}^{(n-2)} \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & b_{n3}^{(n-2)} & \cdots & b_{nn}^{(n-2)} \end{bmatrix}
+\\
+&\sim \begin{bmatrix} \lambda_1 & 0 & 0 & \cdots & 0 \\ 0 & \lambda_2 & 0 & \cdots & 0 \\ 0 & 0 & \lambda_3 & \cdots & 0 \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & 0 & \cdots & \lambda_n \end{bmatrix} \,.
+\end{align*}
+
+\subsection{Jacobi's eigenvalue algorithm}
+
+The Jacobi's eigenvalue algorithm is a special case of diagonalize by matrix similarity algorithm discussed in section \ref{sec_Diagonalize}, where we use a two dimensional rotation matrix in $n$ dimensional space
+
+\begin{align}
+\mathbf{R}_{i,j,\theta} = \begin{bmatrix} 1 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ 0 & 1 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & r_{ii} = \cos \theta & \cdots & r_{ij} = -\sin\theta & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & r_{ji} = \sin \theta & \cdots & r_{jj} = \cos\theta & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 1 \end{bmatrix} \,,
+\label{eq_6}
+\end{align} 
+
+which satisfies the basis matrix $\mathbf{S}$ in \eqref{eq_1}. The rotation matrix can easily be shown to be a orthogonal matrix by realizing $\mathbf{R}_{-\theta} = {\mathbf{R}_{\theta}}^{-1} = {\mathbf{R}_{\theta}}^{\mathrm{T}}$, because when we rotate an angle $\theta$, we need to rotate an angle $-\theta$ to get back (or you could realize this by a more cumbersome way by actually do the matrix inversion). \linebreak
+
+By doing the matrix similarity transformation $\mathbf{B} = \mathbf{R}_{i,j,-\theta}\mathbf{A}\mathbf{R}_{i,j,\theta}$, we get the following similar matrix elements according to \eqref{eq_2}
+
+\begin{align*}
+b_{k\ell} = \begin{cases} a_{ii} \cos^2\theta  + a_{jj}\sin^2 \theta + \p{a_{ij} + a_{ji}}\sin\theta\cos\theta & \text{for $k=\ell=i$} \\ a_{ij}\cos^2\theta - a_{ji}\sin^2\theta + \p{a_{jj}-a_{ii}}\sin\theta\cos\theta & \text{for $k=i$ and $\ell = j$} \\ a_{ji}\cos^2\theta - a_{ij}\sin^2\theta + \p{a_{jj}-a_{ii}}\sin\theta\cos\theta & \text{for $k=j$ and $\ell=i$} \\ a_{jj} \cos^2\theta  + a_{ii}\sin^2 \theta - \p{a_{ij} + a_{ji}}\sin\theta\cos\theta & \text{for $k=\ell=j$} \\ a_{i \ell} \cos\theta +  a_{j\ell} \sin\theta & \text{for $k=i$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{j\ell} \cos\theta - a_{i\ell}\sin\theta & \text{for $k=j$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} \cos\theta + a_{kj}\sin\theta & \text{for $\ell=i$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{kj}\cos\theta - a_{ki}\sin\theta & \text{for $\ell=j$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
+\end{align*}
+
+\begin{align*}
+b_{k\ell} = \begin{cases} a_{ii} \cos^2\theta  + a_{jj}\sin^2 \theta + \p{a_{ij} + a_{ji}}\sin\theta\cos\theta & \text{for $k=\ell=i$} \\ a_{ij}\cos^2\theta - a_{ji}\sin^2\theta + \p{a_{jj}-a_{ii}}\sin\theta\cos\theta & \text{for $k=i$ and $\ell = j$} \\ a_{ji}\cos^2\theta - a_{ij}\sin^2\theta + \p{a_{jj}-a_{ii}}\sin\theta\cos\theta & \text{for $k=j$ and $\ell=i$} \\ a_{jj} \cos^2\theta  + a_{ii}\sin^2 \theta - \p{a_{ij} + a_{ji}}\sin\theta\cos\theta & \text{for $k=\ell=j$} \\ a_{i \ell} \cos\theta +  a_{j\ell} \sin\theta & \text{for $k=i$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{j\ell} \cos\theta - a_{i\ell}\sin\theta & \text{for $k=j$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} \cos\theta + a_{kj}\sin\theta & \text{for $\ell=i$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{kj}\cos\theta - a_{ki}\sin\theta & \text{for $\ell=j$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
+\end{align*}
+
+
+The strategy is to set $b_{ij}$ and $b_{ji}$ to zero, which enables us by iteration to zero out every element in the matrix except the diagonal elements (as described in section \ref{sec_Diagonalize}). Unfortunately we have only one variable, namely $\theta$, which makes it impossible to diagonalize a general matrix $\mathbf{A}$ by similarity. However when $\mathbf{A}$ is a symmetric matrix, $a_{ij}=a_{ji}$, which gives us only one equation to solve to set both $b_{ij}$ and $b_{ji}$ to zero. For a symmetric matrix $\mathbf{A}$ we have the following elements of the similarity matrix $\mathbf{B}$
+
+\begin{align}
+b_{k\ell} = \begin{cases} a_{ii} \cos^2\theta  + a_{jj}\sin^2 \theta + 2 a_{ij}\sin\theta\cos\theta & \text{for $k=\ell=i$} \\ a_{ij}\p{\cos^2\theta - \sin^2\theta} + \p{a_{jj}-a_{ii}}\sin\theta\cos\theta & \text{for $k=i$ and $\ell = j$, or $k=j$ and $\ell = i$} \\ a_{jj} \cos^2\theta  + a_{ii}\sin^2 \theta - 2 a_{ij}\sin\theta\cos\theta & \text{for $k=\ell=j$} \\ a_{i \ell} \cos\theta +  a_{j\ell} \sin\theta & \text{for $k=i$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{j\ell} \cos\theta - a_{i\ell}\sin\theta & \text{for $k=j$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} \cos\theta + a_{kj}\sin\theta & \text{for $\ell=i$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{kj}\cos\theta - a_{ki}\sin\theta & \text{for $\ell=j$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
+\label{eq_7}
+\end{align}
+
+Now we are able to solve the following equation
+
+\begin{align*}
+b_{ij}=b_{ji} = a_{ij}\p{\cos^2\theta - \sin^2\theta}+\p{a_{jj}-a_{ii}}\sin\theta\cos\theta = 0 \,,
+\end{align*}
+
+and by using the trigonometric relation $\cos^2\theta+\sin^2\theta = 1$ we can rewrite to
+
+\begin{align*}
+\cos^4\theta -\cos^2\theta + \frac{{a_{ij}}^2}{\p{a_{ii}-a_{jj}}^2 + 4 {a_{ij}}^2} = 1\,.
+\end{align*}
+
+By solving this as a second order equation with regard to $\cos^2\theta$ and using the trigonometric relation $\cos^2\theta+\sin^2\theta = 1$ again, we get
+
+\begin{align}
+\theta = \arccos\sqrt{\frac{1}{2}\p{1+\sqrt{\frac{\p{a_{ii}-a_{jj}}^2}{\p{a_{ii}-a_{jj}}^2+4{a_{ij}}^2}}}} = \arcsin\sqrt{\frac{1}{2}\p{1-\sqrt{\frac{\p{a_{ii}-a_{jj}}^2}{\p{a_{ii}-a_{jj}}^2+4{a_{ij}}^2}}}} \,.
+\end{align}
+
+We can diagonalize the matrix $\mathbf{A}$ by doing matrix similarity transformation iteratively as described in section \ref{sec_Diagonalize}. However we can optimize Jacobi's eigenvalue algorithm by using  the Frobenius norm.
+
+
+\section{Attachments}
+
+The files produced in working with this project can be found at \href{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%201/A}{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%201/A} \linebreak
+
+The source files developed are
+
+
+\section{Resources}
+
+\begin{enumerate}
+\item{\href{http://qt-project.org/downloads}{QT Creator 5.3.1 with C11}}
+\item{\href{http://arma.sourceforge.net/}{Armadillo}}
+\item{\href{https://www.eclipse.org/downloads/}{Eclipse Standard/SDK  - Version: Luna Release (4.4.0) with PyDev for Python}}
+\item{\href{http://www.ubuntu.com/download/desktop}{Ubuntu 14.04.1 LTS}}
+\item{\href{http://shop.lenovo.com/no/en/laptops/thinkpad/w-series/w540/#tab-reseller}{ThinkPad W540 P/N: 20BG0042MN with 32 GB RAM}}
+\end{enumerate}
+
+\begin{thebibliography}{9}
+\bibitem{project1}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/project1_2014.pdf}{\emph{FYS4130 - Project 1 - Description}}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014}  
+\bibitem{Eigenvaule}{\href{http://en.wikipedia.org/wiki/Eigenvalues\_and\_eigenvectors}{http://en.wikipedia.org/wiki/Eigenvalues\_and\_eigenvectors}}
+\bibitem{JacobiMethod}{\href{http://en.wikipedia.org/wiki/Jacobi\_eigenvalue\_algorithm}{http://en.wikipedia.org/wiki/Jacobi\_eigenvalue\_algorithm}}
+\bibitem{MatrixSimularity}{\href{http://en.wikipedia.org/wiki/Matrix\_similarity}{http://en.wikipedia.org/wiki/Matrix\_similarity}}
+\bibitem{RotationMatrix}{\href{http://en.wikipedia.org/wiki/Rotation\_matrix}{http://en.wikipedia.org/wiki/Rotation\_matrix}}
+\bibitem{OrthogonalMatrix}{\href{http://en.wikipedia.org/wiki/Orthogonal\_matrix}{http://en.wikipedia.org/wiki/Orthogonal\_matrix}}
+\bibitem{Frobenius}{\href{http://en.wikipedia.org/wiki/Matrix\_norm\#Frobenius\_norm}{http://en.wikipedia.org/wiki/Matrix\_norm\#Frobenius\_norm}}
+\end{thebibliography}
+\end{flushleft}
+\end{document}
