@@ -187,10 +187,36 @@ By solving this as a second order equation with regard to $\cos^2\theta$ and usi
 
 We can diagonalize the matrix $\mathbf{A}$ by doing matrix similarity transformation iteratively as described in section \ref{sec_Diagonalize}. However we can optimize Jacobi's eigenvalue algorithm by using  the Frobenius norm.
 
+\section{Numerical implementation}
+
+We can optimize the calculation of diagonal elements in \eqref{eq_7} by rewriting them by using the trigonometrical relation $\cos^2\theta+\sin^2\theta = 1$;
+
+\begin{align}
+b_{ii} &= a_{ii}\cos^2\theta + a_{jj}\sin^2\theta + 2 a_{ij}\sin\theta\cos\theta 
+= a_{ii}\p{1-\sin^2\theta} + a_{jj}\sin^2\theta + 2 a_{ij}\sin\theta\cos\theta
+\nonumber\\
+&= a_{ii} + \kl{\p{a_{jj}-a_{ii}}\sin^2\theta + 2 a_{ij}\sin\theta\cos\theta}
+\\
+b_{jj} &= a_{jj}\cos^2\theta + a_{ii}\sin^2\theta - 2a_{ij}\sin\theta\cos\theta
+= a_{jj}\p{1-\sin^2\theta} + a_{ii}\sin^2\theta - 2a_{ij}\sin\theta\cos\theta
+\nonumber\\
+&= a_{jj} - \kl{\p{a_{jj}-a_{ii}}\sin^2\theta + 2a_{ij}\sin\theta\cos\theta}
+\end{align}
+
+Note that it's better to use $\sin^2\theta$ instead of $\cos^2\theta$, because when we look at 
+
+\begin{align*}
+b_{ii} &= a_{jj} + \kl{\p{a_{ii}-a_{jj}}\cos^2\theta + 2a_{ij}\cos\theta\sin\theta}
+\\
+b_{jj} &= a_{ii} - \kl{\p{a_{ii}-a_{jj}}\cos^2\theta + 2a_{ij}\cos\theta\sin\theta} \,,
+\end{align*}
+
+we see that $a_{jj}$ corresponds to $b_{ii}$ and $a_{ii}$ corresponds to $b_{jj}$, which means that we need to backup either $a_{ii}$ or $a_{jj}$ before we do the calculation, so we don't overwrite the value before we have used in the calculation. However for the $\sin^2\theta$ expressions we have that $a_{ii}$ corresponds to $b_{ii}$ and $a_{jj}$ corresponds to $b_{jj}$, which means that we don't need to backup $a_{ii}$ or $a_{jj}$, and we can  use the program operator \texttt{+=} directly on the diagonal elements. 
+
 
 \section{Attachments}
 
-The files produced in working with this project can be found at \href{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%201/A}{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%201/A} \linebreak
+The files produced in working with this project can be found at \href{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%202}{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%202} \linebreak
 
 The source files developed are
 
@@ -206,7 +232,7 @@ The source files developed are
 \end{enumerate}
 
 \begin{thebibliography}{9}
-\bibitem{project1}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/project1_2014.pdf}{\emph{FYS4130 - Project 1 - Description}}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{project1}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-2-deadline-september-22/project2_2014.pdf}{\emph{FYS4130 - Project 2}} - \emph{Schr\"{o}dinger's equation for two electrons in a three-dimensional harmonic oscillator well}, \href{http://www.uio.no}{University of Oslo}, 2014} 
 \bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014}  
 \bibitem{Eigenvaule}{\href{http://en.wikipedia.org/wiki/Eigenvalues\_and\_eigenvectors}{http://en.wikipedia.org/wiki/Eigenvalues\_and\_eigenvectors}}
 \bibitem{JacobiMethod}{\href{http://en.wikipedia.org/wiki/Jacobi\_eigenvalue\_algorithm}{http://en.wikipedia.org/wiki/Jacobi\_eigenvalue\_algorithm}}
