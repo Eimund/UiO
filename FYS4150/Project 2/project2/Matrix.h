@@ -3,7 +3,7 @@
  *
  *  Written by: Eimund Smestad
  *
- *  07.09.2014
+ *  16.09.2014
  *
  *  c11 compiler
  */
@@ -12,11 +12,14 @@
 #define MATRIX_H
 
 #include "armadillo"
+#include "lib.cpp"
 
 using namespace arma;
 
 enum class MatrixType {
+    Symmetric,
     Tridiagonal,
+    Tridiagonal_m1_2_m1,
     Tridiagonal_m1_2_m1_6n,
     Tridiagonal_m1_2_m1_4n,
     LU_decomposition
@@ -25,31 +28,140 @@ enum class MatrixType {
 template<MatrixType Type, class T> class Matrix;
 template<class M, class T> class MatrixDiagonal {
     private: M* owner;
-    protected: MatrixDiagonal(M* owner) : owner(owner) {        // Fill a diagonal in a matrix with on value
-    }
-    public: inline void Diagonal(const int diagonal, const T value) {
-        Diagonal(diagonal, value, owner->n);
-    }
-    public: inline void Diagonal(const int diagonal, const T value, const unsigned int n) {
-        unsigned int d = abs(diagonal);
-        owner->n = n;
-        unsigned int nmax = n - d;
-        if(diagonal > 0) {
-            for(unsigned int i = 0; i < nmax; i++)
-                owner->operator()(i,i+d) = value;
-        } else {
-            for(unsigned int i = 0; i < nmax; i++)
-                owner->operator()(i+d,i) = value;
+    private: template<class P> class Type {
+        public: static inline void Diagonal(M* owner, const int diagonal, const P value, const unsigned int n) {
+            unsigned int d = abs(diagonal);
+            owner->n = n;
+            unsigned int nmax = n - d;
+            if(diagonal > 0) {
+                for(unsigned int i = 0; i < nmax; i++)
+                    owner->operator()(i,i+d) = value;
+            } else {
+                for(unsigned int i = 0; i < nmax; i++)
+                    owner->operator()(i+d,i) = value;
+            }
         }
+    };
+    private: template<class P> class Type<P*> {
+        public: static inline void Diagonal(M* owner, const int diagonal, P* value, const unsigned int n) {
+            unsigned int d = abs(diagonal);
+            owner->n = n;
+            unsigned int nmax = n - d;
+            if(diagonal > 0) {
+                for(unsigned int i = 0; i < nmax; i++)
+                    owner->operator()(i,i+d) = value[i];
+            } else {
+                for(unsigned int i = 0; i < nmax; i++)
+                    owner->operator()(i+d,i) = value[i];
+            }
+        }
+    };
+    protected: MatrixDiagonal(M* owner) : owner(owner) {
+    }
+    public: template<class P> inline void Diagonal(const int diagonal, const P value) {
+        Type<P>::Diagonal(owner, diagonal, value, owner->n);
+    }
+    public: template<class P> inline void Diagonal(const int diagonal, const P value, const unsigned int n) {
+        Type<P>::Diagonal(owner, diagonal, value, n);
     }
 };
-template<class T> class Matrix<MatrixType::Tridiagonal, T> : MatrixDiagonal<Matrix<MatrixType::Tridiagonal, T>, T> {
-    private: T other;
-    private: T *a, *b, *c;
+template <class M, class T> class MatrixElements {
+    private: T** matrix;
     private: unsigned int _n;
     private: class _n_ {             // property class
-        private: Matrix<MatrixType::Tridiagonal, T>* owner;
-        public: _n_(Matrix<MatrixType::Tridiagonal, T>* owner) : owner(owner) {
+        private: M* owner;
+        public: _n_(M* owner) : owner(owner) {
+            this->owner->_n = 1;
+            owner->matrix = new T*[1];
+            owner->matrix[0] = new T[1];
+        }
+        public: unsigned int& operator = (const unsigned int& n) { // set function
+            if(n && n != owner->_n) {
+                T** matrix = new T*[n];
+                for(unsigned int i = 0; i < n; i++)
+                    matrix[i] = new T[n];
+                unsigned int n_ = n < owner->_n ? n : owner->_n;
+                for(unsigned int i = 0; i < n_; i++) {
+                    for(unsigned int j = 0; j < n; j++)
+                        matrix[i][j] = owner->matrix[i][j];
+                }
+                for(unsigned int i = 0; owner->_n; i++)
+                    delete [] matrix[i];
+                delete [] matrix;
+                owner->matrix = matrix;
+                return owner->_n = n;
+            } else
+                return owner->_n;
+        }
+        public: operator unsigned int () const {                    // get function
+            return owner->_n;
+        }
+    };
+    public: _n_ n;
+    protected: MatrixElements(unsigned int n) : n(this) {
+        this->n = n;
+    }
+    public: ~MatrixElements() {
+        for(unsigned int i = 0; i < _n; i++)
+            delete [] matrix[i];
+        delete [] matrix;
+    }
+    public: T& operator() (const unsigned int row, const unsigned int col) { // Matrix indexing
+        return matrix[row][col];
+    }
+};
+template <class T> class MatrixElements<Matrix<MatrixType::Symmetric, T>, T> {
+    private: T** matrix;
+    private: unsigned int _n;
+    private: class _n_ {             // property class
+        private: MatrixElements<Matrix<MatrixType::Symmetric, T>, T>* owner;
+        public: _n_(MatrixElements<Matrix<MatrixType::Symmetric, T>, T>* owner) : owner(owner) {
+            this->owner->_n = 1;
+            owner->matrix = new T*[1];
+            owner->matrix[0] = new T[1];
+        }
+        public: unsigned int& operator = (const unsigned int& n) { // set function
+            if(n && n != owner->_n) {
+                T** matrix = new T*[n];
+                for(unsigned int i = 0; i < n; i++)
+                    matrix[i] = new T[n-i];
+                unsigned int n_ = n < owner->_n ? n : owner->_n;
+                for(unsigned int i = 0; i < n_; i++) {
+                    for(unsigned int j = 0; j < n_-i; j++)
+                        matrix[i][j] = owner->matrix[i][j];
+                }
+                for(unsigned int i = 0; i < owner->_n; i++)
+                    delete [] owner->matrix[i];
+                delete [] owner->matrix;
+                owner->matrix = matrix;
+                return owner->_n = n;
+            } else
+                return owner->_n;
+        }
+        public: operator unsigned int () const {                    // get function
+            return owner->_n;
+        }
+    };
+    public: _n_ n;
+    protected: MatrixElements(unsigned int n) : n(this) {
+        this->n = n;
+    }
+    public: ~MatrixElements() {
+        for(unsigned int i = 0; i < _n; i++)
+            delete [] matrix[i];
+        delete [] matrix;
+    }
+    public: T& operator() (const unsigned int row, const unsigned int col) { // Matrix indexing
+        return row < col ? matrix[row][col-row] : matrix[col][row-col];
+    }
+};
+template <class T> class MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T> {
+    private: T other;
+    protected: T *a, *b, *c;
+    protected: unsigned int _n;
+    private: class _n_ {             // property class
+        private: MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T>* owner;
+        public: _n_(MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T>* owner) : owner(owner) {
             this->owner->_n = 1;
             owner->a = new T[0];
             owner->b = new T[1];
@@ -83,10 +195,10 @@ template<class T> class Matrix<MatrixType::Tridiagonal, T> : MatrixDiagonal<Matr
         }
     };
     public: _n_ n;
-    public: Matrix(unsigned int n) : n(this), MatrixDiagonal<Matrix<MatrixType::Tridiagonal, T>, T>(this) {
+    public: MatrixElements(unsigned int n) : n(this) {
         this->n = n;
     }
-    public: ~Matrix() {
+    public: ~MatrixElements() {
         delete [] a;
         delete [] b;
         delete [] c;
@@ -101,8 +213,37 @@ template<class T> class Matrix<MatrixType::Tridiagonal, T> : MatrixDiagonal<Matr
         other = 0;
         return other;
     }
+};
+template <class T> class MatrixElements<Matrix<MatrixType::Tridiagonal_m1_2_m1, T>, T> {
+    public: T operator() (const unsigned int row, const unsigned int col) { // Matrix indexing
+        if(row == col)
+            return 2;
+        else if(row-1 == col)
+            return -1;
+        else if(row == col-1)
+            return -1;
+        return 0;
+    }
+};
+template<class T> class Matrix<MatrixType::Symmetric, T> :
+        public MatrixDiagonal<Matrix<MatrixType::Symmetric, T>, T>,
+        public MatrixElements<Matrix<MatrixType::Symmetric, T>, T> {
+    public: Matrix(unsigned int n) :
+            MatrixDiagonal<Matrix<MatrixType::Symmetric, T>, T>(this),
+            MatrixElements<Matrix<MatrixType::Symmetric, T>, T>(n) {
+    }
+};
+template<class T> class Matrix<MatrixType::Tridiagonal, T> :
+        public MatrixDiagonal<Matrix<MatrixType::Tridiagonal, T>, T>,
+        public MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T> {
+    public: Matrix(unsigned int n) :
+        MatrixDiagonal<Matrix<MatrixType::Tridiagonal, T>, T>(this),
+        MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T>(n) {
+    }
+    public: ~Matrix() {
+    }
     public: void Diagonal(const int diagonal, const T value) {
-        Diagonal(diagonal, value, _n);
+        Diagonal(diagonal, value, MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T>::_n);
     }
     public: inline void Diagonal(const int diagonal, const T value, const unsigned int n) {
         unsigned int d = abs(diagonal);
@@ -110,8 +251,8 @@ template<class T> class Matrix<MatrixType::Tridiagonal, T> : MatrixDiagonal<Matr
             MatrixDiagonal<Matrix<MatrixType::Tridiagonal, T>,T>::Diagonal(diagonal, value, n);
     }
     public: bool Solve(T* f, unsigned int n) {
-        if(n == _n)
-            return Solve(a, b, c, f, n);
+        if(n == MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T>::_n)
+            return Solve(MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T>::a, MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T>::b, MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T>::c, f, n);
         return false;
     }
     public: inline static bool Solve(T* a, T* b, T* c, T* f, unsigned int n) {     // 8n FLOPS
@@ -150,46 +291,8 @@ template<class T> class Matrix<MatrixType::Tridiagonal, T> : MatrixDiagonal<Matr
          */
     }
 };
-template<class T> class TridiagonalElements_m1_2_m1 {
-    public: T operator() (const unsigned int row, const unsigned int col) { // Matrix indexing
-        if(row == col)
-            return 2;
-        else if(row-1 == col)
-            return -1;
-        else if(row == col-1)
-            return -1;
-        return 0;
-    }
-};
-template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_6n, T> : public TridiagonalElements_m1_2_m1<T> {
-    private: T* b;
-    private: unsigned int _n;
-    private: class _n_ {             // property class
-        private: Matrix<MatrixType::Tridiagonal_m1_2_m1_6n, T>* owner;
-        public: _n_(Matrix<MatrixType::Tridiagonal_m1_2_m1_6n, T>* owner) : owner(owner) {
-            this->owner->_n = 0;
-            owner->b = new T[0];
-        }
-        public: unsigned int& operator = (const unsigned int& n) {  // set function
-            if(n && n != owner->_n) {
-                delete [] owner->b;
-                owner->b = new T[n];
-            }
-            return owner->_n = n;
-        }
-        public: operator unsigned int () const {                    // get function
-            return owner->_n;
-        }
-    };
-    public: _n_ n;
-    public: Matrix() : n(this) {
-    }
-    public: Matrix(unsigned int n) : n(this) {
-        this->n = n;
-    }
-    public: ~Matrix() {
-        delete [] b;
-    }
+template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_6n, T> :
+        public MatrixElements<Matrix<MatrixType::Tridiagonal_m1_2_m1, T>, T>  {
     public: static bool Solve(T* f, unsigned int n) {
         /*
          * f are source elements b_{i}, f[0] = b_{1}
@@ -232,49 +335,9 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_6n, T> : public T
         *f /= 2;
         return true;
     }
-    public: static bool SolveInt(T* f, unsigned int n) {
-        /*
-         * f are source elements b_{i}, f[0] = b_{1}
-         */
-
-        T* start = f;
-        T* end = &f[n-1];
-        unsigned int i = 1;
-        while(f != end)
-            *f += (T)(i++)/i*(*f++);  // Eq (10)
-        i++;
-        while(f != start) {
-            *f *= (T)1/(i--)*i;         // Eq (13) (faster than *f /= i--/i)
-            *f += *f--;                 // Eq (12)
-        }
-        *f /= 2;
-        return true;
-    }
-    public: bool SolveTrue(T* f, unsigned int n) {                       // 6n FLOPS (True)
-        /*
-         * f are source elements b_{i}, f[0] = b_{1}
-         */
-
-        if(_n < n)
-            this->n = n;
-        b[0] = 2;
-        T temp;
-        T* start = f;
-        T* end = &f[n-1];
-        while(f != end) {
-            temp = (T)1/(*b++);
-            *b = 2 - temp;              // Eq (11) in report
-            *f += temp*(*f++);          // Eq (10)
-        }
-        while(f != start) {
-            *f /= (*b--);               // Eq (13)
-            *f += (*f--);               // Eq (12)
-        }
-        *f /= *b;
-        return true;
-    }
 };
-template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_4n, T> : public TridiagonalElements_m1_2_m1<T> {
+template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_4n, T> :
+        public MatrixElements<Matrix<MatrixType::Tridiagonal_m1_2_m1, T>, T>  {
     private: T* factor;                   // Precalculated values
     private: unsigned int _n;
     private: class _n_ {                  // property class
@@ -342,7 +405,8 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_4n, T> : public T
         return true;
     }
 };
-template<class T> class Matrix<MatrixType::LU_decomposition, T> : public MatrixDiagonal<Matrix<MatrixType::LU_decomposition, T>, T> {
+template<class T> class Matrix<MatrixType::LU_decomposition, T> :
+        public MatrixDiagonal<Matrix<MatrixType::LU_decomposition, T>, T> {
     public: Mat<T> matrix, L, U;
     private: unsigned int _n;
     private: class _n_ {             // property class
