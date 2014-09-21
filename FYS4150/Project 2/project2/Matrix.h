@@ -128,6 +128,12 @@ template <class M, class T> class MatrixElements {
     public: inline operator T**() const {
         return matrix;
     }
+    public: void Clear() {
+        for(unsigned int i = 0; i < _n; i++) {
+            for(unsigned int j = 0; j < _n; j++)
+                matrix[i][j] = 0;
+        }
+    }
 };
 template <class T> class MatrixElements<Matrix<MatrixType::Symmetric, T>, T> {
     protected: T** matrix;
@@ -175,6 +181,12 @@ template <class T> class MatrixElements<Matrix<MatrixType::Symmetric, T>, T> {
     }
     public: inline operator T**() const {
         return matrix;
+    }
+    public: void Clear() {
+        for(unsigned int i = 0, n = _n; i < _n; i++, n--) {
+            for(unsigned int j = 0; j < n; j++)
+                matrix[i][j] = 0;
+        }
     }
 };
 template <class T> class MatrixElements<Matrix<MatrixType::tqli, T>, T> {
@@ -230,6 +242,12 @@ template <class T> class MatrixElements<Matrix<MatrixType::tqli, T>, T> {
     }
     public: inline T& operator() (const unsigned int& row, const unsigned int& col) { // Matrix indexing
         return row < col ? matrix[col-row][row] : matrix[row-col][col];
+    }
+    public: void Clear() {
+        for(unsigned int i = 0, n = _n; i < _n; i++, n--) {
+            for(unsigned int j = 0; j < n; j++)
+                matrix[i][j] = 0;
+        }
     }
 };
 template <class T> class MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T> {
@@ -310,7 +328,7 @@ template<class T> class Matrix<MatrixType::Square, T> :
         MatrixElements<Matrix<MatrixType::Square, T>, T>(n) {
 
     }
-    void JacobiMethod(T error, unsigned int n) {
+    void JacobiMethod(T error) {
         MatrixIndex I;
         T s, c, t, tau, a_kk, a_ll, a_ik, a_il;
         while(error < MaxAbs(this->matrix, this->_n, I)) {
@@ -321,9 +339,6 @@ template<class T> class Matrix<MatrixType::Square, T> :
                 t = -1.0/( -tau + sqrt(1.0 + tau*tau));
             c = 1/sqrt(1+t*t);
             s = c*t;
-
-            /*if(!(--n))
-                cout << "i = " << I.i << "\t j = " << I.j << "\taij = " << this->matrix[I.i][I.j] << "\tsin = " << s << "\tcos = " << c << "\t" << endl << endl;*/
 
             a_kk = this->matrix[I.i][I.i];
             a_ll = this->matrix[I.j][I.j];
@@ -343,8 +358,6 @@ template<class T> class Matrix<MatrixType::Square, T> :
                     this->matrix[I.j][i] = this->matrix[i][I.j];
                 }
             }
-            /*if(!n)
-                MatrixCout(*this);*/
         }
     }
     public: T MaxAbs(T** matrix, unsigned int n, MatrixIndex& I) {
@@ -369,184 +382,128 @@ template<class T> class Matrix<MatrixType::Symmetric, T> :
             MatrixDiagonal<Matrix<MatrixType::Symmetric, T>, T>(this),
             MatrixElements<Matrix<MatrixType::Symmetric, T>, T>(n) {
     }
-    public: T* JacobiMethod(T error, unsigned int m) {
+    public: T* JacobiMethod(T error) {
         MatrixIndex I;
-        T a, b, t, s2, s, c;
         T** offdiagonal = &this->matrix[1];
-        unsigned int k, l, n, offn = this->_n-1;
-
-        while(error < MaxAbs(offdiagonal, offn, I)) {   // Find the maximum element, and stop when error is smaller than desired
-
-            b = 2*this->matrix[++I.i][I.j];
-            this->matrix[I.i][I.j] = 0;     // bij=bij=0
-
-            I.i += I.j;                     // now I.j = i in aii, and I.i = j in ajj
-
-            a = this->matrix[0][I.i] - this->matrix[0][I.j];  // Calculate cos and sin
-            t = a/b;
-            if(t > 0)
-                t = (T)1/(t+sqrt(1+t*t));
-            else
-                t = (T)1/(t-sqrt(1+t*t));
-            s2 = (T)1/(1+t*t);
-            s = sqrt(s2);
-            c = t*s;
-
-            //if(!(--m))
-            //    cout << "i = " << I.j << "\t j = " << I.i << "\taij = " << this->matrix[I.i-I.j][I.j] << "\tsin = " << s << "\tcos = " << c << "\t" << endl << endl;
-
-            a = a*s2 + b*s*c;
-            this->matrix[0][I.j] += a;       // bii eq(9)
-            this->matrix[0][I.i] -= a;       // bjj eq(10)
-
-            for(k = I.j, l = I.i, n = 0; n < I.j; k--, l--, n++) {     // Calculate bik and bjk, row < I.j and row < I.i
-                a = this->matrix[k][n];
-                b = this->matrix[l][n];
-                this->matrix[k][n] = a*c - b*s;
-                this->matrix[l][n] = b*c + a*s;
-            }
-            for(k++, l--, n++; n < I.i; k++, l--, n++) {         // row > I.j and row < I.i
-                a = this->matrix[k][I.j];
-                b = this->matrix[l][n];
-                this->matrix[k][I.j] = a*c - b*s;
-                this->matrix[l][n] = b*c + a*s;
-            }
-            for(k++, l++, n = this->_n-I.i; l < n; k++, l++) {   // row > I.j and row > I.i
-                a = this->matrix[k][I.j];
-                b = this->matrix[l][I.i];
-                this->matrix[k][I.j] = a*c - b*s;
-                this->matrix[l][I.i] = b*c + a*s;
-            }
-            //if(!m)
-            //    MatrixCout(*this);
-        }
+        unsigned int offn = this->_n-1;
+        while(error < MaxAbs(offdiagonal, offn, I))     // Find the maximum element, and stop when error is smaller than desired
+            Rotate(I.j, ++I.i);
         return this->matrix[0];
     }
-    public: T* JacobiMethodFaster(T error, unsigned int m) {
+    public: T* JacobiMethodFD(T order) {            // Forward diagonal iteration
+        unsigned int i, d, r, n;
+        T error, e;
+        T* l = new T[this->_n];
+
+        do {
+            for(i = 0; i < this->_n; i++)
+                l[i] = this->matrix[0][i];
+            for(d = 1, r, n = this->_n-1; n; d++, n--) {   // Run through the diagonals
+                for(r = 0; r < n; r++)                                  // Run through the rows
+                    Rotate(r, d);
+            }
+
+            for(i = 0; i < this->_n; i++) {
+                e = abs((this->matrix[0][i]-l[i])/(l[i]));
+                if(e > error)
+                    error = e;
+            }
+            error = log10(error);
+        } while(error > order);
+        delete [] l;
+        return this->matrix[0];
+    }
+    public: T* JacobiMethodFD_1(T error) {            // Forward diagonal iteration
         bool run = true;
-        MatrixIndex I;
-        T a, b, t, s2, s, c;
-        unsigned int k, l, n;
         while(run) {
             run = false;
-            for(unsigned int i = 1, j, p = this->_n-1; p; i++, p--) {
-                for(j = 0; j < p; j++) {
-                    if(error < abs(this->matrix[i][j])) {
+            for(unsigned int d = 1, r, n = this->_n-1; n; d++, n--) {   // Run through the diagonals
+                for(r = 0; r < n; r++) {                                // Run through the rows
+                    if(error < abs(this->matrix[d][r])) {
                         run = true;
-
-                        I.i = i;
-                        I.j = j;
-                        b = 2*this->matrix[I.i][I.j];
-                        this->matrix[I.i][I.j] = 0;     // bij=bij=0
-
-                        I.i += I.j;                     // now I.j = i in aii, and I.i = j in ajj
-
-                        a = this->matrix[0][I.i] - this->matrix[0][I.j];  // Calculate cos and sin
-                        t = a/b;
-                        if(t > 0)
-                            t = (T)1/(t+sqrt(1+t*t));
-                        else
-                            t = (T)1/(t-sqrt(1+t*t));
-                        s2 = (T)1/(1+t*t);
-                        s = sqrt(s2);
-                        c = t*s;
-
-                        //if(!(--m))
-                        //    cout << "i = " << I.j << "\t j = " << I.i << "\taij = " << this->matrix[I.i-I.j][I.j] << "\tsin = " << s << "\tcos = " << c << "\t" << endl << endl;
-
-                        a = a*s2 + b*s*c;
-                        this->matrix[0][I.j] += a;       // bii eq(9)
-                        this->matrix[0][I.i] -= a;       // bjj eq(10)
-
-                        for(k = I.j, l = I.i, n = 0; n < I.j; k--, l--, n++) {     // Calculate bik and bjk, row < I.j and row < I.i
-                            a = this->matrix[k][n];
-                            b = this->matrix[l][n];
-                            this->matrix[k][n] = a*c - b*s;
-                            this->matrix[l][n] = b*c + a*s;
-                        }
-                        for(k++, l--, n++; n < I.i; k++, l--, n++) {         // row > I.j and row < I.i
-                            a = this->matrix[k][I.j];
-                            b = this->matrix[l][n];
-                            this->matrix[k][I.j] = a*c - b*s;
-                            this->matrix[l][n] = b*c + a*s;
-                        }
-                        for(k++, l++, n = this->_n-I.i; l < n; k++, l++) {   // row > I.j and row > I.i
-                            a = this->matrix[k][I.j];
-                            b = this->matrix[l][I.i];
-                            this->matrix[k][I.j] = a*c - b*s;
-                            this->matrix[l][I.i] = b*c + a*s;
-                        }
-                        /*if(!m)
-                            MatrixCout(*this);*/
+                        Rotate(r, d);
                     }
                 }
             }
         }
         return this->matrix[0];
     }
-    public: T* JacobiMethodFastest(T error, unsigned int m) {
+    public: T* JacobiMethodRD(T error) {            // Reverse diagonal iteration
         bool run = true;
-        MatrixIndex I;
-        T a, b, t, s2, s, c;
-        unsigned int k, l, n;
         while(run) {
             run = false;
-            for(unsigned int i = this->_n-1, j, p = 1; i; i--, p++) {
-                for(j = 0; j < p; j++) {
-                    if(error < abs(this->matrix[i][j])) {
+            for(unsigned int d = this->_n-1, r, p = 1; d; d--, p++) {   // Run through the diagonals
+                for(r = 0; r < p; r++) {                                // Run through the rows
+                    if(error < abs(this->matrix[d][r])) {
                         run = true;
-
-                        I.i = i;
-                        I.j = j;
-                        b = 2*this->matrix[I.i][I.j];
-                        this->matrix[I.i][I.j] = 0;     // bij=bij=0
-
-                        I.i += I.j;                     // now I.j = i in aii, and I.i = j in ajj
-
-                        a = this->matrix[0][I.i] - this->matrix[0][I.j];  // Calculate cos and sin
-                        t = a/b;
-                        if(t > 0)
-                            t = (T)1/(t+sqrt(1+t*t));
-                        else
-                            t = (T)1/(t-sqrt(1+t*t));
-                        s2 = (T)1/(1+t*t);
-                        s = sqrt(s2);
-                        c = t*s;
-
-                        //if(!(--m))
-                        //    cout << "i = " << I.j << "\t j = " << I.i << "\taij = " << this->matrix[I.i-I.j][I.j] << "\tsin = " << s << "\tcos = " << c << "\t" << endl << endl;
-
-                        a = a*s2 + b*s*c;
-                        this->matrix[0][I.j] += a;       // bii eq(9)
-                        this->matrix[0][I.i] -= a;       // bjj eq(10)
-
-                        for(k = I.j, l = I.i, n = 0; n < I.j; k--, l--, n++) {     // Calculate bik and bjk, row < I.j and row < I.i
-                            a = this->matrix[k][n];
-                            b = this->matrix[l][n];
-                            this->matrix[k][n] = a*c - b*s;
-                            this->matrix[l][n] = b*c + a*s;
-                        }
-                        for(k++, l--, n++; n < I.i; k++, l--, n++) {         // row > I.j and row < I.i
-                            a = this->matrix[k][I.j];
-                            b = this->matrix[l][n];
-                            this->matrix[k][I.j] = a*c - b*s;
-                            this->matrix[l][n] = b*c + a*s;
-                        }
-                        for(k++, l++, n = this->_n-I.i; l < n; k++, l++) {   // row > I.j and row > I.i
-                            a = this->matrix[k][I.j];
-                            b = this->matrix[l][I.i];
-                            this->matrix[k][I.j] = a*c - b*s;
-                            this->matrix[l][I.i] = b*c + a*s;
-                        }
-                        /*if(!m)
-                            MatrixCout(*this);*/
+                        Rotate(r, d);
                     }
                 }
             }
         }
         return this->matrix[0];
     }
-    public: T MaxAbs(T** matrix, unsigned int n, MatrixIndex& I) {
+    public: T* JacobiMethodFC(T error) {            // Forward column iteration
+            bool run;
+            do {
+                run = false;
+                for(unsigned int r = 0, d, n = this->_n; r < this->_n; r++, n--) {
+                    for(d = 1; d < n; d++) {
+                        if(error < abs(this->matrix[d][r])) {
+                            run = true;
+                            Rotate(r,d);
+                        }
+                    }
+                }
+            } while(run);
+            return this->matrix[0];
+    }
+    public: T* JacobiMethodRC(T error) {            // Reverse column iteration
+            bool run;
+            do {
+                run = false;
+                for(unsigned int r = 0, d, n = this->_n-1; r < this->_n; r++, n--) {
+                    for(d = n; d; d--) {
+                        if(error < abs(this->matrix[d][r])) {
+                            run = true;
+                            Rotate(r,d);
+                        }
+                    }
+                }
+            } while(run);
+            return this->matrix[0];
+    }
+    public: T* JacobiMethodFR(T error) {            // Forward row iteration
+            bool run;
+            do {
+                run = false;
+                for(unsigned int r, d = 1, c; d < this->_n; d++) {
+                    for(r = 0, c = d; c; r++, c--) {
+                        if(error < abs(this->matrix[c][r])) {
+                            run = true;
+                            Rotate(r,c);
+                        }
+                    }
+                }
+            } while(run);
+            return this->matrix[0];
+    }
+    public: T* JacobiMethodRR(T error) {            // Reverse row iteration
+            bool run;
+            do {
+                run = false;
+                for(unsigned int r, d = 1, c; d < this->_n; d++) {
+                    for(r = d-1, c = 1; c <= d; r--, c++) {
+                        if(error < abs(this->matrix[c][r])) {
+                            run = true;
+                            Rotate(r,c);
+                        }
+                    }
+                }
+            } while(run);
+            return this->matrix[0];
+    }
+    private: T MaxAbs(T** matrix, unsigned int n, MatrixIndex& I) {
         T max = 0, abs1;
         for(unsigned int i = 0, j; n; i++, n--) {
             for(j = 0; j < n; j++) {
@@ -559,6 +516,46 @@ template<class T> class Matrix<MatrixType::Symmetric, T> :
             }
         }
         return max;
+    }
+    private: void Rotate(unsigned int i, unsigned int j) {
+        T b = 2*this->matrix[j][i];
+        this->matrix[j][i] = 0;     // bij=bij=0
+
+        j += i;                     // convert j from diagonalnumber to column number
+
+        T a = this->matrix[0][j] - this->matrix[0][i];  // Calculate cos and sin
+        T t = a/b;
+        if(t > 0)
+            t = (T)1/(t+sqrt(1+t*t));
+        else
+            t = (T)1/(t-sqrt(1+t*t));
+        T s2 = (T)1/(1+t*t);
+        T s = sqrt(s2);
+        T c = t*s;
+
+        a = a*s2 + b*s*c;
+        this->matrix[0][i] += a;       // bii eq(9)
+        this->matrix[0][j] -= a;       // bjj eq(10)
+
+        unsigned int k, l, n;
+        for(k = i, l = j, n = 0; n < i; k--, l--, n++) {    // Calculate bik and bjk, row < i and row < j
+            a = this->matrix[k][n];
+            b = this->matrix[l][n];
+            this->matrix[k][n] = a*c - b*s;
+            this->matrix[l][n] = b*c + a*s;
+         }
+         for(k++, l--, n++; n < j; k++, l--, n++) {         // row > i and row < j
+            a = this->matrix[k][i];
+            b = this->matrix[l][n];
+            this->matrix[k][i] = a*c - b*s;
+            this->matrix[l][n] = b*c + a*s;
+        }
+        for(k++, l++, n = this->_n-j; l < n; k++, l++) {    // row > i and row > j
+            a = this->matrix[k][i];
+            b = this->matrix[l][j];
+            this->matrix[k][i] = a*c - b*s;
+            this->matrix[l][j] = b*c + a*s;
+        }
     }
 };
 template<class T> class Matrix<MatrixType::Tridiagonal, T> :
