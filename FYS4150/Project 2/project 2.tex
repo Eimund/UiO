@@ -181,7 +181,107 @@ By solving this as a second order equation with regard to $\cos^2\theta$ and usi
 
 We can diagonalize the matrix $\mathbf{A}$ by doing matrix similarity transformation iteratively as described in section \ref{sec_Diagonalize}. However we can optimize Jacobi's eigenvalue algorithm by using  the Frobenius norm.
 
+\subsection{QR algorithm and tridiagonal matrices}
+
+We want to find the eigenvalues of a real tridiagonal symmetric matrix $\textbf{A}_0$ of $n\times n$ which do QR decomposition on
+
+\begin{align*}
+\textbf{A}_0 = \textbf{S}_0\textbf{U}_0 \,,
+\end{align*}
+
+where $\text{S}_0$ is the orthogonal matrix $\textbf{Q}$ and $\textbf{U}_0$ is the upper triangle matrix $\textbf{R}$ in the QR decomposition. We can show that the similar matrix $\textbf{A}_1$ to $\textbf{A}_0$ is linked to the QR decomposition as follows
+
+\begin{align*}
+\textbf{A}_1 = \textbf{S}_0^{\text{T}} \textbf{A}_0 \textbf{S}_0 
+=\textbf{S}_0^{\text{T}} \textbf{S}_0\textbf{U}_0 \textbf{S}_0 = \textbf{U}_0 \textbf{S}_0 \,,
+\end{align*}
+
+where I have used the orthogonal property of $\textbf{S}_0$ such that $\textbf{S}_0^{\text{T}} \textbf{S}_0 = \textbf{I}$ ($\textbf{I}$ is the identity martrix). Now imagine that we use QR decomposition on $\textbf{A}_1$ and find the similarity matrix $\textbf{A}_2$ in the same manner. We can now show by induction that this process for step $i+1$ by using the QR decomposition on $\textbf{A}_i$;
+
+\begin{align*}
+\textbf{A}_i = \textbf{S}_i \textbf{U}_i \,,
+\end{align*}
+
+and we now find the similarity matrix $\textbf{A}_{i+1}$ to $\textbf{A}_i$ as follows
+
+\begin{align*}
+\textbf{A}_{i+1} = \textbf{S}_i^{\text{T}} \textbf{A}_i \textbf{S}_i 
+=\textbf{S}_i^{\text{T}} \textbf{S}_i\textbf{U}_i \textbf{S}_i = \textbf{U}_i \textbf{S}_i \,.
+\end{align*}
+
+The tridiagonal matrix $\textbf{A}_0$ with the elements 
+
+\begin{align*}
+a_{0,k,\ell} = \begin{cases} d_{0,k} & \text{when }k=\ell \\ e_{0,k} & \text{when }k=\ell-1\\ e_{0,\ell} & \text{when }\ell=k-1 \\ 0 & \text{otherwise.}\end{cases}
+\end{align*}
+
+To find the upper matrix we use successively rotation matrices $\textbf{R}_{0,j}$ to eliminate the elements in the lower triangle part of the tridiagonal matrix $\textbf{A}_0$ 
+
+\begin{align*}
+\textbf{U}_0 = \prod_{j=1}^{n-1} \textbf{R}_{0,j}^{\text{T}} \textbf{A}_0 \,,
+\end{align*}
+
+where the rotation matrix $\textbf{R}_{0,j}$ has the elements
+
+\begin{align*}
+r_{0,j,k,\ell} = \begin{cases} \cos\theta_{0,j} & \text{when } j=k=\ell \\ -\sin\theta_{0,j} & \text{when } j=k=\ell-1 \\ \sin\theta_{0,j} & \text{when } j=k-1=\ell \\ \cos\theta_{0,j} & \text{when } j = k-1 = \ell-1 \\ 1 & \text{when } k=\ell\in\mathbb{N}_1^n / \mathbb{N}_j^{j+1}  \\ 0 & \text{otherwise.}\end{cases}
+\end{align*}
+
+Note that the rotation matrix is orthogonal which means that the elements of $\textbf{R}_{0,j}^{\text{T}}$ is given by $r_{0,j,k,\ell}^{\text{T}} = r_{0,j,\ell,k}$. I define the matrix
+
+\begin{align*}
+\textbf{A}_{0,j+1} = \begin{cases}\textbf{A}_0 &\text{when } j=0 \\ \textbf{R}_{0,j}^{\text{T}}\textbf{A}_{0,j} & \text{when } j\in\mathbb{N}_1^{n-1} \end{cases} \,,
+\end{align*}
+
+which means that we are going to show that $\textbf{U}_0 = \textbf{A}_{0,n}$, where the matrix $\textbf{A}_{0,j}$ has the elements $a_{0,j,k\ell}$. I start by doing the matrix multiplication $\textbf{A}_{0,2} = \textbf{R}_{0,1}^{\text{T}}\textbf{A}_{0,1}$;
+
+\begin{align*}
+a_{0,2,k,\ell} &= \sum_{m=1}^n r_{0,1,k,m}^{\text{T}} a_{0,1,m,\ell} = \sum_{m=-1}^1 r_{0,1,k,\ell+m}^{\text{T}} a_{0,1,\ell+m,\ell}
+= \begin{cases} \sum_{m=-1}^1 r_{0,1,k,\ell+m}^{\text{T}} a_{0,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}\\ a_{0,1,k,\ell} & \text{otherwise.}\end{cases} 
+\\
+&= \begin{cases} \sum_{m=-1}^1 r_{0,1,k,\ell+m}^{\text{T}} a_{0,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}} \text{ and } \ell \in\mathbb{N}_1^3\\ a_{0,1,k,\ell} & \text{otherwise.}\end{cases}
+\end{align*}
+
+The notation $\leftidx{^2}{\mathbb{N}}{_1^2} = \mathbb{N}_1^2 \times \mathbb{N}_1^2$, which means all the permutations of the natural number from 1 to 2; $(1,1)$, $(1,2)$, $(2,1)$ and $(2,2)$. We want our transformation to zero out the lower triangle element $(2,1)$
+
+\begin{align*}
+a_{0,2,2,1} = \sum_{m=-1}^1 r_{0,1,2,m+1}^{\text{T}} a_{0,1,m+1,1} = \sum_{m=0}^1 r_{0,1,2,m+1}^{\text{T}} a_{0,1,m+1,1} = 0\,,
+\end{align*}
+
+which means that 
+
+\begin{align*}
+a_{0,2,k,\ell} = \begin{cases} \sum_{m=-1}^1 r_{0,1,k,\ell+m}^{\text{T}} a_{0,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}, (k,\ell)\neq(2,1) \text{ and } \ell \in\mathbb{N}_1^3\\ 0 & \text{when } (k,\ell)=(2,1) \\ a_{0,1,k,\ell} & \text{otherwise.}\end{cases}
+\end{align*}
+
+Note that all the lower triangle elements in $a_{0,2,k,\ell}$ is the same as $a_{0,1,k,\ell}$, expect $a_{0,2,2,1} = 0$. Note also that $a_{0,2,1,3}$ is the only upper triangle element that isn't necessarily zero that was zero in matrix $\textbf{A}_{0,1}$. If we now continue the matrix multiplication to step $j$, $\textbf{A}_{0,j+1} = \textbf{R}_{0,j}^{\text{T}} \textbf{A}_{0,j}$;
+
+\begin{align*}
+a_{0,j+1,k,\ell} &= \sum_{m=1}^n r_{0,j,k,m}^{\text{T}} a_{0,j,m,\ell} = \sum_{m=-1}^1 r_{0,j,k,\ell+m}^{\text{T}} a_{0,j,\ell+m,\ell} 
+= \begin{cases} \sum_{m=-1}^1 r_{0,j,k,\ell+m}^{\text{T}} a_{0,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}}\\ a_{0,j,k,\ell} & \text{otherwise.}\end{cases}
+\\
+&= \begin{cases} \sum_{m=-1}^1 r_{0,j,k,\ell+m}^{\text{T}} a_{0,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j-1}^{j+2}\\ a_{0,j,k,\ell} & \text{otherwise.}\end{cases}
+\\
+&= \begin{cases} \sum_{m=-1}^1 r_{0,j,k,\ell+m}^{\text{T}} a_{0,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j}^{j+2}\\ a_{0,j,k,\ell} & \text{otherwise.}\end{cases}
+\end{align*}
+
+where I have used that $a_{0,j,j,j-1}=0$ due to zero out of the previous rotation. Since $\textbf{U}_0 = \textbf{A}_{0,n}$, means that the matrix elements of $\textbf{U}_0$ is given by $u_{0,k,\ell} = a_{0,n,k,\ell}$. We have shown by induction that all the lower triangle elements are zero in $\textbf{A}_{0,n}$, because $\textbf{A}_0$ is a tridiagonal matrix and we zero out matrix element $a_{0,j+1,j+1,j}$ with the rotation matrix $\textbf{R}_{j,0}^{\text{T}}$ without changing the other lower triangle elements.\linebreak
+
+Since $\textbf{A}_0 = \textbf{S}_0 \textbf{U}_0$ means that 
+
+\begin{align*}
+\textbf{S}_0^{\text{T}} = \prod_{j=1}^{n-1} \textbf{R}_{0,j}^{\text{T}} \,,
+\end{align*}
+
+and due to the similarity transformation $\textbf{A}_1 = \textbf{S}_0^{\text{T}} \textbf{A}_0 \textbf{S}_0 = \prod_{j=1}^{n-1}\textbf{R}_{j,0}^{\text{T}} \textbf{A}_0 \prod_{i=n-1}^{1}\textbf{R}_{j,0}$ we have that
+
+\begin{align*}
+\textbf{S}_0 = \prod_{j=n-1}^{1} \textbf{R}_{j,0} \,.
+\end{align*}
+
 \section{Numerical implementation}
+
+\subsection{Jacobi's eigenvalue algorithm}
 
 We can optimize the calculation of diagonal elements in \eqref{eq_7} by rewriting them by using the trigonometrical relation $\cos^2\theta+\sin^2\theta = 1$;
 
@@ -207,11 +307,22 @@ b_{jj} &= a_{ii} - \kl{\p{a_{ii}-a_{jj}}\cos^2\theta + 2a_{ij}\cos\theta\sin\the
 
 we see that $a_{jj}$ corresponds to $b_{ii}$ and $a_{ii}$ corresponds to $b_{jj}$, which means that we need to backup either $a_{ii}$ or $a_{jj}$ before we do the calculation, so we don't overwrite the value before we have used in the calculation. However for the $\sin^2\theta$ expressions we have that $a_{ii}$ corresponds to $b_{ii}$ and $a_{jj}$ corresponds to $b_{jj}$, which means that we don't need to backup $a_{ii}$ or $a_{jj}$, and we can  use the program operator \texttt{+=} directly on the diagonal elements. 
 
-\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & tqli & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lib.cpp) & (lecture) & (Eimund) & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/time.dat}}{Time used in seconds to solve the different eigenvalue and eigenvector solvers.}{tab_speed}
+\section{Results}
+
+\subsection{Comparing different solvers}
+
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & tqli & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lib.cpp) & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/time.dat}}{Time used in seconds to solve the different eigenvalue and eigenvector solvers. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
 \end{tabell} 
 
-\begin{tabell}{|r|c|c|c|c|c|c|c|c|}{\small}{Number & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lecture) & (Eimund) & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/error.dat}}{Order of relative error to result of eigenvalues to the tqli in lib.cpp}{tab_speed}
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|}{\small}{Number & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/error.dat}}{Order of relative error to result of eigenvalues to the tqli in lib.cpp. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
 \end{tabell}
+
+\subsection{Single electron harmonic oscillator}
+
+\begin{tabell}{|r|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2header.dat}}{\input{build-project2-Desktop-Debug/error2.dat}}{Order of relative error of the three lower eigenvalues of a single electron trapped in a harmonic oscillator well.}{tab_speed}
+\end{tabell}
+
+\section{Conclusion}
 
 \section{Attachments}
 
@@ -232,6 +343,7 @@ The source files developed are
 \begin{thebibliography}{9}
 \bibitem{project1}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-2-deadline-september-22/project2_2014.pdf}{\emph{FYS4130 - Project 2}} - \emph{Schr\"{o}dinger's equation for two electrons in a three-dimensional harmonic oscillator well}, \href{http://www.uio.no}{University of Oslo}, 2014} 
 \bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014}  
+\bibitem{TwoElectron}{M. Taut, \emph{\href{http://prola.aps.org/abstract/PRA/v48/i5/p3561\_1}{Two electrons in an external oscillator potential:} Particular analytic solutions of a Coulomb correlation problem}, Physical Review A Volume 48 Number 5, 1993}
 \bibitem{Eigenvaule}{\href{http://en.wikipedia.org/wiki/Eigenvalues\_and\_eigenvectors}{http://en.wikipedia.org/wiki/Eigenvalues\_and\_eigenvectors}}
 \bibitem{JacobiMethod}{\href{http://en.wikipedia.org/wiki/Jacobi\_eigenvalue\_algorithm}{http://en.wikipedia.org/wiki/Jacobi\_eigenvalue\_algorithm}}
 \bibitem{MatrixSimularity}{\href{http://en.wikipedia.org/wiki/Matrix\_similarity}{http://en.wikipedia.org/wiki/Matrix\_similarity}}
@@ -240,6 +352,7 @@ The source files developed are
 \bibitem{Frobenius}{\href{http://en.wikipedia.org/wiki/Matrix\_norm\#Frobenius\_norm}{http://en.wikipedia.org/wiki/Matrix\_norm\#Frobenius\_norm}}
 \bibitem{PlancksKonstant}{\href{http://en.wikipedia.org/wiki/Planck\_constant}{http://en.wikipedia.org/wiki/Planck\_constant}}
 \bibitem{Electron}{\href{http://en.wikipedia.org/wiki/Electron}{http://en.wikipedia.org/wiki/Electron}}
+\bibitem{QR}{\href{http://en.wikipedia.org/wiki/QR\_algorithm}{http://en.wikipedia.org/wiki/QR\_algorithm}}
 \end{thebibliography}
 
 \end{flushleft}

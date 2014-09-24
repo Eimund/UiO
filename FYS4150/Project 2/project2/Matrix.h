@@ -390,30 +390,7 @@ template<class T> class Matrix<MatrixType::Symmetric, T> :
             Rotate(I.j, ++I.i);
         return this->matrix[0];
     }
-    public: T* JacobiMethodFD(T order) {            // Forward diagonal iteration
-        unsigned int i, d, r, n;
-        T error, e;
-        T* l = new T[this->_n];
-
-        do {
-            for(i = 0; i < this->_n; i++)
-                l[i] = this->matrix[0][i];
-            for(d = 1, r, n = this->_n-1; n; d++, n--) {   // Run through the diagonals
-                for(r = 0; r < n; r++)                                  // Run through the rows
-                    Rotate(r, d);
-            }
-
-            for(i = 0; i < this->_n; i++) {
-                e = abs((this->matrix[0][i]-l[i])/(l[i]));
-                if(e > error)
-                    error = e;
-            }
-            error = log10(error);
-        } while(error > order);
-        delete [] l;
-        return this->matrix[0];
-    }
-    public: T* JacobiMethodFD_1(T error) {            // Forward diagonal iteration
+    public: T* JacobiMethodFD(T error) {            // Forward diagonal iteration
         bool run = true;
         while(run) {
             run = false;

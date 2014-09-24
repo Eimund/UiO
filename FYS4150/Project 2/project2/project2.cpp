@@ -30,41 +30,39 @@ using namespace std;
 
 // Declartion of global functions
 template<class T> T* CopyOfArray(T* arr, unsigned int n);
+template<class T> void CoutArray(T* array, unsigned int n);
 template<MatrixType Type, class T> T* GetMatrixDiagonal(Matrix<Type, T>* matrix);
+template<class T> T* NormalizeEigenVectors(T** v, unsigned int n);
 template<class T> T RelativeError(T* u, T* v, unsigned int n);
-template<class T> T* Sort(T* u, unsigned int n);
+template<class T> T* SortEigenValues(T* u, T** v, unsigned int n);
 template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n);
 
 int main() {
-    unsigned int n[] = {4};
+    unsigned int n[] = {10,100};
     FLOAT omega[] = {0.01, 0.5, 1, 5};          // Oscillator frequency
-    FLOAT _r = 0, r_ = 1E7;                     // Solution interval
-    ofstream timefile, timefile1, errorfile, errorfile1;
+    FLOAT k = M*omega[2];
+    FLOAT alpha = pow(HBAR*HBAR/(M*k),0.25);
+    FLOAT _rho = 0;
+    FLOAT rho_[] = {1,2,4,10,100,1000};
+    ofstream timefile, errorfile;
     timefile.open("time.dat");
-    timefile1.open("time1.dat");
     errorfile.open("error.dat");
-    errorfile1.open("error1.dat");
 
+    /* Compare different eigenvalue solvers */
     for(unsigned int i = 0; i < ARRAY_SIZE(n); i++) {
-
-        FLOAT k = M*omega[2];
-        FLOAT alpha = pow(HBAR*HBAR/(M*k),0.25);
-        FLOAT _rho = _r/alpha;
-        FLOAT rho_ = r_/alpha;
-        FLOAT h = (rho_-_rho)/(n[i]+1);         // Step length
+        FLOAT h = (rho_[0]-_rho)/(n[i]+1);         // Step length
         FLOAT* rho = new FLOAT[n[i]+2];         // the variable rho
         FLOAT* d = new FLOAT[n[i]];             // Diagonal elements
 
-        rho[n[i]+1] = rho_;
+        rho[n[i]+1] = rho_[0];
         for(unsigned int j = 0; j < n[i]; j++) {
             rho[j+1] = (j+1)*h;
-            d[j] = 2 + 0.5*k*pow(h*alpha*rho[j+1],2);
+            d[j] = 2 + h*h*rho[j+1]*rho[j+1];
         }
         timefile << n[i] << " & ";
         errorfile << n[i] << " & ";
-        timefile1 << n[i] << " & ";
-        errorfile1 << n[i] << " & ";
         auto eigv = Matrix<MatrixType::Square, FLOAT>(n[i]);    // Eigenvectors
+        eigv.Clear();
         eigv.Diagonal(0,1);
 
         auto matrix = Matrix<MatrixType::tqli, FLOAT>(n[i]);    // Benchmark, tqli in lib.cpp
@@ -74,115 +72,127 @@ int main() {
         clock_t t0 = clock();
         auto l0 = matrix.tqli(eigv);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        Sort(l0, n[i]);
+        SortEigenValues(l0, (FLOAT**)eigv, n[i]);
 
-        //MatrixCout(matrix);
-        //MatrixCout(eigv);
-
-        FLOAT* l1;
         auto matrix1 = Matrix<MatrixType::Square, FLOAT>(n[i]);
-        if(n[i] <= 100) {
-            matrix1.Clear();
-            matrix1.Diagonal(0, d);
-            matrix1.Diagonal(1,-1);
-            matrix1.Diagonal(-1,-1);
-            //MatrixCout(matrix1);
-            t0 = clock();
-            matrix1.JacobiMethod(1e-6);
-            timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-            l1 = GetMatrixDiagonal(&matrix1);
-            errorfile << RelativeError(l0, Sort(l1, n[i]), n[i]) << " & ";
-            delete [] l1;
-        } else {
-            timefile << "- & ";
-            errorfile << "- & ";
-        }
+        matrix1.Clear();
+        matrix1.Diagonal(0, d);
+        matrix1.Diagonal(1,-1);
+        matrix1.Diagonal(-1,-1);
+        t0 = clock();
+        matrix1.JacobiMethod(1e-6);
+        timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+        auto l1 = GetMatrixDiagonal(&matrix1);
+        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        delete [] l1;
 
         auto matrix2 = Matrix<MatrixType::Symmetric, FLOAT>(n[i]);
-        if(n[i] <= 100) {
-            matrix2.Clear();
-            matrix2.Diagonal(0, d);
-            matrix2.Diagonal(1,-1);
-            //MatrixCout(matrix2);
-            t0 = clock();
-            auto l2 = matrix2.JacobiMethod(1e-6);
-            timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-            errorfile << RelativeError(l0, Sort(l2, n[i]), n[i]) << " & ";
-            //MatrixCout(matrix2);
-        } else{
-            timefile << "- & ";
-            errorfile << "- & ";
-        }
-
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        auto l3 = matrix2.JacobiMethodFD_1(1e-6);
+        l1 = matrix2.JacobiMethod(1e-6);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, Sort(l3, n[i]), n[i]) << " & ";
-        //MatrixCout(matrix2);
+        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        auto l4 = matrix2.JacobiMethodRD(1e-6);
+        l1 = matrix2.JacobiMethodFD(1e-6);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, Sort(l4, n[i]), n[i]) << " & ";
-        //MatrixCout(matrix2);
+        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        auto l5 = matrix2.JacobiMethodFC(1e-6);
+        l1 = matrix2.JacobiMethodRD(1e-6);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, Sort(l5, n[i]), n[i]) << " & ";
-        //MatrixCout(matrix2);
+        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        auto l6 = matrix2.JacobiMethodRC(1e-6);
+        l1 = matrix2.JacobiMethodFC(1e-6);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, Sort(l6, n[i]), n[i]) << " & ";
-        //MatrixCout(matrix6);
+        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        auto l7 = matrix2.JacobiMethodFR(1e-6);
+        l1 = matrix2.JacobiMethodRC(1e-6);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, Sort(l7, n[i]), n[i]) << " & ";
-        //MatrixCout(matrix7);
+        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        auto l8 = matrix2.JacobiMethodRR(1e-6);
+        l1 = matrix2.JacobiMethodFR(1e-6);
+        timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+
+        matrix2.Clear();
+        matrix2.Diagonal(0, d);
+        matrix2.Diagonal(1,-1);
+        t0 = clock();
+        l1 = matrix2.JacobiMethodRR(1e-6);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;
-        errorfile << RelativeError(l0, Sort(l8, n[i]), n[i]) << " \\\\" << endl;
-        //MatrixCout(matrix8);
-
-        matrix2.Clear();
-        matrix2.Diagonal(0, d);
-        matrix2.Diagonal(1,-1);
-        t0 = clock();
-        auto l9 = matrix2.JacobiMethodFD(-4);
-        timefile1 << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;
-        errorfile1 << RelativeError(l0, Sort(l3, n[i]), n[i]) << " \\\\" << endl;
+        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " \\\\" << endl;
 
         delete [] rho;
         delete [] d;
     }
     timefile.close();
-    timefile1.close();
     errorfile.close();
-    errorfile1.close();
+
+    /* Single electron harmonic oscillator */
+    unsigned int nstep[] = {/*3,*/4,10,20,50,100,1000};
+    FLOAT L1[] = {3,7,11};
+    errorfile.open("error2header.dat");
+    errorfile << "$n_{\\text{step}} \\textbackslash \\rho_{\\text{max}}$";
+    for(unsigned int i = 0; i < ARRAY_SIZE(rho_); i++)
+        errorfile << " & " << rho_[i];
+    errorfile << " \\\\";
+    errorfile.close();
+    errorfile.open("error2.dat");
+    for(unsigned int i = 0; i < ARRAY_SIZE(nstep); i++) {
+        errorfile << nstep[i];
+        for(unsigned int j = 0; j < ARRAY_SIZE(rho_); j++) {
+            FLOAT h = (rho_[j]-_rho)/(nstep[i]+1);         // Step length
+            FLOAT* rho = new FLOAT[nstep[i]+2];         // the variable rho
+            FLOAT* d = new FLOAT[nstep[i]];             // Diagonal elements
+
+            rho[nstep[i]+1] = rho_[j];
+            for(unsigned int k = 0; k < nstep[i]; k++) {
+                rho[k+1] = (k+1)*h;
+                d[k] = 2+h*h*rho[k+1]*rho[k+1];
+            }
+
+            auto eigv = Matrix<MatrixType::Square, FLOAT>(nstep[i]);    // Eigenvectors
+            eigv.Clear();
+            eigv.Diagonal(0,1);
+
+            auto matrix = Matrix<MatrixType::tqli, FLOAT>(nstep[i]);    // Benchmark, tqli in lib.cpp
+            matrix.Clear();
+            matrix.Diagonal(0, d);
+            matrix.Diagonal(1,-1);
+            auto l = matrix.tqli(eigv);
+            SortEigenValues(l, (FLOAT**)eigv, nstep[i]);
+            for(unsigned int k = 0; k < ARRAY_SIZE(L1); k++)
+                l[k] /= h*h;
+            errorfile << " & " << RelativeError(L1, l, ARRAY_SIZE(L1));
+
+            delete [] rho;
+            delete[] d;
+        }
+        errorfile << " \\\\" << endl;
+    }
+    errorfile.close();
+
     return 0;
 }
 template<class T> T* CopyOfArray(T* arr, unsigned int n) {
@@ -191,14 +201,27 @@ template<class T> T* CopyOfArray(T* arr, unsigned int n) {
         arr2[i] = arr[i];
     return arr2;
 }
+template<class T> void CoutArray(T* array, unsigned int n) {
+    for(unsigned int i = 0; i < n; i++)
+        cout << array[i] << '\t';
+    cout << endl;
+}
 template<MatrixType Type, class T> T* GetMatrixDiagonal(Matrix<Type, T>* matrix) {
     T* d = new T[matrix->n];
     for(unsigned int i = 0; i < matrix->n; i++)
         d[i] = (*matrix)(i,i);
     return d;
 }
-
-template<class T> T* Sort(T* u, unsigned int n) {
+template<class T> T* NormalizeEigenVectors(T** v, unsigned int n) {
+    T* f = new T[n];
+    for(unsigned int i = 0; i < n; i++) {
+        f[i] = 0;
+        for(unsigned int j = 0; j < n; j++)
+            f[i] += v[j][i]*v[j][i];
+        f[i] = sqrt(f[i]);
+    }
+}
+template<class T> T* SortEigenValues(T* u, T** v, unsigned int n) {
     T temp;
     for(unsigned int i = 0; i < n-1; i++) {
         for(unsigned int j = i+1; j< n; j++) {
@@ -206,6 +229,11 @@ template<class T> T* Sort(T* u, unsigned int n) {
                 temp = u[i];
                 u[i] = u[j];
                 u[j] = temp;
+                for(unsigned int k = 0; k < n; k++) {
+                    temp = v[k][i];
+                    v[k][i] = v[k][j];
+                    v[k][j] = temp;
+                }
             }
         }
     }
