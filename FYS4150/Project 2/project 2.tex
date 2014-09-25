@@ -183,7 +183,7 @@ We can diagonalize the matrix $\mathbf{A}$ by doing matrix similarity transforma
 
 \subsection{QR algorithm and tridiagonal matrices}
 
-We want to find the eigenvalues of a real tridiagonal symmetric matrix $\textbf{A}_0$ of $n\times n$ which do QR decomposition on
+We want to find the eigenvalues of a tridiagonal symmetric matrix $\textbf{A}_0$ of $n\times n$ which do QR decomposition on
 
 \begin{align*}
 \textbf{A}_0 = \textbf{S}_0\textbf{U}_0 \,,
@@ -209,75 +209,190 @@ and we now find the similarity matrix $\textbf{A}_{i+1}$ to $\textbf{A}_i$ as fo
 =\textbf{S}_i^{\text{T}} \textbf{S}_i\textbf{U}_i \textbf{S}_i = \textbf{U}_i \textbf{S}_i \,.
 \end{align*}
 
-The tridiagonal matrix $\textbf{A}_0$ with the elements 
+We assume that $\textbf{A}_i$ is a symmetric tridiagonal matrix with the elements 
 
 \begin{align*}
-a_{0,k,\ell} = \begin{cases} d_{0,k} & \text{when }k=\ell \\ e_{0,k} & \text{when }k=\ell-1\\ e_{0,\ell} & \text{when }\ell=k-1 \\ 0 & \text{otherwise.}\end{cases}
+a_{i,k,\ell} = \begin{cases} a_{i,k,k+\abs{\ell-k}} & \text{when } \ell \in \mathbb{N}_{k-1}^{k+1} \\ 0 & \text{otherwise,}\end{cases}
 \end{align*}
 
-To find the upper matrix we use successively rotation matrices $\textbf{R}_{0,j}$ to eliminate the elements in the lower triangle part of the tridiagonal matrix $\textbf{A}_0$ 
+which I will show by induction. To find the upper matrix we use successively rotation matrices $\textbf{R}_{i,j}$ to eliminate the elements in the lower triangle part of the tridiagonal matrix $\textbf{A}_i$ 
 
 \begin{align*}
-\textbf{U}_0 = \prod_{j=1}^{n-1} \textbf{R}_{0,j}^{\text{T}} \textbf{A}_0 \,,
+\textbf{U}_i = \prod_{j=1}^{n-1} \textbf{R}_{i,j}^{\text{T}} \textbf{A}_i \,,
 \end{align*}
 
-where the rotation matrix $\textbf{R}_{0,j}$ has the elements
+where the rotation matrix $\textbf{R}_{i,j}$ has the elements
 
 \begin{align*}
-r_{0,j,k,\ell} = \begin{cases} \cos\theta_{0,j} & \text{when } j=k=\ell \\ -\sin\theta_{0,j} & \text{when } j=k=\ell-1 \\ \sin\theta_{0,j} & \text{when } j=k-1=\ell \\ \cos\theta_{0,j} & \text{when } j = k-1 = \ell-1 \\ 1 & \text{when } k=\ell\in\mathbb{N}_1^n / \mathbb{N}_j^{j+1}  \\ 0 & \text{otherwise.}\end{cases}
+r_{i,j,k,\ell} = \begin{cases} \cos\theta_{i,j} & \text{when } j=k=\ell \\ -\sin\theta_{i,j} & \text{when } j=k=\ell-1 \\ \sin\theta_{i,j} & \text{when } j=k-1=\ell \\ \cos\theta_{i,j} & \text{when } j = k-1 = \ell-1 \\ 1 & \text{when } k=\ell\in\mathbb{N}_1^n / \mathbb{N}_j^{j+1}  \\ 0 & \text{otherwise.}\end{cases}
 \end{align*}
 
-Note that the rotation matrix is orthogonal which means that the elements of $\textbf{R}_{0,j}^{\text{T}}$ is given by $r_{0,j,k,\ell}^{\text{T}} = r_{0,j,\ell,k}$. I define the matrix
+Note that the rotation matrix is orthogonal which means that the elements of $\textbf{R}_{i,j}^{\text{T}}$ is given by $r_{i,j,k,\ell}^{\text{T}} = r_{i,j,\ell,k}$. I define the matrix
 
 \begin{align*}
-\textbf{A}_{0,j+1} = \begin{cases}\textbf{A}_0 &\text{when } j=0 \\ \textbf{R}_{0,j}^{\text{T}}\textbf{A}_{0,j} & \text{when } j\in\mathbb{N}_1^{n-1} \end{cases} \,,
+\textbf{A}_{i,j+1} = \begin{cases}\textbf{A}_i &\text{when } j=0 \\ \textbf{R}_{i,j}^{\text{T}}\textbf{A}_{i,j} & \text{when } j\in\mathbb{N}_1^{n-1}\,, \end{cases}
 \end{align*}
 
-which means that we are going to show that $\textbf{U}_0 = \textbf{A}_{0,n}$, where the matrix $\textbf{A}_{0,j}$ has the elements $a_{0,j,k\ell}$. I start by doing the matrix multiplication $\textbf{A}_{0,2} = \textbf{R}_{0,1}^{\text{T}}\textbf{A}_{0,1}$;
+which means that we are going to show that $\textbf{U}_i = \textbf{A}_{i,n}$, where the matrix $\textbf{A}_{i,j}$ has the elements $a_{i,j,k\ell}$. I start by doing the matrix multiplication $\textbf{A}_{i,2} = \textbf{R}_{i,1}^{\text{T}}\textbf{A}_{i,1}$;
 
 \begin{align*}
-a_{0,2,k,\ell} &= \sum_{m=1}^n r_{0,1,k,m}^{\text{T}} a_{0,1,m,\ell} = \sum_{m=-1}^1 r_{0,1,k,\ell+m}^{\text{T}} a_{0,1,\ell+m,\ell}
-= \begin{cases} \sum_{m=-1}^1 r_{0,1,k,\ell+m}^{\text{T}} a_{0,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}\\ a_{0,1,k,\ell} & \text{otherwise.}\end{cases} 
+a_{i,2,k,\ell} &= \sum_{m=1}^n r_{i,1,k,m}^{\text{T}} a_{i,1,m,\ell} = \sum_{m=-1}^1 r_{i,1,k,\ell+m}^{\text{T}} a_{i,1,\ell+m,\ell}
+= \begin{cases} \sum_{m=-1}^1 r_{i,1,k,\ell+m}^{\text{T}} a_{i,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}\\ a_{i,1,k,\ell} & \text{otherwise.}\end{cases} 
 \\
-&= \begin{cases} \sum_{m=-1}^1 r_{0,1,k,\ell+m}^{\text{T}} a_{0,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}} \text{ and } \ell \in\mathbb{N}_1^3\\ a_{0,1,k,\ell} & \text{otherwise.}\end{cases}
+&= \begin{cases} \sum_{m=-1}^1 r_{i,1,k,\ell+m}^{\text{T}} a_{i,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}} \text{ and } \ell \in\mathbb{N}_1^3\\ a_{i,1,k,\ell} & \text{otherwise.}\end{cases}
 \end{align*}
 
 The notation $\leftidx{^2}{\mathbb{N}}{_1^2} = \mathbb{N}_1^2 \times \mathbb{N}_1^2$, which means all the permutations of the natural number from 1 to 2; $(1,1)$, $(1,2)$, $(2,1)$ and $(2,2)$. We want our transformation to zero out the lower triangle element $(2,1)$
 
 \begin{align*}
-a_{0,2,2,1} = \sum_{m=-1}^1 r_{0,1,2,m+1}^{\text{T}} a_{0,1,m+1,1} = \sum_{m=0}^1 r_{0,1,2,m+1}^{\text{T}} a_{0,1,m+1,1} = 0\,,
+a_{i,2,2,1} = \sum_{m=-1}^1 r_{i,1,2,m+1}^{\text{T}} a_{i,1,m+1,1} = \sum_{m=0}^1 r_{i,1,2,m+1}^{\text{T}} a_{i,1,m+1,1} = 0\,,
 \end{align*}
 
 which means that 
 
 \begin{align*}
-a_{0,2,k,\ell} = \begin{cases} \sum_{m=-1}^1 r_{0,1,k,\ell+m}^{\text{T}} a_{0,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}, (k,\ell)\neq(2,1) \text{ and } \ell \in\mathbb{N}_1^3\\ 0 & \text{when } (k,\ell)=(2,1) \\ a_{0,1,k,\ell} & \text{otherwise.}\end{cases}
+a_{i,2,k,\ell} = \begin{cases} \sum_{m=-1}^1 r_{i,1,k,\ell+m}^{\text{T}} a_{i,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}, (k,\ell)\neq(2,1) \text{ and } \ell \in\mathbb{N}_1^3\\ 0 & \text{when } (k,\ell)=(2,1) \\ a_{i,1,k,\ell} & \text{otherwise.}\end{cases}
 \end{align*}
 
-Note that all the lower triangle elements in $a_{0,2,k,\ell}$ is the same as $a_{0,1,k,\ell}$, expect $a_{0,2,2,1} = 0$. Note also that $a_{0,2,1,3}$ is the only upper triangle element that isn't necessarily zero that was zero in matrix $\textbf{A}_{0,1}$. If we now continue the matrix multiplication to step $j$, $\textbf{A}_{0,j+1} = \textbf{R}_{0,j}^{\text{T}} \textbf{A}_{0,j}$;
+Note that all the lower off diagonal elements  $a_{i,2,k,\ell}$ is the same as $a_{i,1,k,\ell}$, expect $a_{i,2,2,1} = 0$. Note also that $a_{i,2,1,3}$ is the only upper triangle element that isn't necessarily zero that was zero in matrix $\textbf{A}_{i,1}$. If we now continue the matrix multiplication to step $j$, $\textbf{A}_{i,j+1} = \textbf{R}_{i,j}^{\text{T}} \textbf{A}_{i,j}$;
 
 \begin{align*}
-a_{0,j+1,k,\ell} &= \sum_{m=1}^n r_{0,j,k,m}^{\text{T}} a_{0,j,m,\ell} = \sum_{m=-1}^1 r_{0,j,k,\ell+m}^{\text{T}} a_{0,j,\ell+m,\ell} 
-= \begin{cases} \sum_{m=-1}^1 r_{0,j,k,\ell+m}^{\text{T}} a_{0,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}}\\ a_{0,j,k,\ell} & \text{otherwise.}\end{cases}
+a_{i,j+1,k,\ell} &= \sum_{m=1}^n r_{i,j,k,m}^{\text{T}} a_{i,j,m,\ell} = \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} 
+= \begin{cases} \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}}\\ a_{i,j,k,\ell} & \text{otherwise.}\end{cases}
 \\
-&= \begin{cases} \sum_{m=-1}^1 r_{0,j,k,\ell+m}^{\text{T}} a_{0,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j-1}^{j+2}\\ a_{0,j,k,\ell} & \text{otherwise.}\end{cases}
+&= \begin{cases} \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j-1}^{j+2}\\ a_{i,j,k,\ell} & \text{otherwise.}\end{cases}
 \\
-&= \begin{cases} \sum_{m=-1}^1 r_{0,j,k,\ell+m}^{\text{T}} a_{0,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j}^{j+2}\\ a_{0,j,k,\ell} & \text{otherwise.}\end{cases}
+&= \begin{cases} \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j}^{j+2}\\ a_{i,j,k,\ell} & \text{otherwise,}\end{cases}
 \end{align*}
 
-where I have used that $a_{0,j,j,j-1}=0$ due to zero out of the previous rotation. Since $\textbf{U}_0 = \textbf{A}_{0,n}$, means that the matrix elements of $\textbf{U}_0$ is given by $u_{0,k,\ell} = a_{0,n,k,\ell}$. We have shown by induction that all the lower triangle elements are zero in $\textbf{A}_{0,n}$, because $\textbf{A}_0$ is a tridiagonal matrix and we zero out matrix element $a_{0,j+1,j+1,j}$ with the rotation matrix $\textbf{R}_{j,0}^{\text{T}}$ without changing the other lower triangle elements.\linebreak
-
-Since $\textbf{A}_0 = \textbf{S}_0 \textbf{U}_0$ means that 
+where I have used that $a_{i,j,j,j-1}=0$ due to zero out of the previous rotation. We want now want our transformation to zero out the lower triangle element $(j+1,j)$
 
 \begin{align*}
-\textbf{S}_0^{\text{T}} = \prod_{j=1}^{n-1} \textbf{R}_{0,j}^{\text{T}} \,,
+a_{i,j+1,j+1,j} = \sum_{m=-1}^1 r_{i,j,j+1,j+m}^{\text{T}} a_{i,j,j+m,j} = \sum_{m=0}^1 r_{i,j,j+1,j+m}^{\text{T}} a_{i,j,j+m,j} = 0
 \end{align*}
 
-and due to the similarity transformation $\textbf{A}_1 = \textbf{S}_0^{\text{T}} \textbf{A}_0 \textbf{S}_0 = \prod_{j=1}^{n-1}\textbf{R}_{j,0}^{\text{T}} \textbf{A}_0 \prod_{i=n-1}^{1}\textbf{R}_{j,0}$ we have that
+where I have used the fact that $r_{i,j,j+1,j-1}^{\text{T}} = 0$. This means that
 
 \begin{align*}
-\textbf{S}_0 = \prod_{j=n-1}^{1} \textbf{R}_{j,0} \,.
+a_{i,j+1,k,\ell} = \begin{cases} \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}}, (k,\ell)\neq (j+1,j) \text{ and } \ell \in\mathbb{N}_{j}^{j+2}\\ 0 & \text{when } (k,\ell)=(j+1,j) \\ a_{i,j,k,\ell} & \text{otherwise.}\end{cases} 
 \end{align*}
+
+I have now shown that all the lower off diagonal elements $a_{i,j+1,k,\ell}$ is the same as $a_{i,j,k\ell}$, expect $a_{i,j+1,j+1,j}=0$. Then using the assumption that $\textbf{A}_i$ is a tridiagonal matrix, induction gives us that $\textbf{A}_{i,n} = \textbf{U}_i$ is a upper triangle matrix. Furthermore $a_{i,j+1,j,j+2}$ is the only upper triangle element that isn't zero that was zero in the matrix $\textbf{A}_{i,j}$, hence induction give us the following upper triangle matrix elements
+
+\begin{align*}
+u_{i,k,\ell} = \begin{cases} a_{i,n,k,\ell} & \text{when } \ell\in\mathbb{N}_k^{k+2} \\ 0 & \text{otherwise.} \end{cases}
+\end{align*}
+
+Since $\textbf{A}_i = \textbf{S}_i \textbf{U}_i$ means that 
+
+\begin{align*}
+\textbf{S}_i^{\text{T}} = \prod_{j=1}^{n-1} \textbf{R}_{i,j}^{\text{T}} \,,
+\end{align*}
+
+and due to the similarity transformation $\textbf{A}_{i+1} = \textbf{S}_i^{\text{T}} \textbf{A}_i \textbf{S}_i = \prod_{j=1}^{n-1}\textbf{R}_{i,j}^{\text{T}} \textbf{A}_i \prod_{i=1}^{n-1}\textbf{R}_{i,n-j}$ we have that
+
+\begin{align*}
+\textbf{S}_i = \prod_{j=1}^{n-1} \textbf{R}_{i,n-j} \,.
+\end{align*}
+
+To find the similarity matrix $\textbf{A}_{i+1}$ to $\textbf{A}_i$ we use successively rotation matrices $\textbf{R}_{i,j}$ by defining the matrix
+
+\begin{align*}
+\textbf{U}_{i,j} = \begin{cases} \textbf{U}_i & \text{when } j = n \\ \textbf{U}_{i,j+1}\textbf{R}_{i,j} & \text{when } j\in \ \mathbb{N}_1^{n-1}\,, \end{cases}
+\end{align*}
+
+where $\textbf{U}_{i,1} = \textbf{A}_{i+1}$. Doing the matrix multiplication $\textbf{U}_{i,n-1} = \textbf{U}_{i,n} \textbf{R}_{i,n-1}$;
+
+\begin{align*}
+u_{i,n-1,k,\ell} &= \sum_{m=1}^n u_{i,n,k,m} r_{i,n-1,m,\ell} = \sum_{m=0}^2 u_{i,n,k,k+m} r_{i,n-1,k+m,\ell} 
+= \begin{cases} \sum_{m=0}^2 u_{i,n,k,k+m} r_{i,n-1,k+m,\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{n-1}^n}} \\ u_{i,n,k,\ell} & \text{otherwise} \end{cases}
+\\
+&= \begin{cases} \sum_{m=0}^2 u_{i,n,k,k+m} r_{i,n-1,k+m,\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{n-1}^n}} \text{ and } k\in\mathbb{N}_{n-3}^n  \\ u_{i,n,k,\ell} & \text{otherwise.} \end{cases}
+\end{align*} 
+
+Note that all lower off diagonal elements $u_{i,n-1,k,\ell}$ is the same as $u_{i,n,k,\ell}$, except $u_{i,n-1,n,n-1}$ which now may be different than zero. If we now continue the matrix multiplication to step $n-j+1$, $\textbf{U}_{i,j-1} = \textbf{U}_{i,j}\textbf{R}_{i,j-1}$;
+
+\begin{align*}
+u_{i,j-1,k,\ell} &= \sum_{m=1}^n u_{i,j,k,m} r_{i,j-1,m,\ell} = \sum_{m=0}^2 u_{i,j,k,k+m} r_{i,j-1,k+m,\ell} 
+= \begin{cases} \sum_{m=0}^2 u_{i,j,k,k+m} r_{i,j-1,k+m,\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{j-1}^{j}}} \\ u_{i,j+1,k,\ell} & \text{otherwise} \end{cases}
+\\
+&= \begin{cases} \sum_{m=0}^2 u_{i,j,k,k+m} r_{i,j-1,k+m,\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{j-1}^{j}}} \text{ and } k\in\mathbb{N}_{j-3}^{j}  \\ u_{i,j,k,\ell} & \text{otherwise,} \end{cases}
+\end{align*}
+
+and we see that the lower off diagonal elements $u_{i,j-1,k,\ell}$ is the same as $u_{i,j,k,\ell}$, except $u_{i,j-1,j,j-1}$ which now may be different than zero. Hence by induction I shown that the only non-zero lower off diagonal elements in $\textbf{A}_{i+1}=\textbf{U}_{i,1}$ is the elements $u_{i,1,k,k-1}$;
+
+\begin{align*}
+a_{i+1,k,\ell} = \begin{cases} u_{i,1,k,\ell} & \text{when } \ell\in\mathbb{N}_{k-1}^n \\ 0 & \text{otherwise.} \end{cases}
+\end{align*}
+
+But we can actually show that $\textbf{A}_{i+1}$ is tridiagonal matrix by using the assumption that $\textbf{A}_i$ is a symmetric matrix. This we can do by showing that when $\textbf{A}_i$ is a symmetric then $\textbf{A}_{i+1}$ is also symmetric by doing the matrix multiplication of the similarity transformation $\textbf{A}_{i+1}^{\text{T}} = \p{\textbf{S}_i^{\text{T}}\textbf{A}_i \textbf{S}_i}^\text{T}$;
+
+\begin{align*}
+a_{i+1,k,\ell}^{\text{T}} = \p{\sum_{m=1}^n \sum_{o=1}^n s_{i,k,m}^{\text{T}}a_{i,m,o} s_{i,o,\ell}}^{\text{T}} = \sum_{m=1}^n \sum_{o=1}^n s_{i,\ell,m}^{\text{T}}a_{i,m,o} s_{i,o,k} = a_{i+1,\ell,k} \,.
+\end{align*}
+
+Since we have shown that $\textbf{A}_{i+1}$ is symmetric be due to that $\textbf{A}_i$ is symmetric, and that $\textbf{A}_{i+1}$ has only non-zero elements in the lower off diagonal $a_{i,k,k-1}$, means that $a_{i,k,k+1}$ is the only higher off diagonal elements that are non-zero as well;
+
+\begin{align*}
+a_{i+1,k,\ell} = \begin{cases} a_{i+1,k,k+\abs{\ell-k}} & \text{when } \ell \in \mathbb{N}_{k-1}^{k+1} \\ 0 & \text{otherwise.}\end{cases}
+\end{align*}
+
+And we have indeed shown by induction that $\textbf{A}_i$ is symmetric tridiagonal matrix because the initial matrix $\textbf{A}_0$ is symmetric tridiagonal matrix. Now if the off diagonal elements decreases for each QR transformation, then the similarity matrices $\textbf{A}_i$ will converge to a diagonal matrix, and hence we have found the eigenvalues. \linebreak
+
+Now lets take a look at how we can calculate the elements in the symmetric tridiagonal matrix $\textbf{A}_{i+1}$ we are primarily interested in calculating the elements $u_{i,j-1,j,j}$ and $u_{i,j-1,j,j-1}$ in $\textbf{U}_{i,j-1}$, because this elements does not change in next matrix $\textbf{U}_{i,j-2}$. So let us see what we need to calculate these elements;
+
+\begin{align*}
+u_{i,j-1,j,j} &= \sum_{m=0}^2 u_{i,j,j,j+m} r_{i,j-1,j+m,j}  =  u_{i,j,j,j} r_{i,j-1,j,j}
+\\
+u_{i,j-1,j,j-1} &= \sum_{m=0}^2 u_{i,j,j,j+m} r_{i,j-1,j+m,j-1} = u_{i,j,j,j} r_{i,j-1,j,j-1}
+\end{align*}
+
+So we need $u_{i,j,j,j}$ to calculate the elements $u_{i,j-1,j,j}$ and $u_{i,j-1,j,j-1}$, which means that we need to calculate $u_{i,j-1,j-1,j-1}$ as well;
+
+\begin{align*}
+u_{i,j-1,j-1,j-1} = \sum_{m=0}^2 u_{i,j,j-1,j+m-1} r_{i,j-1,j+m-1,j-1} = u_{i,j,j-1,j-1} r_{i,j-1,j-1,j-1} + u_{i,j,j-1,j} r_{i,j-1,j,j-1} \,.
+\end{align*}
+
+The matrix elements $u_{i,j,j-1,j-1}$ and $u_{i,j,j-1,j}$ are the same for the previous $\textbf{U}_{i,k}$ with $k \in \mathbb{N}_{j+1}^{n-1}$, in fact these elements haven't changed since the transformation to $\textbf{A}_{i,j}$, which means that
+
+\begin{align*}
+u_{i,j-1,j-1,j-1} = a_{i,j,j-1,j-1} r_{i,j-1,j-1,j-1} + a_{i,j,j-1,j} r_{i,j-1,j,j-1} \,.
+\end{align*}
+
+Hence for the elements in interest we have
+
+\begin{align*}
+u_{i,j-1,j,j} &= \begin{cases} a_{i,n,n,n} r_{i,n-1,n,n} & \text{when } j = n \\ \p{a_{i,j+1,j,j} r_{i,j,j,j} + a_{i,j+1,j,j+1} r_{i,j,j+1,j}}r_{i,j-1,j,j} & \text{otherwise}\end{cases}
+\\
+u_{i,j-1,j,j-1} &= \begin{cases} a_{i,n,n,n} r_{i,n-1,n,n-1} & \text{when } j= n \\ \p{a_{i,j+1,j,j} r_{i,j,j,j} + a_{i,j+1,j,j+1} r_{i,j,j+1,j}} r_{i,j-1,j,j-1} & \text{otherwise.}\end{cases}
+\end{align*}
+
+Next step is to calculate the elements $a_{i,j+1,j,j}$ and $a_{i,j+1,j,j+1}$;
+
+\begin{align*}
+a_{i,j+1,j,j} &= \sum_{m=-1}^1 r_{i,j,j,j+m}^{\text{T}} a_{i,j,j+m,j} = r_{i,j,j,j}^{\text{T}}a_{i,j,j,j} + r_{i,j,j,j+1}^{\text{T}} a_{i,j,j+1,j} 
+\\
+&= r_{i,j,j,j}^{\text{T}}a_{i,j,j,j} + r_{i,j,j,j+1}^{\text{T}} a_{i,j+1,j}
+\\
+a_{i,j+1,j,j+1} &= \sum_{m=-1}^1 r_{i,j,j,j+m+1}^{\text{T}} a_{i,j,j+m+1,j+1} = r_{i,j,j,j}^{\text{T}} a_{i,j,j,j+1} + r_{i,j,j,j+1}^{\text{T}} a_{i,j,j+1,j+1}
+\\
+&= r_{i,j,j,j}^{\text{T}} a_{i,j,j,j+1} + r_{i,j,j,j+1}^{\text{T}} a_{i,j+1,j+1}
+\end{align*} 
+
+where we recognize that the elements $a_{i,j,j+1,j}$ and  $a_{i,j,j+1,j+1}$ haven't been changed yet by the previous transformations $\textbf{A}_{i,k}$ with $k\in\mathbb{N}_1^{j-1}$, and are therefore the same as the original elements $a_{i,j+1,j}$ and $a_{i,j+1,j+1}$ in $\textbf{A}_0$. So need both $a_{i,j,j,j}$ and $a_{i,j,j,j+1}$ to calculate $a_{i,j+1,j,j}$ and $a_{i,j+1,j,j+1}$, and these are
+
+\begin{align*}
+a_{i,j,j,j} &= \begin{cases} a_{i,1,1} & \text{when } j=1 \\ \sum_{m=-1}^1 r_{i,j-1,j,j+m}^{\text{T}} a_{i,j-1,j+m,j} & \text{otherwise}\end{cases} = \begin{cases} a_{i,1,1} & \text{when } j=1 \\ r_{i,j-1,j,j-1}^{\text{T}} a_{i,j-1,j-1,j} + r_{i,j-1,j,j}^{\text{T}} a_{i,j-1,j,j}& \text{otherwise}\end{cases}
+\\
+&= \begin{cases} a_{i,1,1} & \text{when } j=1 \\ r_{i,j-1,j,j-1}^{\text{T}} a_{i,j-1,j-1,j} + r_{i,j-1,j,j}^{\text{T}} a_{i,j,j} & \text{otherwise}\end{cases}
+\\
+a_{i,j,j,j+1} &= \begin{cases} a_{i,1,2} & \text{when } j=1 \\ \sum_{m=-1}^1 r_{i,j-1,j,j+m+1}^{\text{T}} a_{i,j-1,j+m+1,j+1} & \text{otherwise}\end{cases}
+= \begin{cases} a_{i,1,2} & \text{when } j=1 \\ r_{i,j-1,j,j}^{\text{T}} a_{i,j-1,j,j+1}  & \text{otherwise}\end{cases}
+\\ 
+&= \begin{cases} a_{i,1,2} & \text{when } j=1 \\ r_{i,j-1,j,j}^{\text{T}} a_{i,j,j+1} & \text{otherwise.}\end{cases}
+\end{align*}
+
+
 
 \section{Numerical implementation}
 
@@ -317,9 +432,12 @@ we see that $a_{jj}$ corresponds to $b_{ii}$ and $a_{ii}$ corresponds to $b_{jj}
 \begin{tabell}{|r|c|c|c|c|c|c|c|c|}{\small}{Number & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/error.dat}}{Order of relative error to result of eigenvalues to the tqli in lib.cpp. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
 \end{tabell}
 
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|}{\small}{Number & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/numberoftransformations.dat}}{Number of transformations $n_{\mathrm{step}}$. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
+\end{tabell}
+
 \subsection{Single electron harmonic oscillator}
 
-\begin{tabell}{|r|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2header.dat}}{\input{build-project2-Desktop-Debug/error2.dat}}{Order of relative error of the three lower eigenvalues of a single electron trapped in a harmonic oscillator well.}{tab_speed}
+\begin{tabell}{|r|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2header.dat}}{\input{build-project2-Desktop-Debug/error2.dat}}{Order of relative error of the three lower eigenvalues of a single electron trapped in a harmonic oscillator well.}{tab_one_electron}
 \end{tabell}
 
 \section{Conclusion}

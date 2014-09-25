@@ -328,9 +328,10 @@ template<class T> class Matrix<MatrixType::Square, T> :
         MatrixElements<Matrix<MatrixType::Square, T>, T>(n) {
 
     }
-    void JacobiMethod(T error) {
+    void JacobiMethod(T error, unsigned int &num /**/) {
         MatrixIndex I;
         T s, c, t, tau, a_kk, a_ll, a_ik, a_il;
+        num = 0;                            // To be removed
         while(error < MaxAbs(this->matrix, this->_n, I)) {
             tau = (this->matrix[I.j][I.j] - this->matrix[I.i][I.i])/(2*this->matrix[I.i][I.j]);
             if (tau > 0)
@@ -358,6 +359,7 @@ template<class T> class Matrix<MatrixType::Square, T> :
                     this->matrix[I.j][i] = this->matrix[i][I.j];
                 }
             }
+            num++;                      // To be removed
         }
     }
     public: T MaxAbs(T** matrix, unsigned int n, MatrixIndex& I) {
@@ -382,103 +384,110 @@ template<class T> class Matrix<MatrixType::Symmetric, T> :
             MatrixDiagonal<Matrix<MatrixType::Symmetric, T>, T>(this),
             MatrixElements<Matrix<MatrixType::Symmetric, T>, T>(n) {
     }
-    public: T* JacobiMethod(T error) {
+    public: T* JacobiMethod(T error, unsigned int& num /**/) {
         MatrixIndex I;
         T** offdiagonal = &this->matrix[1];
         unsigned int offn = this->_n-1;
-        while(error < MaxAbs(offdiagonal, offn, I))     // Find the maximum element, and stop when error is smaller than desired
-            Rotate(I.j, ++I.i);
+        num = 0;                                    // To be removed
+        while(error < MaxAbs(offdiagonal, offn, I)) // Find the maximum element, and stop when error is smaller than desired
+            Rotate(I.j, ++I.i, num);
         return this->matrix[0];
     }
-    public: T* JacobiMethodFD(T error) {            // Forward diagonal iteration
+    public: T* JacobiMethodFD(T error, unsigned int& num /**/) {        // Forward diagonal iteration
         bool run = true;
+        num = 0;                                                        // To be removed
         while(run) {
             run = false;
             for(unsigned int d = 1, r, n = this->_n-1; n; d++, n--) {   // Run through the diagonals
                 for(r = 0; r < n; r++) {                                // Run through the rows
                     if(error < abs(this->matrix[d][r])) {
                         run = true;
-                        Rotate(r, d);
+                        Rotate(r, d, num);
                     }
                 }
             }
         }
         return this->matrix[0];
     }
-    public: T* JacobiMethodRD(T error) {            // Reverse diagonal iteration
+    public: T* JacobiMethodRD(T error, unsigned int& num /**/) {        // Reverse diagonal iteration
         bool run = true;
+        num = 0;                                                        // To be removed
         while(run) {
             run = false;
             for(unsigned int d = this->_n-1, r, p = 1; d; d--, p++) {   // Run through the diagonals
                 for(r = 0; r < p; r++) {                                // Run through the rows
                     if(error < abs(this->matrix[d][r])) {
                         run = true;
-                        Rotate(r, d);
+                        Rotate(r, d, num);
                     }
                 }
             }
         }
         return this->matrix[0];
     }
-    public: T* JacobiMethodFC(T error) {            // Forward column iteration
-            bool run;
-            do {
-                run = false;
-                for(unsigned int r = 0, d, n = this->_n; r < this->_n; r++, n--) {
-                    for(d = 1; d < n; d++) {
-                        if(error < abs(this->matrix[d][r])) {
-                            run = true;
-                            Rotate(r,d);
-                        }
+    public: T* JacobiMethodFC(T error, unsigned int& num /**/) {        // Forward column iteration
+        bool run;
+        num = 0;                                                        // To be removed
+        do {
+            run = false;
+            for(unsigned int r = 0, d, n = this->_n; r < this->_n; r++, n--) {
+                for(d = 1; d < n; d++) {
+                    if(error < abs(this->matrix[d][r])) {
+                        run = true;
+                        Rotate(r, d, num);
                     }
                 }
-            } while(run);
-            return this->matrix[0];
+            }
+        } while(run);
+        return this->matrix[0];
     }
-    public: T* JacobiMethodRC(T error) {            // Reverse column iteration
-            bool run;
-            do {
-                run = false;
-                for(unsigned int r = 0, d, n = this->_n-1; r < this->_n; r++, n--) {
-                    for(d = n; d; d--) {
-                        if(error < abs(this->matrix[d][r])) {
-                            run = true;
-                            Rotate(r,d);
-                        }
+    public: T* JacobiMethodRC(T error, unsigned int& num /**/) {        // Reverse column iteration
+        bool run;
+        num = 0;                                                        // To be removed
+        do {
+            run = false;
+            for(unsigned int r = 0, d, n = this->_n-1; r < this->_n; r++, n--) {
+                for(d = n; d; d--) {
+                    if(error < abs(this->matrix[d][r])) {
+                        run = true;
+                        Rotate(r, d, num);
                     }
                 }
-            } while(run);
-            return this->matrix[0];
+            }
+        } while(run);
+        return this->matrix[0];
     }
-    public: T* JacobiMethodFR(T error) {            // Forward row iteration
-            bool run;
-            do {
-                run = false;
-                for(unsigned int r, d = 1, c; d < this->_n; d++) {
-                    for(r = 0, c = d; c; r++, c--) {
-                        if(error < abs(this->matrix[c][r])) {
-                            run = true;
-                            Rotate(r,c);
-                        }
+    public: T* JacobiMethodFR(T error, unsigned int& num /**/) {        // Forward row iteration
+        bool run;
+        num = 0;                                                        // To be removed
+        do {
+            run = false;
+            for(unsigned int r, d = 1, c; d < this->_n; d++) {
+                for(r = 0, c = d; c; r++, c--) {
+                    if(error < abs(this->matrix[c][r])) {
+                        run = true;
+                        Rotate(r, c, num);
                     }
                 }
-            } while(run);
-            return this->matrix[0];
+            }
+        } while(run);
+        return this->matrix[0];
     }
-    public: T* JacobiMethodRR(T error) {            // Reverse row iteration
-            bool run;
-            do {
-                run = false;
-                for(unsigned int r, d = 1, c; d < this->_n; d++) {
-                    for(r = d-1, c = 1; c <= d; r--, c++) {
-                        if(error < abs(this->matrix[c][r])) {
-                            run = true;
-                            Rotate(r,c);
-                        }
+    public: T* JacobiMethodRR(T error, unsigned int& num /**/) {        // Reverse row iteration
+        bool run;
+        num = 0;                                                        // To be removed
+        do {
+            run = false;
+            for(unsigned int r, d = 1, c; d < this->_n; d++) {
+                for(r = d-1, c = 1; c <= d; r--, c++) {
+                    if(error < abs(this->matrix[c][r])) {
+                        run = true;
+                        Rotate(r, c, num);
                     }
                 }
-            } while(run);
-            return this->matrix[0];
+            }
+        } while(run);
+        return this->matrix[0];
     }
     private: T MaxAbs(T** matrix, unsigned int n, MatrixIndex& I) {
         T max = 0, abs1;
@@ -494,7 +503,7 @@ template<class T> class Matrix<MatrixType::Symmetric, T> :
         }
         return max;
     }
-    private: void Rotate(unsigned int i, unsigned int j) {
+    private: void Rotate(unsigned int i, unsigned int j, unsigned int& num) {
         T b = 2*this->matrix[j][i];
         this->matrix[j][i] = 0;     // bij=bij=0
 
@@ -533,6 +542,7 @@ template<class T> class Matrix<MatrixType::Symmetric, T> :
             this->matrix[k][i] = a*c - b*s;
             this->matrix[l][j] = b*c + a*s;
         }
+        num++;                                              // To be removed
     }
 };
 template<class T> class Matrix<MatrixType::Tridiagonal, T> :

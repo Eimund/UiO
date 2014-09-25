@@ -44,12 +44,14 @@ int main() {
     FLOAT alpha = pow(HBAR*HBAR/(M*k),0.25);
     FLOAT _rho = 0;
     FLOAT rho_[] = {1,2,4,10,100,1000};
-    ofstream timefile, errorfile;
+    ofstream timefile, errorfile, numfile;
     timefile.open("time.dat");
     errorfile.open("error.dat");
+    numfile.open("numberoftransformations.dat");
 
     /* Compare different eigenvalue solvers */
     for(unsigned int i = 0; i < ARRAY_SIZE(n); i++) {
+        unsigned int num;
         FLOAT h = (rho_[0]-_rho)/(n[i]+1);         // Step length
         FLOAT* rho = new FLOAT[n[i]+2];         // the variable rho
         FLOAT* d = new FLOAT[n[i]];             // Diagonal elements
@@ -61,6 +63,7 @@ int main() {
         }
         timefile << n[i] << " & ";
         errorfile << n[i] << " & ";
+        numfile << n[i] << " & ";
         auto eigv = Matrix<MatrixType::Square, FLOAT>(n[i]);    // Eigenvectors
         eigv.Clear();
         eigv.Diagonal(0,1);
@@ -80,10 +83,11 @@ int main() {
         matrix1.Diagonal(1,-1);
         matrix1.Diagonal(-1,-1);
         t0 = clock();
-        matrix1.JacobiMethod(1e-6);
+        matrix1.JacobiMethod(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
         auto l1 = GetMatrixDiagonal(&matrix1);
         errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        numfile << num << " & ";
         delete [] l1;
 
         auto matrix2 = Matrix<MatrixType::Symmetric, FLOAT>(n[i]);
@@ -91,63 +95,71 @@ int main() {
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        l1 = matrix2.JacobiMethod(1e-6);
+        l1 = matrix2.JacobiMethod(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
         errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        numfile << num << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        l1 = matrix2.JacobiMethodFD(1e-6);
+        l1 = matrix2.JacobiMethodFD(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
         errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        numfile << num << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        l1 = matrix2.JacobiMethodRD(1e-6);
+        l1 = matrix2.JacobiMethodRD(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
         errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        numfile << num << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        l1 = matrix2.JacobiMethodFC(1e-6);
+        l1 = matrix2.JacobiMethodFC(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
         errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        numfile << num << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        l1 = matrix2.JacobiMethodRC(1e-6);
+        l1 = matrix2.JacobiMethodRC(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
         errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        numfile << num << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        l1 = matrix2.JacobiMethodFR(1e-6);
+        l1 = matrix2.JacobiMethodFR(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
         errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        numfile << num << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        l1 = matrix2.JacobiMethodRR(1e-6);
+        l1 = matrix2.JacobiMethodRR(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;
         errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " \\\\" << endl;
+        numfile << num << " \\\\" << endl;
 
         delete [] rho;
         delete [] d;
     }
     timefile.close();
     errorfile.close();
+    numfile.close();
 
     /* Single electron harmonic oscillator */
     unsigned int nstep[] = {/*3,*/4,10,20,50,100,1000};
