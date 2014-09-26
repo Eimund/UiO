@@ -38,7 +38,7 @@ template<class T> T* SortEigenValues(T* u, T** v, unsigned int n);
 template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n);
 
 int main() {
-    unsigned int n[] = {10,100,1000};
+    unsigned int n[] = {4};
     FLOAT omega[] = {0.01, 0.5, 1, 5};          // Oscillator frequency
     FLOAT k = M*omega[2];
     FLOAT alpha = pow(HBAR*HBAR/(M*k),0.25);
@@ -193,9 +193,9 @@ int main() {
             errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " \\\\" << endl;
             numfile << num << " \\\\" << endl;
         } else {
-            timefile << "- & ";
-            errorfile << "- & ";
-            numfile << "- & ";
+            timefile << "- \\\\" << endl;
+            errorfile << "- \\\\" << endl;
+            numfile << "- \\\\" << endl;
         }
 
         delete [] rho;
