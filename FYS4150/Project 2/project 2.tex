@@ -379,20 +379,29 @@ a_{i,j+1,j,j+1} &= \sum_{m=-1}^1 r_{i,j,j,j+m+1}^{\text{T}} a_{i,j,j+m+1,j+1} = 
 &= r_{i,j,j,j}^{\text{T}} a_{i,j,j,j+1} + r_{i,j,j,j+1}^{\text{T}} a_{i,j+1,j+1}
 \end{align*} 
 
-where we recognize that the elements $a_{i,j,j+1,j}$ and  $a_{i,j,j+1,j+1}$ haven't been changed yet by the previous transformations $\textbf{A}_{i,k}$ with $k\in\mathbb{N}_1^{j-1}$, and are therefore the same as the original elements $a_{i,j+1,j}$ and $a_{i,j+1,j+1}$ in $\textbf{A}_0$. So need both $a_{i,j,j,j}$ and $a_{i,j,j,j+1}$ to calculate $a_{i,j+1,j,j}$ and $a_{i,j+1,j,j+1}$, and these are
+where we recognize that the elements $a_{i,j,j+1,j}$ and  $a_{i,j,j+1,j+1}$ haven't been changed yet by the previous transformations $\textbf{A}_{i,k}$ with $k\in\mathbb{N}_1^{j-1}$, and are therefore the same as the original elements $a_{i,j+1,j}$ and $a_{i,j+1,j+1}$ in $\textbf{A}_0$. So we need both $a_{i,j,j,j}$ and $a_{i,j,j,j+1}$ to calculate $a_{i,j+1,j,j}$ and $a_{i,j+1,j,j+1}$, and therefore we want to calculate $a_{i,j+1,j+1,j+1}$ and $a_{i,j+1,j+1,j+2}$ to prepare for next rotation;
 
 \begin{align*}
-a_{i,j,j,j} &= \begin{cases} a_{i,1,1} & \text{when } j=1 \\ \sum_{m=-1}^1 r_{i,j-1,j,j+m}^{\text{T}} a_{i,j-1,j+m,j} & \text{otherwise}\end{cases} = \begin{cases} a_{i,1,1} & \text{when } j=1 \\ r_{i,j-1,j,j-1}^{\text{T}} a_{i,j-1,j-1,j} + r_{i,j-1,j,j}^{\text{T}} a_{i,j-1,j,j}& \text{otherwise}\end{cases}
+a_{i,j+1,j+1,j+1} &= \sum_{m=-1}^1 r_{i,j,j+1,j+m+1}^{\text{T}} a_{i,j,j+m+1,j+1} = r_{i,j,j+1,j}^{\text{T}} a_{i,j,j,j+1} + r_{i,j,j+1,j+1}^{\text{T}} a_{i,j,j+1,j+1}
 \\
-&= \begin{cases} a_{i,1,1} & \text{when } j=1 \\ r_{i,j-1,j,j-1}^{\text{T}} a_{i,j-1,j-1,j} + r_{i,j-1,j,j}^{\text{T}} a_{i,j,j} & \text{otherwise}\end{cases}
+&= r_{i,j,j+1,j}^{\text{T}} a_{i,j,j,j+1} + r_{i,j,j+1,j+1}^{\text{T}} a_{i,j+1,j+1}
 \\
-a_{i,j,j,j+1} &= \begin{cases} a_{i,1,2} & \text{when } j=1 \\ \sum_{m=-1}^1 r_{i,j-1,j,j+m+1}^{\text{T}} a_{i,j-1,j+m+1,j+1} & \text{otherwise}\end{cases}
-= \begin{cases} a_{i,1,2} & \text{when } j=1 \\ r_{i,j-1,j,j}^{\text{T}} a_{i,j-1,j,j+1}  & \text{otherwise}\end{cases}
-\\ 
-&= \begin{cases} a_{i,1,2} & \text{when } j=1 \\ r_{i,j-1,j,j}^{\text{T}} a_{i,j,j+1} & \text{otherwise.}\end{cases}
+a_{i,j+1,j+1,j+2}  &= \sum_{m=-1}^1 r_{i,j,j+1,j+m+2}^{\text{T}} a_{i,j,j+m+2,j+2} = r_{i,j,j+1,j+1}^{\text{T}} a_{i,j,j+1,j+2} = r_{i,j,j+1,j+1}^{\text{T}} a_{i,j+1,j+2} \,,
 \end{align*}
 
+where we recognize again that $a_{i,j,j+1,j+1}$ and $a_{i,j,j+1,j+2}$ haven't been changed yet by the previous transformations $\textbf{A}_{i,k}$ with $k\in\mathbb{N}_1^{j-1}$, and are therefore the same as the original elements $a_{i,j+1,j+1}$ and $a_{i,j+1,j+2}$. Lastly I will show to calculate the rotation matrix $\textbf{R}_{i,j}$ from the already established relation
 
+\begin{align*}
+a_{i,j+1,j+1,j} = \sum_{m=0}^1 r_{i,j,j+1,j+m}^{\text{T}} a_{i,j,j+m,j} = a_{i,j,j+1,j}\cos\theta_{i,j}-a_{i,j,j,j}\sin\theta_{i,j} = 0 \,,
+\end{align*}
+
+which gives
+
+\begin{align*}
+\cos\theta_{i,j} &= \frac{a_{i,j,j,j}}{\sqrt{{a_{i,j,j,j}}^2+{a_{i,j,j+1,j}}^2}}
+\\
+\sin\theta_{i,j} &= \frac{a_{i,j,j+1,j}}{\sqrt{{a_{i,j,j,j}}^2+{a_{i,j,j+1,j}}^2}} \,.
+\end{align*}
 
 \section{Numerical implementation}
 
@@ -426,10 +435,10 @@ we see that $a_{jj}$ corresponds to $b_{ii}$ and $a_{ii}$ corresponds to $b_{jj}
 
 \subsection{Comparing different solvers}
 
-\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & tqli & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lib.cpp) & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/time.dat}}{Time used in seconds to solve the different eigenvalue and eigenvector solvers. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|c|}{\scriptsize}{Number & tqli & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lib.cpp) & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/time.dat}}{Time used in seconds to solve the different eigenvalue and eigenvector solvers. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
 \end{tabell} 
 
-\begin{tabell}{|r|c|c|c|c|c|c|c|c|}{\small}{Number & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/error.dat}}{Order of relative error to result of eigenvalues to the tqli in lib.cpp. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/error.dat}}{Order of relative error to result of eigenvalues to the tqli in lib.cpp. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
 \end{tabell}
 
 \begin{tabell}{|r|c|c|c|c|c|c|c|c|}{\small}{Number & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/numberoftransformations.dat}}{Number of transformations $n_{\mathrm{step}}$. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}

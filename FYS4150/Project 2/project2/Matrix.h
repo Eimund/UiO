@@ -23,6 +23,7 @@ enum class MatrixType {
     Square,
     Symmetric,
     Tridiagonal,
+    TridiagonalSymmetric,
     Tridiagonal_m1_2_m1,
     Tridiagonal_m1_2_m1_6n,
     Tridiagonal_m1_2_m1_4n,
@@ -59,7 +60,7 @@ template<class M, class T> class MatrixDiagonal {
         }
     };
     private: template<class P> class Type<P*> {
-        public: static inline void Diagonal(M* owner, const int diagonal, P* value, const unsigned int n) {
+        public: static inline void Diagonal(M* owner, const int diagonal, const P* value, const unsigned int n) {
             unsigned int d = abs(diagonal);
             owner->n = n;
             unsigned int nmax = n - d;
@@ -305,6 +306,59 @@ template <class T> class MatrixElements<Matrix<MatrixType::Tridiagonal, T>, T> {
             return a[col];
         else if(row == col-1)
             return c[row];
+        other = 0;
+        return other;
+    }
+};
+template <class T> class MatrixElements<Matrix<MatrixType::TridiagonalSymmetric, T>, T> {
+    private: T other;
+    protected: T *a, *b;
+    protected: unsigned int _n;
+    private: class _n_ {             // property class
+        private: MatrixElements<Matrix<MatrixType::TridiagonalSymmetric, T>, T>* owner;
+        public: _n_(MatrixElements<Matrix<MatrixType::TridiagonalSymmetric, T>, T>* owner) : owner(owner) {
+            this->owner->_n = 1;
+            owner->a = new T[0];
+            owner->b = new T[1];
+        }
+        public: unsigned int& operator = (const unsigned int& n) { // set function
+            if(n && n != owner->_n) {
+                T* a = new T[n-1];
+                T* b = new T[n];
+                unsigned int n_ = n < owner->_n ? n : owner->_n;
+                unsigned int _n = n_-1;
+                for(unsigned int i = 0; i < _n; i++) {
+                    a[i] = owner->a[i];
+                    b[i] = owner->b[i];
+                }
+                b[_n] = owner->b[_n];
+                delete [] owner->a;
+                delete [] owner->b;
+                owner->a = a;
+                owner->b = b;
+                return owner->_n = n;
+            } else
+                return owner->_n;
+        }
+        public: operator unsigned int () const {                    // get function
+            return owner->_n;
+        }
+    };
+    public: _n_ n;
+    public: MatrixElements(unsigned int n) : n(this) {
+        this->n = n;
+    }
+    public: ~MatrixElements() {
+        delete [] a;
+        delete [] b;
+    }
+    public: T& operator() (const unsigned int row, const unsigned int col) {    // Matrix indexing
+        if(row == col)
+            return b[row];
+        else if(row-1 == col)
+            return a[col];
+        else if(row == col-1)
+            return a[row];
         other = 0;
         return other;
     }
@@ -588,19 +642,83 @@ template<class T> class Matrix<MatrixType::Tridiagonal, T> :
         }
         *f /= *b;
         return true;
+    }
+};
+template<class T> class Matrix<MatrixType::TridiagonalSymmetric, T> :
+        public MatrixDiagonal<Matrix<MatrixType::TridiagonalSymmetric, T>, T>,
+        public MatrixElements<Matrix<MatrixType::TridiagonalSymmetric, T>, T> {
+    public: Matrix(unsigned int n) :
+        MatrixDiagonal<Matrix<MatrixType::TridiagonalSymmetric, T>, T>(this),
+        MatrixElements<Matrix<MatrixType::TridiagonalSymmetric, T>, T>(n) {
+    }
+    public: ~Matrix() {
+    }
+    public: template<class P> void Diagonal(const int diagonal, const P value) {
+        Diagonal(diagonal, value, MatrixElements<Matrix<MatrixType::TridiagonalSymmetric, T>, T>::_n);
+    }
+    public: template<class P> inline void Diagonal(const int diagonal, const P value, const unsigned int n) {
+        unsigned int d = abs(diagonal);
+        if(d <= 1)
+            MatrixDiagonal<Matrix<MatrixType::TridiagonalSymmetric, T>, T>::Diagonal(diagonal, value, n);
+    }
+    public: T* QRalgorithm(T error) {
+        unsigned int i, n = this->_n-2;
+        T c, s, _c, _s, temp, max, a;;
 
-        /* Testet matrise
-         *
-         *  2  -1   0   0   2.70671              0.0392731
-         *  9   2  -1   0   0.366313     =>     -1.92124
-         *  0  -3   6   5   0.049575            -0.674227
-         *  0   0  -1   2   0.00670925          -0.333759
-         *
-         *  2  -1   0   0   2.70671              2.40633
-         * -1  2   -1   0   0.366313     =>      2.10595
-         *  0  -1   2  -1   0.049575             1.43925
-         *  0   0  -1   2   0.00670925           0.72298
-         */
+        do {
+
+            temp = sqrt(this->a[0]*this->a[0] + this->b[0]*this->b[0]);
+            c = this->b[0]/temp;
+            s = this->a[0]/temp;
+            this->b[0] = this->b[0]*c + this->a[0]*s;
+            a = this->a[0];
+            this->a[0] = this->a[0]*c + this->b[1]*s;
+            max = abs(this->a[0]);
+            this->b[0] = this->b[0]*c + this->a[0]*s;
+            this->b[1] = this->b[1]*c - a*s;
+            a = this->a[1];
+            this->a[1] *= c;
+
+            i = 1;
+            while(i < n) {
+                _c = c;
+                _s = s;
+                temp = sqrt(a*a + this->b[i]*this->b[i]);
+                c = this->b[i]/temp;
+                s = a/temp;
+                this->b[i] = this->b[i]*c + a*s;
+                a = this->a[i];
+                this->a[i] = this->a[i]*c + this->b[i+1]*s;
+                temp = abs(this->a[i]);
+                if(max < temp)
+                    max = temp;
+                this->a[i-1] = this->b[i]*_s;
+                this->b[i] = this->b[i]*_c*c + this->a[i]*s;
+                this->b[++i] = this->b[i]*c - a*s;
+                a = this->a[i];
+                this->a[i] *= c;
+            }
+
+            _c = c;
+            _s = s;
+            temp = sqrt(a*a + this->b[i]*this->b[i]);
+            c = this->b[i]/temp;
+            s = a/temp;
+            this->b[i] = this->b[i]*c + a*s;
+            a = this->a[i];
+            this->a[i] = this->a[i]*c + this->b[i+1]*s;
+            temp = abs(this->a[i]);
+            if(max < temp)
+                max = temp;
+            this->a[i-1] = this->b[i]*_s;
+            this->b[i] = this->b[i]*_c*c + this->a[i]*s;
+            this->b[++i] = this->b[i]*c - a*s;
+            this->a[i-1] = this->b[i]*s;
+            this->b[i] *= c;
+
+        } while(max > error);
+
+        return this->b;
     }
 };
 template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_6n, T> :

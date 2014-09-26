@@ -38,7 +38,7 @@ template<class T> T* SortEigenValues(T* u, T** v, unsigned int n);
 template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n);
 
 int main() {
-    unsigned int n[] = {10,100};
+    unsigned int n[] = {10,100,1000};
     FLOAT omega[] = {0.01, 0.5, 1, 5};          // Oscillator frequency
     FLOAT k = M*omega[2];
     FLOAT alpha = pow(HBAR*HBAR/(M*k),0.25);
@@ -77,82 +77,126 @@ int main() {
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
         SortEigenValues(l0, (FLOAT**)eigv, n[i]);
 
-        auto matrix1 = Matrix<MatrixType::Square, FLOAT>(n[i]);
-        matrix1.Clear();
-        matrix1.Diagonal(0, d);
-        matrix1.Diagonal(1,-1);
-        matrix1.Diagonal(-1,-1);
+        auto matrix0 = Matrix<MatrixType::TridiagonalSymmetric, FLOAT>(n[i]);
+        matrix0.Diagonal(0, d);
+        matrix0.Diagonal(1,-1);
         t0 = clock();
-        matrix1.JacobiMethod(1e-6, num);
+        auto l = matrix0.QRalgorithm(1e-6);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        auto l1 = GetMatrixDiagonal(&matrix1);
-        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
-        numfile << num << " & ";
-        delete [] l1;
+        errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+
+        if(n[i] <= 100) {
+            auto matrix1 = Matrix<MatrixType::Square, FLOAT>(n[i]);
+            matrix1.Clear();
+            matrix1.Diagonal(0, d);
+            matrix1.Diagonal(1,-1);
+            matrix1.Diagonal(-1,-1);
+            t0 = clock();
+            matrix1.JacobiMethod(1e-6, num);
+            timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+            l = GetMatrixDiagonal(&matrix1);
+            errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+            numfile << num << " & ";
+            delete [] l;
+        } else {
+            timefile << "- & ";
+            errorfile << "- & ";
+            numfile << "- & ";
+        }
 
         auto matrix2 = Matrix<MatrixType::Symmetric, FLOAT>(n[i]);
+        if(n[i] <= 100) {
+            matrix2.Clear();
+            matrix2.Diagonal(0, d);
+            matrix2.Diagonal(1,-1);
+            t0 = clock();
+            l = matrix2.JacobiMethod(1e-6, num);
+            timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+            errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+            numfile << num << " & ";
+        } else {
+            timefile << "- & ";
+            errorfile << "- & ";
+            numfile << "- & ";
+        }
+
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        l1 = matrix2.JacobiMethod(1e-6, num);
+        l = matrix2.JacobiMethodFD(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " & ";
         numfile << num << " & ";
 
         matrix2.Clear();
         matrix2.Diagonal(0, d);
         matrix2.Diagonal(1,-1);
         t0 = clock();
-        l1 = matrix2.JacobiMethodFD(1e-6, num);
+        l = matrix2.JacobiMethodRD(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+        errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " & ";
         numfile << num << " & ";
 
-        matrix2.Clear();
-        matrix2.Diagonal(0, d);
-        matrix2.Diagonal(1,-1);
-        t0 = clock();
-        l1 = matrix2.JacobiMethodRD(1e-6, num);
-        timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
-        numfile << num << " & ";
+        if(n[i] <= 100) {
+            matrix2.Clear();
+            matrix2.Diagonal(0, d);
+            matrix2.Diagonal(1,-1);
+            t0 = clock();
+            l = matrix2.JacobiMethodFC(1e-6, num);
+            timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+            errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+            numfile << num << " & ";
+        } else {
+            timefile << "- & ";
+            errorfile << "- & ";
+            numfile << "- & ";
+        }
 
-        matrix2.Clear();
-        matrix2.Diagonal(0, d);
-        matrix2.Diagonal(1,-1);
-        t0 = clock();
-        l1 = matrix2.JacobiMethodFC(1e-6, num);
-        timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
-        numfile << num << " & ";
+        if(n[i] <= 100) {
+            matrix2.Clear();
+            matrix2.Diagonal(0, d);
+            matrix2.Diagonal(1,-1);
+            t0 = clock();
+            l = matrix2.JacobiMethodRC(1e-6, num);
+            timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+            errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+            numfile << num << " & ";
+        } else {
+            timefile << "- & ";
+            errorfile << "- & ";
+            numfile << "- & ";
+        }
 
-        matrix2.Clear();
-        matrix2.Diagonal(0, d);
-        matrix2.Diagonal(1,-1);
-        t0 = clock();
-        l1 = matrix2.JacobiMethodRC(1e-6, num);
-        timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
-        numfile << num << " & ";
+        if(n[i] <= 100) {
+            matrix2.Clear();
+            matrix2.Diagonal(0, d);
+            matrix2.Diagonal(1,-1);
+            t0 = clock();
+            l = matrix2.JacobiMethodFR(1e-6, num);
+            timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+            errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " & ";
+            numfile << num << " & ";
+        } else {
+            timefile << "- & ";
+            errorfile << "- & ";
+            numfile << "- & ";
+        }
 
-        matrix2.Clear();
-        matrix2.Diagonal(0, d);
-        matrix2.Diagonal(1,-1);
-        t0 = clock();
-        l1 = matrix2.JacobiMethodFR(1e-6, num);
-        timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
-        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " & ";
-        numfile << num << " & ";
-
-        matrix2.Clear();
-        matrix2.Diagonal(0, d);
-        matrix2.Diagonal(1,-1);
-        t0 = clock();
-        l1 = matrix2.JacobiMethodRR(1e-6, num);
-        timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;
-        errorfile << RelativeError(l0, SortEigenValues(l1, (FLOAT**)eigv, n[i]), n[i]) << " \\\\" << endl;
-        numfile << num << " \\\\" << endl;
+        if(n[i] <= 100) {
+            matrix2.Clear();
+            matrix2.Diagonal(0, d);
+            matrix2.Diagonal(1,-1);
+            t0 = clock();
+            l = matrix2.JacobiMethodRR(1e-6, num);
+            timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;
+            errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " \\\\" << endl;
+            numfile << num << " \\\\" << endl;
+        } else {
+            timefile << "- & ";
+            errorfile << "- & ";
+            numfile << "- & ";
+        }
 
         delete [] rho;
         delete [] d;
