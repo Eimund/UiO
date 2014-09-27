@@ -663,58 +663,56 @@ template<class T> class Matrix<MatrixType::TridiagonalSymmetric, T> :
     }
     public: T* QRalgorithm(T error) {
         unsigned int i, n = this->_n-2;
-        T c, s, _c, _s, temp, max, a;;
+        T c, s, _c, _s, temp, temp2, max, a, b, k=2;
 
         do {
-
-            temp = sqrt(this->a[0]*this->a[0] + this->b[0]*this->b[0]);
-            c = this->b[0]/temp;
-            s = this->a[0]/temp;
-            this->b[0] = this->b[0]*c + this->a[0]*s;
+            max = 0;
             a = this->a[0];
-            this->a[0] = this->a[0]*c + this->b[1]*s;
-            max = abs(this->a[0]);
-            this->b[0] = this->b[0]*c + this->a[0]*s;
-            this->b[1] = this->b[1]*c - a*s;
+            b = this->b[0];
+            temp = sqrt((T)1/(a*a+b*b));
+            c = b*temp;
+            s = a*temp;
+            temp = a*s;
+            this->b[0] = b*c*c + this->b[1]*s*s + 2*temp*c;
             a = this->a[1];
-            this->a[1] *= c;
+            b = this->b[1]*c - temp;
 
             i = 1;
             while(i < n) {
                 _c = c;
                 _s = s;
-                temp = sqrt(a*a + this->b[i]*this->b[i]);
-                c = this->b[i]/temp;
-                s = a/temp;
-                this->b[i] = this->b[i]*c + a*s;
+                temp = (T)1/sqrt(a*a + b*b);
+                c = b*temp;
+                s = a*temp;
+                temp = a*s;
+                b = b*c + temp;
+                this->a[i-1] = b*_s;
+                temp2 = abs(this->a[i-1]);
+                if(max < temp2)
+                    max = temp2;
+                temp *= _c;
+                this->b[i] = b*_c*c + temp*c + this->b[++i]*s*s;
+                b = this->b[i]*c - temp;
                 a = this->a[i];
-                this->a[i] = this->a[i]*c + this->b[i+1]*s;
-                temp = abs(this->a[i]);
-                if(max < temp)
-                    max = temp;
-                this->a[i-1] = this->b[i]*_s;
-                this->b[i] = this->b[i]*_c*c + this->a[i]*s;
-                this->b[++i] = this->b[i]*c - a*s;
-                a = this->a[i];
-                this->a[i] *= c;
             }
 
-            _c = c;
-            _s = s;
-            temp = sqrt(a*a + this->b[i]*this->b[i]);
-            c = this->b[i]/temp;
-            s = a/temp;
-            this->b[i] = this->b[i]*c + a*s;
-            a = this->a[i];
-            this->a[i] = this->a[i]*c + this->b[i+1]*s;
-            temp = abs(this->a[i]);
-            if(max < temp)
-                max = temp;
-            this->a[i-1] = this->b[i]*_s;
-            this->b[i] = this->b[i]*_c*c + this->a[i]*s;
-            this->b[++i] = this->b[i]*c - a*s;
-            this->a[i-1] = this->b[i]*s;
-            this->b[i] *= c;
+            temp = (T)1/sqrt(a*a + b*b);
+            _c = b*temp;
+            _s = a*temp;
+            temp = a*_s;
+            b = b*_c + temp;
+            this->a[i-1] = b*s;
+            temp2 = abs(this->a[i-1]);
+            if(max < temp2)
+                max = temp2;
+            temp *= c;
+            this->b[i] = b*_c*c + temp*_c + this->b[++i]*_s*_s;
+            b = this->b[i]*_c - temp;
+            this->a[i-1] = b*_s;
+            temp2 = abs(this->a[i-1]);
+            if(max < temp2)
+                max = temp2;
+            this->b[i] = b*_c;
 
         } while(max > error);
 

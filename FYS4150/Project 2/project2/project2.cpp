@@ -83,6 +83,7 @@ int main() {
         t0 = clock();
         auto l = matrix0.QRalgorithm(1e-6);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+        MatrixCout(matrix0);
         errorfile << RelativeError(l0, SortEigenValues(l, (FLOAT**)eigv, n[i]), n[i]) << " & ";
 
         if(n[i] <= 100) {
@@ -206,7 +207,7 @@ int main() {
     numfile.close();
 
     /* Single electron harmonic oscillator */
-    unsigned int nstep[] = {/*3,*/4,10,20,50,100,1000};
+    unsigned int nstep[] = {/*3,*/4,10,20,50,100/*,1000*/};
     FLOAT L1[] = {3,7,11};
     errorfile.open("error2header.dat");
     errorfile << "$n_{\\text{step}} \\textbackslash \\rho_{\\text{max}}$";
