@@ -435,19 +435,39 @@ we see that $a_{jj}$ corresponds to $b_{ii}$ and $a_{ii}$ corresponds to $b_{jj}
 
 \subsection{Comparing different solvers}
 
-\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|c|}{\scriptsize}{Number & tqli & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lib.cpp) & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/time.dat}}{Time used in seconds to solve the different eigenvalue and eigenvector solvers. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|c|}{\scriptsize}{Number & tqli & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lib.cpp) & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/time.dat}}{Time used in seconds to solve the different eigenvalue and eigenvector solvers. The Jacobi solvers and QR algorithm terminates when off-diagonal elements are less than $10^{-6}$. Used the case of single electron and $\rho_{\mathrm{max}}=10$.} {tab_speed}
 \end{tabell} 
 
-\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/error.dat}}{Order of relative error to result of eigenvalues to the tqli in lib.cpp. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/error.dat}}{Order of relative error to result of eigenvalues to the tqli in lib.cpp. The Jacobi solvers and QR algorithm terminates when off-diagonal elements are less than $10^{-6}$. Used the case of single electron and $\rho_{\mathrm{max}}=10$.}{tab_speed}
 \end{tabell}
 
-\begin{tabell}{|r|c|c|c|c|c|c|c|c|}{\small}{Number & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/numberoftransformations.dat}}{Number of transformations $n_{\mathrm{step}}$. The Jacobi solvers terminates when off-diagonal elements are less than $10^{-6}$.}{tab_speed}
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/numberoftransformations.dat}}{Number of rotations. The Jacobi solvers and QR algorithm terminates when off-diagonal elements are less than $10^{-6}$. Used the case of single electron and $\rho_{\mathrm{max}}=10$.}{tab_speed}
 \end{tabell}
 
+\newpage
 \subsection{Single electron harmonic oscillator}
 
-\begin{tabell}{|r|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2header.dat}}{\input{build-project2-Desktop-Debug/error2.dat}}{Order of relative error of the three lower eigenvalues of a single electron trapped in a harmonic oscillator well.}{tab_one_electron}
+\begin{tabell}{|r|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2header.dat}}{\input{build-project2-Desktop-Debug/errorQR.dat}}{Order of relative error of the three lower eigenvalues with $\ell = 0$ for a single electron trapped in a harmonic oscillator well. The relative error is compared to the exact eigenvalues  $\lambda_0 = 3$, $\lambda_1 = 7$ and $\lambda_2 = 11$. Solved with my QR algorithm with off-diagonal elements are less than $10^{-6}$.}{tab_one_electron}
 \end{tabell}
+
+\begin{tabell}{|r|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2header.dat}}{\input{build-project2-Desktop-Debug/errortqli.dat}}{Order of relative error of the three lower eigenvalues with $\ell = 0$ for a single electron trapped in a harmonic oscillator well. The relative error is compared to the exact eigenvalues  $\lambda_0 = 3$, $\lambda_1 = 7$ and $\lambda_2 = 11$. Solved with my tqli in lib.cpp}{tab_one_electron_2}
+\end{tabell}
+
+\subsection{Two electrons harmonic oscillator with repulsive Coulomb interaction}
+
+\begin{tabell}{|r|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2elheader.dat}}{\input{build-project2-Desktop-Debug/errorQRw0.dat}}{Order of relative error of the ground state with $\ell = 0$ and $\omega_r = 0.01$ for two electrons trapped in a harmonic oscillator well with repulsive Coulomb interaction. The relative error is compared to the exact eigenvalues  $\lambda_0 = 0.105041$. Solved with my QR algorithm with off-diagonal elements less than $10^{-6}$.}{tab_two_electron_w0}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2elheader.dat}}{\input{build-project2-Desktop-Debug/errorQRw1.dat}}{Order of relative error of the ground state with $\ell = 0$ and $\omega_r = 0.5$ for two electrons trapped in a harmonic oscillator well with repulsive Coulomb interaction. The relative error is compared to the exact eigenvalues  $\lambda_0 = 2.05658$. Solved with my QR algorithm with off-diagonal elements less than $10^{-6}$.}{tab_two_electron_w1}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2elheader.dat}}{\input{build-project2-Desktop-Debug/errorQRw2.dat}}{Order of relative error of the ground state with $\ell = 0$ and $\omega_r = 1$ for two electrons trapped in a harmonic oscillator well with repulsive Coulomb interaction. The relative error is compared to the exact eigenvalues  $\lambda_0 = 3.62193$. Solved with my QR algorithm with off-diagonal elements less than $10^{-6}$.}{tab_two_electron_w2}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2elheader.dat}}{\input{build-project2-Desktop-Debug/errorQRw3.dat}}{Order of relative error of the ground state with $\ell = 0$ and $\omega_r = 5$ for two electrons trapped in a harmonic oscillator well with repulsive Coulomb interaction. The relative error is compared to the exact eigenvalues  $\lambda_0 = 14.1863$. Solved with my QR algorithm with off-diagonal elements less than $10^{-6}$.}{tab_two_electron_w3}
+\end{tabell}
+
+\newpage
 
 \section{Conclusion}
 

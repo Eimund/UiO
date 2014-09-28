@@ -21,6 +21,7 @@ using namespace std;
 
 enum class MatrixType {
     Square,
+    SquareT,
     Symmetric,
     Tridiagonal,
     TridiagonalSymmetric,
@@ -133,6 +134,70 @@ template <class M, class T> class MatrixElements {
         for(unsigned int i = 0; i < _n; i++) {
             for(unsigned int j = 0; j < _n; j++)
                 matrix[i][j] = 0;
+        }
+    }
+};
+template <class T> class MatrixElements<Matrix<MatrixType::SquareT, T>, T> {
+    protected: T** matrix;
+    protected: unsigned int _n;
+    private: class _n_ {             // property class
+        private: MatrixElements<Matrix<MatrixType::SquareT, T>, T>* owner;
+        public: _n_(MatrixElements<Matrix<MatrixType::SquareT, T>, T>* owner) : owner(owner) {
+            this->owner->_n = 1;
+            owner->matrix = new T*[1];
+            owner->matrix[0] = new T[1];
+        }
+        public: unsigned int& operator = (const unsigned int& n) { // set function
+            if(n && n != owner->_n) {
+                T** matrix = new T*[n];
+                for(unsigned int i = 0; i < n; i++)
+                    matrix[i] = new T[n];
+                unsigned int n_ = n < owner->_n ? n : owner->_n;
+                for(unsigned int i = 0; i < n_; i++) {
+                    for(unsigned int j = 0; j < n_; j++)
+                        matrix[i][j] = owner->matrix[i][j];
+                }
+                for(unsigned int i = 0; i < owner->_n; i++)
+                    delete [] owner->matrix[i];
+                delete [] owner->matrix;
+                owner->matrix = matrix;
+                return owner->_n = n;
+            } else
+                return owner->_n;
+        }
+        public: operator unsigned int () const {                    // get function
+            return owner->_n;
+        }
+    };
+    public: _n_ n;
+    protected: MatrixElements(unsigned int n) : n(this) {
+        this->n = n;
+    }
+    public: ~MatrixElements() {
+        for(unsigned int i = 0; i < _n; i++)
+            delete [] matrix[i];
+        delete [] matrix;
+    }
+    public: inline T& operator() (const unsigned int& row, const unsigned int& col) { // Matrix indexing
+        return matrix[col][row];
+    }
+    public: inline operator T**() const {
+        return matrix;
+    }
+    public: void Clear() {
+        for(unsigned int i = 0; i < _n; i++) {
+            for(unsigned int j = 0; j < _n; j++)
+                matrix[i][j] = 0;
+        }
+    }
+    public: void Transpose() {
+        T temp;
+        for(unsigned int i = 0; i < n; i++) {
+            for(unsigned int j = i; j < n; j++) {
+                temp = matrix[i][j];
+                matrix[i][j] = matrix[j][i];
+                matrix[j][i] = temp;
+            }
         }
     }
 };
@@ -431,6 +496,14 @@ template<class T> class Matrix<MatrixType::Square, T> :
         return max;
     }
 };
+template<class T> class Matrix<MatrixType::SquareT, T> :
+        public MatrixDiagonal<Matrix<MatrixType::SquareT, T>, T>,
+        public MatrixElements<Matrix<MatrixType::SquareT, T>, T> {
+    public: Matrix(unsigned int n) :
+        MatrixDiagonal<Matrix<MatrixType::SquareT, T>, T>(this),
+        MatrixElements<Matrix<MatrixType::SquareT, T>, T>(n) {
+    }
+};
 template<class T> class Matrix<MatrixType::Symmetric, T> :
         public MatrixDiagonal<Matrix<MatrixType::Symmetric, T>, T>,
         public MatrixElements<Matrix<MatrixType::Symmetric, T>, T> {
@@ -661,45 +734,77 @@ template<class T> class Matrix<MatrixType::TridiagonalSymmetric, T> :
         if(d <= 1)
             MatrixDiagonal<Matrix<MatrixType::TridiagonalSymmetric, T>, T>::Diagonal(diagonal, value, n);
     }
-    public: T* QRalgorithm(T error) {
-        unsigned int i, n = this->_n-2;
-        T c, s, _c, _s, temp, temp2, max, a, b, k=2;
+    public: T* QRalgorithm(T error, unsigned int& num) {
+        unsigned int i, j, n = this->_n-2;
+        T c, s, _c, _s, temp, temp2, max, a, b;
 
+        num = 0;
         do {
             max = 0;
             a = this->a[0];
             b = this->b[0];
-            temp = sqrt((T)1/(a*a+b*b));
+
+            temp = sqrt((T)1/(a*a+b*b));            // Calculate sin and cos
             c = b*temp;
             s = a*temp;
-            temp = a*s;
+
+            temp = a*s;                             // Eigenvalues
             this->b[0] = b*c*c + this->b[1]*s*s + 2*temp*c;
-            a = this->a[1];
-            b = this->b[1]*c - temp;
+            this->b[1] = this->b[1]*c - temp;
+
+            num++;
 
             i = 1;
             while(i < n) {
-                _c = c;
-                _s = s;
-                temp = (T)1/sqrt(a*a + b*b);
-                c = b*temp;
-                s = a*temp;
-                temp = a*s;
-                b = b*c + temp;
-                this->a[i-1] = b*_s;
-                temp2 = abs(this->a[i-1]);
-                if(max < temp2)
-                    max = temp2;
-                temp *= _c;
-                this->b[i] = b*_c*c + temp*c + this->b[++i]*s*s;
-                b = this->b[i]*c - temp;
-                a = this->a[i];
+                if(abs(this->a[i]) > error) {       // Offdiagonal element still to large?
+
+                    _c = c;
+                    _s = s;
+                    a = this->a[i];
+                    b = this->b[i];
+
+                    temp = (T)1/sqrt(a*a + b*b);    // Calculate sin and cos
+                    c = b*temp;
+                    s = a*temp;
+
+                    temp = a*s;                     // Eigenvalues
+                    b = b*c + temp;
+                    this->a[i-1] = b*_s;
+                    temp2 = abs(this->a[i-1]);
+                    if(max < temp2)
+                        max = temp2;
+                    temp *= _c;
+                    this->b[i] = b*_c*c + temp*c + this->b[++i]*s*s;
+                    this->b[i] = this->b[i]*c - temp;
+
+                    num++;
+
+                } else {    // Offdiagonal element less then error
+                    if(s) { // If previous sin not zero, then update elements
+                        _c = c;
+                        _s = s;
+
+                        this->a[i-1] = this->b[i]*_s;   // Eigenvalues
+                        this->b[i] = this->b[i]*_c;
+                        temp2 = abs(this->a[i-1]);
+                        if(max < temp2)
+                            max = temp2;
+
+                        c = 1;
+                        s = 0;
+                    }
+                    i++;
+                }
             }
 
-            temp = (T)1/sqrt(a*a + b*b);
+            a = this->a[i];
+            b = this->b[i];
+
+            temp = (T)1/sqrt(a*a + b*b);    // Calculate sin and cos
             _c = b*temp;
             _s = a*temp;
-            temp = a*_s;
+
+            temp = a*_s;                    // Eigenvalues
             b = b*_c + temp;
             this->a[i-1] = b*s;
             temp2 = abs(this->a[i-1]);
@@ -713,6 +818,8 @@ template<class T> class Matrix<MatrixType::TridiagonalSymmetric, T> :
             if(max < temp2)
                 max = temp2;
             this->b[i] = b*_c;
+
+            num++;
 
         } while(max > error);
 
