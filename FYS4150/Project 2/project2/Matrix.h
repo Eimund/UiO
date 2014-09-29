@@ -25,6 +25,7 @@ enum class MatrixType {
     Symmetric,
     Tridiagonal,
     TridiagonalSymmetric,
+    Tridiagonal_m1_X_m1,
     Tridiagonal_m1_2_m1,
     Tridiagonal_m1_2_m1_6n,
     Tridiagonal_m1_2_m1_4n,
@@ -188,6 +189,17 @@ template <class T> class MatrixElements<Matrix<MatrixType::SquareT, T>, T> {
         for(unsigned int i = 0; i < _n; i++) {
             for(unsigned int j = 0; j < _n; j++)
                 matrix[i][j] = 0;
+        }
+    }
+    public: void Normailze() {
+        T sum;
+        for(unsigned int i = 0, j; i < n; i++) {
+            sum = 0;
+            for(j = 0; j < n; j++)
+                sum += matrix[i][j];
+            sum = (T)1/sqrt(sum);
+            for(j = 0; j < n; j++)
+                matrix[i][j] *= sum;
         }
     }
     public: void Transpose() {
@@ -424,6 +436,51 @@ template <class T> class MatrixElements<Matrix<MatrixType::TridiagonalSymmetric,
             return a[col];
         else if(row == col-1)
             return a[row];
+        other = 0;
+        return other;
+    }
+};
+template <class T> class MatrixElements<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T> {
+    private: T a, other;
+    protected: T *b;
+    protected: unsigned int _n;
+    private: class _n_ {             // property class
+        private: MatrixElements<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>* owner;
+        public: _n_(MatrixElements<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>* owner) : owner(owner) {
+            this->owner->_n = 1;
+            owner->b = new T[1];
+        }
+        public: unsigned int& operator = (const unsigned int& n) { // set function
+            if(n && n != owner->_n) {
+                T* b = new T[n];
+                unsigned int n_ = n < owner->_n ? n : owner->_n;
+                for(unsigned int i = 0; i < n_; i++)
+                    b[i] = owner->b[i];
+                delete [] owner->b;
+                owner->b = b;
+                return owner->_n = n;
+            } else
+                return owner->_n;
+        }
+        public: operator unsigned int () const {                    // get function
+            return owner->_n;
+        }
+    };
+    public: _n_ n;
+    public: MatrixElements(unsigned int n) : n(this) {
+        this->n = n;
+    }
+    public: ~MatrixElements() {
+        delete [] b;
+    }
+    public: T& operator() (const unsigned int row, const unsigned int col) {    // Matrix indexing
+        a = -1;
+        if(row == col)
+            return b[row];
+        else if(row-1 == col)
+            return a;
+        else if(row == col-1)
+            return a;
         other = 0;
         return other;
     }
@@ -826,6 +883,72 @@ template<class T> class Matrix<MatrixType::TridiagonalSymmetric, T> :
         return this->b;
     }
 };
+template<class T> class Matrix<MatrixType::Tridiagonal_m1_X_m1, T> :
+        public MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>,
+        public MatrixElements<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>  {
+    public: Matrix(unsigned int n) :
+        MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>(this),
+        MatrixElements<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>(n) {
+    }
+    public: template<class P> void Diagonal(const P value) {
+        Diagonal(0, value, MatrixElements<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>::_n);
+    }
+    public: template<class P> void Diagonal(const int diagonal, const P value) {
+        Diagonal(diagonal, value, MatrixElements<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>::_n);
+    }
+    public: template<class P> inline void Diagonal(const int diagonal, const P value, const unsigned int n) {
+        if(diagonal == 0)
+            MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>::Diagonal(diagonal, value, n);
+    }
+    public: T* Eigenvector(T value) {
+        T temp = 1, temp2 = this->b[0] - value;
+        this->b[0] = 1;
+        for(unsigned int i = 1; i < this->_n; i++) {
+            temp  *= temp2;
+            temp2 = this->b[i] - value - (T)1/temp2;
+            this->b[i] = temp;
+        }
+        return this->b;
+    }
+    public: bool Solve(T* f, unsigned int n) {
+        if(this->_n < n)
+            this->n = n;
+        T temp;
+        unsigned int i, i1;
+        for(i = 0, i1 = 1; i1 < n; i++, i1++) {
+            temp = (T)1/this->b[i];
+            this->b[i1] -= temp;
+            f[i1] += temp*f[i];
+        }
+        for(i--, i1--; i1; i--, i1--) {
+            f[i1] /= this->b[i1];
+            f[i] += f[i1];
+        }
+        f[0] /= this->b[0];
+        return true;
+    }
+    public: bool Solve(T** f, unsigned int n1, unsigned int n2) {
+        if(this->_n < n2)
+            this->n = n2;
+        T temp;
+        unsigned int i, i1, j;
+        for(i = 0, i1 = 1; i1 < n2; i++, i1++) {
+            temp = (T)1/this->b[i];
+            this->b[i1] -= temp;
+            for(j = 0; j < n1; j++)
+                f[j][i1] += temp*f[j][i];
+        }
+        for(i--, i1--; i1; i--, i1--) {
+            for(j = 0; j < n1; j++) {
+                f[j][i1] /= this->b[i1];
+                f[j][i] += f[j][i1];
+            }
+        }
+        for(j = 0; j < n1; j++)
+            f[j][0] /= this->b[0];
+        return true;
+    }
+};
 template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_6n, T> :
         public MatrixElements<Matrix<MatrixType::Tridiagonal_m1_2_m1, T>, T>  {
     public: static bool Solve(T* f, unsigned int n) {
@@ -839,30 +962,6 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_6n, T> :
         while(f != end)
             *f += i++/i*(*f++);         // Eq (10)
         i++;
-        while(f != start) {
-            *f *= 1/(i--)*i;            // Eq (13) (faster than *f /= i--/i)
-            *f += *f--;                 // Eq (12)
-        }
-        *f /= 2;
-        return true;
-    }
-    public: static bool Solve(T* f, unsigned int n, unsigned int cutoff) {  // 6n FLOPS => 2n FLOPS when n >> cutoff
-        /*
-         * f are source elements b_{i}, f[0] = b_{1}
-         * The values of i >= cutoff is when (i+1)/i is approximated to 1
-         */
-
-        T* start = f;
-        T* mid = &f[n < cutoff ? n-1 : cutoff-1];
-        T* end = &f[n-1];
-        T i = 1;                        // Faster to use double than int here, and bad accuracy with int
-        while(f != mid)
-            *f += i++/i*(*f++);         // Eq (10)
-        while(f != end)
-            *f += *f++;                 // Eq (10) with (i+1)/i = 1
-        i++;
-        while(f != mid)
-            *f += *f--;                 // Eq (12) with (i+1)/i = 1
         while(f != start) {
             *f *= 1/(i--)*i;            // Eq (13) (faster than *f /= i--/i)
             *f += *f--;                 // Eq (12)
