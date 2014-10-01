@@ -9,7 +9,18 @@
 \renewcommand\date{\today}
 \newcommand\email{\href{mailto:eimundsm@fys.uio.no}{eimundsm@fys.uio.no}}
 
-\lstset{language=[Visual]C++,caption={Descriptive Caption Text},label=DescriptiveLabel}
+%\lstset{language=[Visual]C++,caption={Descriptive Caption Text},label=DescriptiveLabel}
+\lstset{language=c++}
+\lstset{basicstyle=\small}
+\lstset{backgroundcolor=\color{white}}
+\lstset{frame=single}
+\lstset{stringstyle=\ttfamily}
+\lstset{keywordstyle=\color{black}\bfseries}
+\lstset{commentstyle=\itshape\color{black}}
+\lstset{showspaces=false}
+\lstset{showstringspaces=false}
+\lstset{showtabs=false}
+\lstset{breaklines}
 
 \begin{document}
 \maketitle
@@ -19,44 +30,106 @@
 This report looks at different algorithms to solve the one-dimensional Poisson's equation with Dirichlet boundary condition. The algorithms are compared by speed and floating point error in the solution. The results show how different ways of writing code effect speed and floating point error, and discusses how the machines architecture and functionally are the reason for the performance difference.
 \end{abstract}
 
-\section{Theory}
-Side 24
+\section{The radial Schr\"{o}dinger's equation and numerical implementation}
+
+In this report I will study the radial part of Schr\"{o}dinger's equation for both one and two electrons, which is as follows for a single electron
 
 \begin{align*}
-\im \hbar \frac{\partial \Psi}{\partial t} =- \frac{\hbar^2}{2m} \nabla^2 \Psi + V \Psi
+-\frac{\hbar^2}{2m}\p{\frac{1}{r^2} \frac{\mathrm{d}}{\mathrm{d}r}r^2\frac{\mathrm{d}}{\mathrm{d}r}-\frac{\ell\p{\ell+1}}{r^2}}\mathrm{R}\p{r}+\mathrm{V}\p{r}\mathrm{R}\p{r} = E \mathrm{R}\p{r} \,,
 \end{align*}
+
+where $\mathrm{R}\p{r}$ is the radial wave function, $r\in\left[0,\infty\right)$ is the radial parameter, $\ell$ is the quantum number for the orbital momentum, $m$ is the mass, $\hbar$ is the Planck's constant, $\mathrm{V}\p{r}$ is the potential and $E$ is the energy of the system. In this report I will only investigate the case $\ell = 0$, and we can then rewrite the Schr\"{o}dinger's equation to this simplified form
+
+\begin{align}
+-\frac{\mathrm{d}^2}{\mathrm{d}\rho^2}\mathrm{u}\p{\rho} + \mathrm{V}\p{\rho}\mathrm{u}\p{\rho} = \lambda\mathrm{u}\p{\rho} \,,
+\label{eq_1}
+\end{align}
+
+where $\mathrm{u}\p{r} = r \mathrm{R}\p{r}$, $r = \alpha \rho$, $\alpha^2 = - \frac{\hbar^2}{2m}$ and $\lambda = E$. This differential equation can be written on finite difference form
 
 \begin{align*}
-\Psi\p{\vec{x},t} = \psi\p{\vec{x}} \varphi\p{t}
+-\frac{u_{i+1}-2 u_i+u_{i-1}}{h^2} + V_i u_i = \lambda u_i \,,
 \end{align*}
+
+where subscript $i$ is a indication of dependency to $\rho_i$, which is given by
 
 \begin{align*}
--\frac{\hbar^2}{2m} \frac{\mathrm{d}^2 \psi}{\mathrm{d} x^2} + V \psi = E \psi
+\rho_i = \rho_{\mathrm{min}} + i h \,,
 \end{align*}
 
-Side 133
-
-\begin{align*}
-\nabla^2 = \frac{1}{r^2} \frac{\partial}{\partial r}\p{r^2 \frac{\partial }{\partial r}} + \frac{1}{r^2 \sin \theta} \frac{\partial}{\partial \theta}\p{\sin \theta \frac{\partial }{\partial \theta}} + \frac{1}{r^2 \sin^2 \theta} \frac{\partial^2}{\partial \phi^2}
-\end{align*}
+and $h$ is the step length
 
 \begin{align*}
--\frac{\hbar^2}{2m}\kl{\frac{1}{r^2} \frac{\partial}{\partial r}\p{r^2 \frac{\partial \psi}{\partial r}} + \frac{1}{r^2 \sin \theta} \frac{\partial}{\partial \theta}\p{\sin\theta \frac{\partial \psi}{\partial \theta}} + \frac{1}{r^2 \sin^2 \theta} \frac{\partial^2 \psi}{\partial \phi}} + V \psi = E \psi
+h = \frac{\rho_{\mathrm{max}}-\rho_{\text{min}}}{n_{\mathrm{step}}} 
 \end{align*}
 
-\begin{align*}
-\psi\p{r,\theta,\phi} = R\p{r} Y\p{\theta, \phi} + C
-\end{align*}
+where $n_{\mathrm{step}}$ is the number of steps and $\rho\in\left[\rho_{\mathrm{min}},\rho_{\mathrm{max}}\right]$. This difference equation can again be rewritten to a simplified form
+
+\begin{align}
+e_{i+1} u_{i+1} + d_i u_i + e_{i-1}  u_{i-1} = \lambda u_i \,,
+\label{eq_2}
+\end{align}
+
+where $e_i = - \frac{1}{h^2}$ and $d_i = \frac{2}{h^2} + V_i$. Introducing the Dirichlet boundary condition, $u_0 = u_{n_{\mathrm{step}}} = 0$, this difference equation becomes a matrix eigenvalue problem with dimension $n_{\mathrm{step}}-1$, where we have a tridiagonal matrix.
+
+\subsection{Single electron in a harmonic oscillator well}
+
+The harmonic oscillator potential is given by
 
 \begin{align*}
-\frac{1}{R}\frac{\mathrm{d}}{\mathrm{d}r}\p{r^2 \frac{\mathrm{d} R}{\mathrm{d} r}} - \frac{2m r^2}{\hbar^2}\p{V-E} + \frac{1}{Y}\p{\frac{1}{\sin \theta} \frac{\partial}{\partial \theta}\p{\sin\theta \frac{\partial Y}{\partial \theta}} + \frac{1}{\sin^2\theta}\frac{\partial^2 Y}{\partial \phi^2}} = \frac{2m r^2 C}{R Y \hbar^2}\p{V-E}
+\mathrm{V}\p{r} = \frac{1}{2}kr^2 \qquad \text{with } k = m\omega^2 \,,
 \end{align*}
+
+where $\omega$ is the oscillator frequency. The possible energies of a harmonic oscillator system are
+
+\begin{align}
+E_{n\ell} = \hbar\omega\p{2n+\ell+\frac{3}{2}} \qquad \text{with } n,\ell\in\mathbb{N}_0 \,,
+\label{eq_3}
+\end{align}
+
+where $\mathbb{N}_0 = \mathbb{N}_0^{\infty}$ is all the integers from zero to infinity.  We can now write the Schr\"{o}dinger's equation in \eqref{eq_1} as 
+
+\begin{align}
+-\frac{\mathrm{d}^2}{\mathrm{d}\rho^2} \mathrm{u}\p{\rho} + \rho^2 \mathrm{u}\p{\rho} = \lambda\mathrm{u}\p{\rho} \,,
+\label{eq_4}
+\end{align}
+
+where we $\alpha = \p{\frac{\hbar^2}{m k}}^{\frac{1}{4}}$ and $\lambda = \frac{2m\alpha^2}{\hbar^2} E$ instead.
+
+\subsection{Two electrons in a harmonic oscillator well}
+
+The potential for Coulomb repulsion is given by 
+
+\begin{align*}
+\mathrm{V}\p{r} = \frac{\beta e^2}{r} \,,
+\end{align*}
+
+where $r$ is the distance between the two electrons with $\beta e^2 = 1.44\unit{eVnm}$. From M. Taut's article \cite{TwoElectron} we have the following Shr\"{o}dinger's equation relative between two electrons with Coulomb repulsion in a harmonic oscillator well where $\ell = 0$;
+
+\begin{align}
+-\frac{\mathrm{d}^2}{\mathrm{d}\rho^2} \mathrm{u}\p{\rho} + {\omega_r}^2\mathrm{u}\p{\rho} + \frac{1}{\rho} = \lambda \mathrm{u}\p{\rho} 
+\label{eq_5}
+\end{align}
+
+written on the form \eqref{eq_1}, where ${\omega_r}^2 = \frac{1}{4}\frac{mk}{\hbar^2} \alpha^4$, $\alpha = \frac{\hbar^2}{m\beta e^2}$, $\lambda = \frac{m\alpha^2}{\hbar^2} E_r$ and $E_r$ is the relative energy between the two electrons. The solution have the eigenvalues
+
+\begin{align}
+\lambda_n = 3\p{\frac{\omega_r}{2}}^{\frac{2}{3}} + 2\sqrt{3}\omega_r\p{n+\frac{1}{2}} \qquad \text{with } n \in \mathbb{N}_0 \,,
+\label{eq_6}
+\end{align}
+
+with the ground state ($n=0$) wave function
+
+\begin{align}
+u_0\p{\rho} = \p{\frac{\sqrt{3}\omega_r}{\pi}}^{\frac{1}{4}}\exp\p{-\frac{\sqrt{3}}{2}\omega_r\p{\rho-\p{2{\omega_r}^2}^{-\frac{1}{3}}}^2} \,.
+\label{eq_7}
+\end{align}
 
 \section{Eigenvalue algorithms}
 
 \subsection{Diagonalize by matrix similarity}\label{sec_Diagonalize}
 
-If we have a eigenvalue problem for a matrix $\mathbb{A}$ with eigenvector $\mathbf{x}$ and eigenvalue $\lambda$
+If we have a eigenvalue problem for a matrix $\textbf{A}$ with eigenvector $\mathbf{x}$ and eigenvalue $\lambda$
 
 \begin{align*}
 \mathbf{A}\mathbf{x} = \lambda \mathbf{x} \,,
@@ -71,119 +144,130 @@ we can transform it by a basis matrix $\mathbf{S}$ to a similar matrix $\mathbf{
 If we are able to diagonalize out matrix $\mathbf{A}$ the eigenvalue problem becomes trivial to solve. However to directly diagonalize matrix $\mathbf{A}$ of size $n\times n$ requires to solve a $n$-th polynomial problem, which is a very hard task. So we choose a easier way by iteratively zero out more and more non-diagonal elements of matrix $\mathbf{A}$, which will eventually give us the diagonal matrix
 
 \begin{align*}
-\mathbf{D} = \prod_i \mathbf{S}_i^{-1} \mathbf{A} \prod_i \mathbf{S}_i\,.
+\mathbf{D} = \prod_{i=1}^n \mathbf{S}_{n-i}^{-1} \mathbf{A} \prod_{i=1}^n \mathbf{S}_i\,.
 \end{align*}
 
-To make the problem simple to solve we define a basis matrix for transformation as such
+To make the problem simple to solve we define a change of basis matrix $\textbf{S}_{i,j}$ with the elements
 
 \begin{align}
-\mathbf{S} = \begin{bmatrix} 1 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 0  \\ 0 & 1 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots  \\ 0 & 0 & \cdots & s_{ii} & \cdots & s_{ij} & \cdots & 0\\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ji} & \cdots & s_{jj} & \cdots & 0\\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 1\\\end{bmatrix} \,,
-\label{eq_1}
+s_{ijk\ell} = \begin{cases} s_{ij} & \text{when $k=i$ and $\ell=j$} \\ 1 & \text{when } k = \ell \in \mathbb{N}_1^n / \kr{i,j} \\ 0 & \text{elsewhere,} \end{cases}  
+\label{eq_8}
 \end{align}
 
-where the strategy is for this basis matrix $\mathbf{S}$ will make $b_{ij} = b_{ji} = 0$ when we do a matrix similarity transformation of $\mathbf{A}$ to $\mathbf{B}$. The matrix elements of $\mathbf{S}^{-1}$ is then given by
+where the strategy is for this change of basis matrix $\mathbf{S}$ will make $b_{ij} = b_{ji} = 0$ when we do a matrix similarity transformation of $\mathbf{A}$ to $\mathbf{B}$. The matrix elements of $\mathbf{S}_{i,j}^{-1}$ is then given by
 
 \begin{align*}
-s_{k\ell}^- = \begin{cases} \frac{s_{jj}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=\ell=i$} \\ -\frac{s_{ij}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=i$ and $\ell=j$} \\ -\frac{s_{ji}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=j$ and $\ell=i$} \\ \frac{s_{ii}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=\ell=j$} \\ 1 & \text{for $k=\ell\in\mathbb{N}_1^n/\kr{i,j}$} \\ 0 & \text{elsewhere.} \end{cases}
+s_{ijk\ell}^- = \begin{cases} \frac{s_{jj}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=\ell=i$} \\ -\frac{s_{ij}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=i$ and $\ell=j$} \\ -\frac{s_{ji}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=j$ and $\ell=i$} \\ \frac{s_{ii}}{s_{ii}s_{jj}-s_{ij}s_{ji}} & \text{for $k=\ell=j$} \\ 1 & \text{for $k=\ell\in\mathbb{N}_1^n/\kr{i,j}$} \\ 0 & \text{elsewhere.} \end{cases}
 \end{align*}
 
-To see how this matrix similarity transformation behaves we must do the cumbersome matrix multiplication of the transformation;
-
-\begin{align*}
-\mathbf{B} &= \mathbf{S}^{-1} \mathbf{A}\mathbf{S} 
-\\
-&= \begin{bmatrix} 1 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ 0 & 1 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ii}^- & \cdots & s_{ij}^- & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ji}^- & \cdots & s_{jj}^- & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 1 \end{bmatrix}\begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1i} & \cdots & a_{1j} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2i} & \cdots & a_{2j} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{i1} & a_{i2} & \cdots & a_{ii} & \cdots & a_{ij} & \cdots & a_{in} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{j1} & a_{j2} & \cdots & a_{ji} & \cdots & a_{jj} & \cdots & a_{jn} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \cdots & a_{ni} & \cdots & a_{nj} & \cdots &a_{nn}\end{bmatrix}\mathbf{S}
-\\
-&= \begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1i} & \cdots & a_{1j} & \cdots & a_{1n}  \\ a_{21} & a_{22} & \cdots & a_{2i} & \cdots & a_{2j} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ s_{ii}^- a_{i1} + s_{ij}^- a_{j1} & s_{ii}^- a_{i2} + s_{ij}^- a_{j2} & \cdots & s_{ii}^- a_{ii} + s_{ij}^- a_{ji} & \cdots & s_{ii}^- a_{ij} + s_{ij}^- a_{jj} & \cdots & s_{ii}^- a_{in} + s_{ij}^- a_{jn} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ s_{ji}^- a_{i1} + s_{jj}^- a_{j1} & s_{ji}^- a_{i2} + s_{jj}^- a_{j2} & \cdots & s_{ji}^- a_{ii} + s_{jj}^- a_{ji} & \cdots & s_{ji}^- a_{ij} + s_{jj}^- a_{jj} & \cdots & s_{ji}^- a_{in} + s_{jj}^- a_{jn} \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \cdots & a_{ni} & \cdots & a_{nj} & \cdots &a_{nn}\end{bmatrix} \mathbf{S}
-\\ 
-&= \begin{bmatrix} a_{11}^- & a_{12}^- & \cdots & a_{1i}^- & \cdots & a_{1j}^- & \cdots & a_{1n}^- \\ a_{21}^- & a_{22}^- & \cdots & a_{2i}^- & \cdots & a_{2j}^- & \cdots & a_{2n}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{i1}^- & a_{i2}^- & \cdots & a_{ii}^- & \cdots & a_{ij}^- & \cdots & a_{in}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{j1}^- & a_{j2}^- & \cdots & a_{ji}^- & \cdots & a_{jj}^- & \cdots & a_{jn}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{n1}^- & a_{n2}^- & \cdots & a_{ni}^- & \cdots & a_{nj}^- & \cdots &a_{nn}\end{bmatrix}\begin{bmatrix} 1 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ 0 & 1 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ii} & \cdots & s_{ij} & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & s_{ji} & \cdots & s_{jj} & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 1 \end{bmatrix}
-\\
-&= \begin{bmatrix} a_{11}^- & a_{12}^- & \cdots & a_{1i}^- s_{ii} + a_{1j}^- s_{ji} & \cdots & a_{1i}^- s_{ij} + a_{1j}^- s_{jj} & \cdots & a_{1n}^- \\  a_{21}^- & a_{22}^- & \cdots & a_{2i}^- s_{ii} + a_{2j}^- s_{ji} & \cdots & a_{2i}^- s_{ij} + a_{2j}^- s_{jj} & \cdots & a_{2n}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\  a_{i1}^- & a_{i2}^- & \cdots & a_{ii}^- s_{ii} + a_{ij}^- s_{ji} & \cdots & a_{ii}^- s_{ij} + a_{ij}^- s_{jj} & \cdots & a_{in}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{j1}^- & a_{j2}^- & \cdots & a_{ji}^- s_{ii} + a_{jj}^- s_{ji} & \cdots & a_{ji}^- s_{ij} + a_{jj}^- s_{jj} & \cdots & a_{jn}^- \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ a_{n1}^- & a_{n2}^- & \cdots & a_{ni}^- s_{ii} + a_{nj}^- s_{ji} & \cdots & a_{ni}^- s_{ij} + a_{nj}^- s_{jj} & \cdots & a_{nn}^-\end{bmatrix} \,,
-\end{align*}
-
-which gives us the matrix elements of the similarity matrix $\mathbf{B}$
+To see how this matrix similarity transformation behaves we must do the matrix multiplication $\mathbf{B} = \mathbf{S}_{i,j}^{-1} \mathbf{A}\mathbf{S}_{i,j}$ of the transformation;
 
 \begin{align}
-b_{k\ell} = \begin{cases} s_{ii}^- a_{ii} s_{ii} + s_{ij}^- a_{ji} s_{ii} + s_{ii}^- a_{ij} s_{ji} + s_{ij}^- a_{jj} s_{ji} & \text{for $k=\ell=i$} \\ s_{ii}^- a_{ii} s_{ij} + s_{ij}^- a_{ji} s_{ij} + s_{ii}^- a_{ij} s_{jj} + s_{ij}^- a_{jj} s_{jj} & \text{for $k=i$ and $\ell = j$} \\ s_{ji}^- a_{ii} s_{ii} + s_{jj}^- a_{ji} s_{ii} + s_{ji}^- a_{ij} s_{ji} + s_{jj}^- a_{jj} s_{ji} & \text{for $k=j$ and $\ell=i$} \\ s_{ji}^- a_{ii} s_{ij} + s_{jj}^- a_{ji} s_{ij} + s_{ji}^- a_{ij} s_{jj} + s_{jj}^- a_{jj} s_{jj} & \text{for $k=\ell=j$} \\ s_{ki}^- a_{i \ell} + s_{kj}^- a_{j\ell} & \text{for $k\in\kr{i,j}$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} s_{i\ell} + a_{kj}s_{j\ell} & \text{for $\ell\in\kr{i,j}$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
-\label{eq_2}
+b_{k\ell} &= \sum_{m,o=1}^n s_{ijkm}^- a_{mo} s_{ijo\ell} = \begin{cases} s_{ii}^- a_{ii} s_{ii} + s_{ij}^- a_{ji} s_{ii} + s_{ii}^- a_{ij} s_{ji} + s_{ij}^- a_{jj} s_{ji} & \text{for $k=\ell=i$} \\ s_{ii}^- a_{ii} s_{ij} + s_{ij}^- a_{ji} s_{ij} + s_{ii}^- a_{ij} s_{jj} + s_{ij}^- a_{jj} s_{jj} & \text{for $k=i$ and $\ell = j$} \\ s_{ji}^- a_{ii} s_{ii} + s_{jj}^- a_{ji} s_{ii} + s_{ji}^- a_{ij} s_{ji} + s_{jj}^- a_{jj} s_{ji} & \text{for $k=j$ and $\ell=i$} \\ s_{ji}^- a_{ii} s_{ij} + s_{jj}^- a_{ji} s_{ij} + s_{ji}^- a_{ij} s_{jj} + s_{jj}^- a_{jj} s_{jj} & \text{for $k=\ell=j$} \\ s_{ki}^- a_{i \ell} + s_{kj}^- a_{j\ell} & \text{for $k\in\kr{i,j}$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} s_{i\ell} + a_{kj}s_{j\ell} & \text{for $\ell\in\kr{i,j}$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
+\label{eq_9}
 \end{align}
 
 What we want our matrix similarity transformation to do is to set $b_{ij} = b_{ji} = 0$, but we also need to ensure that the basis matrix $\mathbf{S}$ for the transformation is invertible. Hence we have the following three equation we want to solve 
 
 \begin{align}
 s_{ii} s_{jj} - s_{ij} s_{ji} &= 1 
-\label{eq_3}\\
-a_{ji} {s_{ij}}^2-\p{a_{ii}-a_{jj}}s_{jj}s_{ij} - a_{ij}{s_{jj}}^2 &= 0 \label{eq_4}\\
-a_{ij} {s_{ji}}^2 - \p{a_{jj}-a_{ii}}s_{ii}s_{ji} - a_{ji}{s_{ii}}^2 &= 0 \,. \label{eq_5}
+\label{eq_10}\\
+a_{ji} {s_{ij}}^2-\p{a_{ii}-a_{jj}}s_{jj}s_{ij} - a_{ij}{s_{jj}}^2 &= 0 \label{eq_11}\\
+a_{ij} {s_{ji}}^2 - \p{a_{jj}-a_{ii}}s_{ii}s_{ji} - a_{ji}{s_{ii}}^2 &= 0 \,. \label{eq_12}
 \end{align} 
 
 If the matrix $\mathbf{A}$ is indeed diagonalizable then the above three equations above solvable. We further observer that we have four unknowns in the three equations, which means that we can choose one of them as we want, I suggest $s_{ii}=1$. I will not show the solution here, but it involves in principle in two second order equations $a x^2 + b x + c = 0$ which has a well known analytical solution $x = \frac{-b\pm\sqrt{b^2 - 4ac}}{2a}$. Be aware of that the coefficient $a$ may be zero which would make it a first order equations to solve instead. If the coefficient $b=0$ in addition to $a=0$, then the matrix $\mathbf{A}$ is not diagonalizable. \linebreak
 
-There are on last thing we need to consider regarding the diagonalizing algorithm, and that is that the matrix elements $b_{ix}$, $b_{jx}$, $b_{xi}$ and $b_{xj}$ for all $x\in\mathbb{N}_1^n / \kr{i,j}$ may change from zero to a value if we are not careful. Which may undermine the work we try to do when we diagonalize the matrix. What we see in \eqref{eq_2} is if we lock $k$ to $i$ and let $\ell$ go through all possibilities $\ell\in\mathbb{N}_1^n / \kr{k}$ exactly once, we ensure that the values we have zeroed out for $k=i$ does not change when we do successive transformation with the same $k=i$;
-
-\begin{align*}
-&\begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \cdots & a_{nn} \end{bmatrix} 
-\sim \begin{bmatrix} b_{11}^{(1)} & b_{12}^{(1)} & \cdots & 0 \\ b_{21}^{(1)} & b_{22}^{(1)} & \cdots & b_{2n}^{(1)} \\ \vdots & \vdots & \ddots & \vdots \\ 0 & b_{n2}^{(1)} & \cdots & b_{nn}^{(1)} \end{bmatrix}
-\sim \begin{bmatrix} b_{11}^{(n-1)} & 0 & \cdots & 0 \\ 0 & b_{22}^{(n-1)} & \cdots & b_{2n}^{(n-1)} \\ \vdots & \vdots & \ddots & \vdots \\ 0 & b_{n2}^{(n-1)} & \cdots & b_{nn}^{(n-1)} \end{bmatrix} \to \begin{bmatrix} a_{11} & 0 & \cdots & 0 \\ 0 & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ 0 & a_{n2} & \cdots & a_{nn} \end{bmatrix} 
-\end{align*} 
-
-Note that we have now transformed such that $a_{ki} = a_{ii}\delta_{ik} = a_{ki}$, where $\delta_{ik}$ is the Kronecker delta function. Now we change indices to $i^\prime\neq i$ and let $j\in\mathbb{N}_1^n / \kr{i,i'}$, because we are done with the row and column $i$.  What we now realize in \eqref{eq_2} is that the elements of matrix $\mathbb{B}$ in the row or column $i$ is given by  $b_{i\ell}= a_{ii^\prime} s_{i^\prime \ell} + a_{ij} s_{j\ell} = 0$ because $k\not\in\kr{i^\prime, j}$ and $i^\prime \neq i \neq j$ which means that $a_{ii^\prime}=0$ and $a_{ij}=0$, and $b_{ki} = s_{ki^\prime}^- a_{i^\prime i} + s_{kj}^- a_{ji} = 0$ because $\ell\not\in\kr{i^\prime, j}$ and $i^\prime \neq i \neq j$ which means that $a_{i^\prime i} = 0$ and $a_{ji} = 0$. In other words the matrix elements in row or column $i$ that was zeroed out does not change when we continue to zero out matrix elements on row and column $i^\prime$, which means that we can continue the iteration until the matrix $\mathbf{A}$ is completely diagonalized;
-
-\begin{align*}
-\begin{bmatrix} a_{11} & 0 & 0 & \cdots & 0 \\ 0 & a_{22} & a_{23} & \cdots & a_{2n} \\ 0 & a_{32} & a_{33} & \cdots & a_{3n} \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 0 & a_{n2} & a_{n3} & \cdots & a_{nn} \end{bmatrix}
-&\sim \begin{bmatrix} b_{11}^{(1)} & 0 & 0 & \cdots & 0 \\ 0 & b_{22}^{(1)} & b_{23}^{(1)} & \cdots & 0 \\ 0 & b_{32}^{(1)} & b_{33}^{(1)} & \cdots & b_{3n}^{(1)} \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & b_{n3}^{(1)} & \cdots & b_{nn}^{(1)} \end{bmatrix}
-\sim \begin{bmatrix} b_{11}^{(n-2)} & 0 & 0 & \cdots & 0 \\ 0 & b_{22}^{(n-2)} & 0 & \cdots & 0 \\ 0 & 0 & b_{33}^{(n-2)} & \cdots & b_{3n}^{(n-2)} \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & b_{n3}^{(n-2)} & \cdots & b_{nn}^{(n-2)} \end{bmatrix}
-\\
-&\sim \begin{bmatrix} \lambda_1 & 0 & 0 & \cdots & 0 \\ 0 & \lambda_2 & 0 & \cdots & 0 \\ 0 & 0 & \lambda_3 & \cdots & 0 \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & 0 & \cdots & \lambda_n \end{bmatrix} \,.
-\end{align*}
-
 \subsection{Jacobi's eigenvalue algorithm}
 
-The Jacobi's eigenvalue algorithm is a special case of diagonalize by matrix similarity algorithm discussed in section \ref{sec_Diagonalize}, where we use a two dimensional rotation matrix in $n$ dimensional space
+The Jacobi's eigenvalue algorithm is a special case of diagonalize by matrix similarity algorithm discussed in section \ref{sec_Diagonalize}, where I use a two dimensional rotation matrix $\textbf{R}_{ij}$ in $n$ dimensional space which has the following elements
 
 \begin{align}
-\mathbf{R}_{i,j,\theta} = \begin{bmatrix} 1 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ 0 & 1 & \cdots & 0 & \cdots & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & r_{ii} = \cos \theta & \cdots & r_{ij} = -\sin\theta & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & r_{ji} = \sin \theta & \cdots & r_{jj} = \cos\theta & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 & \cdots & 0 & \cdots & 1 \end{bmatrix} \,,
-\label{eq_6}
+r_{ijk\ell} = \begin{cases} \cos\theta_{ij} & \text{when $k=i$ and $\ell=i$} \\ \sin\theta_{ij} & \text{when $k=i$ and $\ell=j$} \\ -\sin\theta_{ij} & \text{when $k=j$ and $\ell=i$} \\ \cos\theta_{ij} & \text{when $k=j$ and $\ell=j$}\\ 1 & \text{when } k=\ell\in\mathbb{N}_1^n / \mathbb{N}_j^{j+1}  \\ 0 & \text{otherwise.}\end{cases}
+\label{eq_13}
 \end{align} 
 
-which satisfies the basis matrix $\mathbf{S}$ in \eqref{eq_1}. The rotation matrix can easily be shown to be a orthogonal matrix by realizing $\mathbf{R}_{-\theta} = {\mathbf{R}_{\theta}}^{-1} = {\mathbf{R}_{\theta}}^{\mathrm{T}}$, because when we rotate an angle $\theta$, we need to rotate an angle $-\theta$ to get back (or you could realize this by a more cumbersome way by actually do the matrix inversion). \linebreak
+which satisfies the basis matrix $\mathbf{S}$ in \eqref{eq_8}. The rotation matrix can easily be shown to be a orthogonal matrix by realizing ${\mathbf{R}_{ij}}^{-1} = {\mathbf{R}_{ij}}^{\mathrm{T}}$, because when we rotate an angle $\theta$, we need to rotate an angle $-\theta$ to get back (or you could realize this by a more cumbersome way by actually do the matrix inversion). \linebreak
 
-By doing the matrix similarity transformation $\mathbf{B} = \mathbf{R}_{i,j,-\theta}\mathbf{A}\mathbf{R}_{i,j,\theta}$, we get the following similar matrix elements according to \eqref{eq_2}
+By doing the matrix similarity transformation $\mathbf{B} = \mathbf{R}_{ij}^{\text{T}}\mathbf{A}\mathbf{R}_{ij}$, we get the following similar matrix elements according to \eqref{eq_9},
 
 \begin{align*}
-b_{k\ell} = \begin{cases} a_{ii} \cos^2\theta  + a_{jj}\sin^2 \theta + \p{a_{ij} + a_{ji}}\sin\theta\cos\theta & \text{for $k=\ell=i$} \\ a_{ij}\cos^2\theta - a_{ji}\sin^2\theta + \p{a_{jj}-a_{ii}}\sin\theta\cos\theta & \text{for $k=i$ and $\ell = j$} \\ a_{ji}\cos^2\theta - a_{ij}\sin^2\theta + \p{a_{jj}-a_{ii}}\sin\theta\cos\theta & \text{for $k=j$ and $\ell=i$} \\ a_{jj} \cos^2\theta  + a_{ii}\sin^2 \theta - \p{a_{ij} + a_{ji}}\sin\theta\cos\theta & \text{for $k=\ell=j$} \\ a_{i \ell} \cos\theta +  a_{j\ell} \sin\theta & \text{for $k=i$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{j\ell} \cos\theta - a_{i\ell}\sin\theta & \text{for $k=j$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} \cos\theta + a_{kj}\sin\theta & \text{for $\ell=i$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{kj}\cos\theta - a_{ki}\sin\theta & \text{for $\ell=j$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
+b_{k\ell} = \begin{cases} a_{ii} \cos^2\theta_{ij}  + a_{jj}\sin^2 \theta_{ij} - \p{a_{ij} + a_{ji}}\sin\theta_{ij}\cos\theta_{ij} & \text{for $k=\ell=i$} \\ a_{ij}\cos^2\theta_{ij} - a_{ji}\sin^2\theta_{ij} + \p{a_{ii}-a_{jj}}\sin\theta_{ij}\cos\theta_{ij} & \text{for $k=i$ and $\ell = j$} \\ a_{ji}\cos^2\theta_{ij} - a_{ij}\sin^2\theta_{ij} + \p{a_{jj}-a_{ii}}\sin\theta_{ij}\cos\theta_{ij} & \text{for $k=j$ and $\ell=i$} \\ a_{jj} \cos^2\theta_{ij}  + a_{ii}\sin^2 \theta_{ij} + \p{a_{ij} + a_{ji}}\sin\theta_{ij}\cos\theta_{ij} & \text{for $k=\ell=j$} \\ a_{i \ell} \cos\theta_{ij} -  a_{j\ell} \sin\theta_{ij} & \text{for $k=i$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{j\ell} \cos\theta_{ij} + a_{i\ell}\sin\theta_{ij} & \text{for $k=j$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} \cos\theta_{ij} - a_{kj}\sin\theta_{ij} & \text{for $\ell=i$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{kj}\cos\theta_{ij} + a_{ki}\sin\theta_{ij} & \text{for $\ell=j$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
 \end{align*}
 
-The strategy is to set $b_{ij}$ and $b_{ji}$ to zero, which enables us by iteration to zero out every element in the matrix except the diagonal elements (as described in section \ref{sec_Diagonalize}). Unfortunately we have only one variable, namely $\theta$, which makes it impossible to diagonalize a general matrix $\mathbf{A}$ by similarity. However when $\mathbf{A}$ is a symmetric matrix, $a_{ij}=a_{ji}$, which gives us only one equation to solve to set both $b_{ij}$ and $b_{ji}$ to zero. For a symmetric matrix $\mathbf{A}$ we have the following elements of the similarity matrix $\mathbf{B}$
+The strategy is to set $b_{ij}$ and $b_{ji}$ to zero, which enables us by iteration to zero out every element in the matrix except the diagonal elements (as described in section \ref{sec_Diagonalize}). Unfortunately we have only one variable, namely $\theta_{ij}$, which makes it impossible to diagonalize a general matrix $\mathbf{A}$ by similarity. However when $\mathbf{A}$ is a symmetric matrix, $a_{ij}=a_{ji}$, which gives us only one equation to solve to set both $b_{ij}$ and $b_{ji}$ to zero. For a symmetric matrix $\mathbf{A}$ we have the following elements of the similarity matrix $\mathbf{B}$
 
 \begin{align}
-b_{k\ell} = \begin{cases} a_{ii} \cos^2\theta  + a_{jj}\sin^2 \theta + 2 a_{ij}\sin\theta\cos\theta & \text{for $k=\ell=i$} \\ a_{ij}\p{\cos^2\theta - \sin^2\theta} + \p{a_{jj}-a_{ii}}\sin\theta\cos\theta & \text{for $k=i$ and $\ell = j$, or $k=j$ and $\ell = i$} \\ a_{jj} \cos^2\theta  + a_{ii}\sin^2 \theta - 2 a_{ij}\sin\theta\cos\theta & \text{for $k=\ell=j$} \\ a_{i \ell} \cos\theta +  a_{j\ell} \sin\theta & \text{for $k=i$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{j\ell} \cos\theta - a_{i\ell}\sin\theta & \text{for $k=j$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} \cos\theta + a_{kj}\sin\theta & \text{for $\ell=i$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{kj}\cos\theta - a_{ki}\sin\theta & \text{for $\ell=j$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
-\label{eq_7}
+b_{k\ell} = \begin{cases} a_{ii} \cos^2\theta_{ij}  + a_{jj}\sin^2 \theta_{ij} - 2 a_{ij}\sin\theta_{ij}\cos\theta_{ij} & \text{for $k=\ell=i$} \\ a_{ij}\p{\cos^2\theta_{ij} - \sin^2\theta_{ij}} + \p{a_{ii}-a_{jj}}\sin\theta_{ij}\cos\theta_{ij} & \text{for $k=i$ and $\ell = j$, or $k=j$ and $\ell = i$} \\ a_{jj} \cos^2\theta_{ij}  + a_{ii}\sin^2 \theta_{ij} + 2 a_{ij}\sin\theta_{ij}\cos\theta_{ij} & \text{for $k=\ell=j$} \\ a_{i \ell} \cos\theta_{ij} -  a_{j\ell} \sin\theta_{ij} & \text{for $k=i$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{j\ell} \cos\theta_{ij} + a_{i\ell}\sin\theta_{ij} & \text{for $k=j$ and $\ell\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{ki} \cos\theta_{ij} - a_{kj}\sin\theta_{ij} & \text{for $\ell=i$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{kj}\cos\theta_{ij} + a_{ki}\sin\theta_{ij} & \text{for $\ell=j$ and $k\in\mathbb{N}_1^n / \kr{i,j}$} \\ a_{k\ell} & \text{elsewhere.}\end{cases}
+\label{eq_14}
 \end{align}
 
 Now we are able to solve the following equation
 
 \begin{align*}
-b_{ij}=b_{ji} = a_{ij}\p{\cos^2\theta - \sin^2\theta}+\p{a_{jj}-a_{ii}}\sin\theta\cos\theta = 0 \,,
+b_{ij}=b_{ji} = a_{ij}\p{\cos^2\theta_{ij} - \sin^2\theta_{ij}}+\p{a_{ii}-a_{jj}}\sin\theta_{ij}\cos\theta_{ij} = 0 \,,
 \end{align*}
 
-and by using the trigonometric relation $\cos^2\theta+\sin^2\theta = 1$ we can rewrite to
+by introducing $\tan\theta = \frac{\sin\theta}{\cos\theta}$ we can rewrite this equation to
 
 \begin{align*}
-\cos^4\theta -\cos^2\theta + \frac{{a_{ij}}^2}{\p{a_{ii}-a_{jj}}^2 + 4 {a_{ij}}^2} = 1\,.
+\tan^2\theta_{ij} + 2\tau_{ij}\tan\theta_{ij} -1 = 0
 \end{align*}
 
-By solving this as a second order equation with regard to $\cos^2\theta$ and using the trigonometric relation $\cos^2\theta+\sin^2\theta = 1$ again, we get
+where $\tau_{ij} = \frac{a_{jj}-a_{ii}}{2a_{ij}}$, which gives the solution
+
+or
 
 \begin{align}
-\theta = \arccos\sqrt{\frac{1}{2}\p{1+\sqrt{\frac{\p{a_{ii}-a_{jj}}^2}{\p{a_{ii}-a_{jj}}^2+4{a_{ij}}^2}}}} = \arcsin\sqrt{\frac{1}{2}\p{1-\sqrt{\frac{\p{a_{ii}-a_{jj}}^2}{\p{a_{ii}-a_{jj}}^2+4{a_{ij}}^2}}}} \,.
+\tan\theta_{ij} = -\tau_{ij} \pm \sqrt{1+{\tau_{ij}}^2} = -\begin{cases} \frac{1}{\tau_{ij}-\sqrt{1+{\tau_{ij}}^2}} & \text{when } \tau_{ij}< 0 \\ \frac{1}{\tau_{ij}+\sqrt{1+{\tau_{ij}}^2}} & \text{otherwise,} \end{cases}
+\label{eq_15}
 \end{align}
 
-We can diagonalize the matrix $\mathbf{A}$ by doing matrix similarity transformation iteratively as described in section \ref{sec_Diagonalize}. However we can optimize Jacobi's eigenvalue algorithm by using  the Frobenius norm.
+where I have chosen the $\pm$ solution such that we avoid loss of numerical precision when subtracting almost equal parts. This makes $\abs{\tan\theta} \leq 1$, because of the chose $\abs{\tau_{ij}\pm\sqrt{1+{\tau_{ij}}^2}} \geq 1$, which makes $\theta_{ij} \in \kl{-\frac{\pi}{4}+n\pi,\frac{\pi}{4}+n\pi}$ where $n\in\mathbb{N}$. $\mathbb{N} = \mathbb{N}_{-\infty}^{\infty}$ is here all positive and negative integers including zero, which is usually indicated by $\mathbb{Z}$. However my notation $\mathbb{N}_n^m$ is the integers between $n$ and $m$, which may include negative integers, hence $\mathbb{Z}$ is a redundant notation that is not needed. We know that $\tan\theta = \cot^{-1}\theta$ and we see from \eqref{eq_15} that $-\tau_{ij}\pm\sqrt{1+\tau_{ij}} = \p{-\tau_{ij}\pm\sqrt{1+\tau_{ij}}}^{-1}$, which means that we can choose the following solution instead
+
+\begin{align}
+\cot\theta_{ij} = -\tau_{ij} \mp \sqrt{1+{\tau_{ij}}^2} = -\begin{cases} \frac{1}{\tau_{ij}-\sqrt{1+{\tau_{ij}}^2}} & \text{when } \tau_{ij}< 0 \\ \frac{1}{\tau_{ij}+\sqrt{1+{\tau_{ij}}^2}} & \text{otherwise,} \end{cases} \,.
+\label{eq_16}
+\end{align}
+
+where we now have $\abs{\tau_{ij}\pm\sqrt{1+{\tau_{ij}}^2}} \geq 1$ which makes $\theta_{ij} \in \kl{\frac{\pi}{4}+n\pi,\frac{3\pi}{4}+n\pi}$ instead. Now using the fact that $1+\cot^2\theta = \frac{1}{\sin^2\theta}$ we can calculate
+
+\begin{align}
+\sin\theta_{ij} = \frac{1}{\sqrt{1+\cot^2\theta_{ij}}} \,,
+\label{eq_17}
+\end{align}
+
+and $\cos\theta_{ij}$ is simply calculated $\cos\theta_{ij} = \sin\theta_{ij}\cot\theta_{ij}$. The reason for this change in solution of $\theta_{ij}$ is because we want $\sin^2\theta_{ij}$ when we calculate the diagonal elements in \eqref{eq_14} by rewriting them by using the trigonometrical relation $\cos^2\theta+\sin^2\theta = 1$;
+
+\begin{align}
+b_{ii} &= a_{ii}\cos^2\theta_{ij} + a_{jj}\sin^2\theta_{ij} - 2 a_{ij}\sin\theta_{ij}\cos\theta_{ij} 
+= a_{ii}\p{1-\sin^2\theta_{ij}} + a_{jj}\sin^2\theta_{ij} - 2 a_{ij}\sin\theta_{ij}\cos\theta_{ij}
+\nonumber\\
+&= a_{ii} + \kl{\p{a_{jj}-a_{ii}}\sin^2\theta_{ij} - 2 a_{ij}\sin\theta_{ij}\cos\theta_{ij}}
+\label{eq_18}
+\\
+b_{jj} &= a_{jj}\cos^2\theta_{ij} + a_{ii}\sin^2\theta_{ij} + 2a_{ij}\sin\theta_{ij}\cos\theta_{ij}
+= a_{jj}\p{1-\sin^2\theta_{ij}} + a_{ii}\sin^2\theta_{ij} - 2a_{ij}\sin\theta_{ij}\cos\theta_{ij}
+\nonumber\\
+&= a_{jj} - \kl{\p{a_{jj}-a_{ii}}\sin^2\theta_{ij} - 2a_{ij}\sin\theta_{ij}\cos\theta_{ij}}
+\label{eq_19}
+\end{align}
+
+Where the point here is that we calculate $\sin^2\theta_{ij}$ before $\sin\theta_{ij}$ in \eqref{eq_17} to reduce number of FLOPS we need. Note that it's better to use $\sin^2\theta$ instead of $\cos^2\theta$, because when we look at 
+
+\begin{align*}
+b_{ii} &= a_{jj} + \kl{\p{a_{ii}-a_{jj}}\cos^2\theta_{ij} - 2a_{ij}\cos\theta_{ij}\sin\theta_{ij}}
+\\
+b_{jj} &= a_{ii} - \kl{\p{a_{ii}-a_{jj}}\cos^2\theta_{ij} - 2a_{ij}\cos\theta_{ij}\sin\theta_{ij}} \,,
+\end{align*}
+
+we see that $a_{jj}$ corresponds to $b_{ii}$ and $a_{ii}$ corresponds to $b_{jj}$, which means that we need to backup either $a_{ii}$ or $a_{jj}$ before we do the calculation, so we don't overwrite the value before we have used in the calculation. However for the $\sin^2\theta_{ij}$ expressions we have that $a_{ii}$ corresponds to $b_{ii}$ and $a_{jj}$ corresponds to $b_{jj}$, which means that we don't need to backup $a_{ii}$ or $a_{jj}$, and we can  use the program operator \texttt{+=} directly on the diagonal elements. \linebreak
+
+We see from the terms $a_{xy}\cos\theta_{ij}\pm a_{zw}\sin\theta_{ij}$ in \eqref{eq_14} that elements that was zero in $\textbf{A}$ isn't necessarily zero in $\textbf{B}$. And we therefore seeks to minimize the off diagonal elements by searching for the largest of diagonal elements and zero it out by the Jacobi method. This minimize the number of rotation transformation we need to do, however it requires $\mathcal{O}\p{n^2}$ to search for the maximum off diagonal element.
 
 \subsection{QR algorithm and tridiagonal matrices}
 
-We want to find the eigenvalues of a tridiagonal symmetric matrix $\textbf{A}_0$ of $n\times n$ which do QR decomposition on
+We want to find the eigenvalues of a tridiagonal symmetric matrix $\textbf{A}_0$ of $n\times n$ with QR decomposition on
 
 \begin{align*}
 \textbf{A}_0 = \textbf{S}_0\textbf{U}_0 \,,
@@ -198,238 +282,283 @@ where $\text{S}_0$ is the orthogonal matrix $\textbf{Q}$ and $\textbf{U}_0$ is t
 
 where I have used the orthogonal property of $\textbf{S}_0$ such that $\textbf{S}_0^{\text{T}} \textbf{S}_0 = \textbf{I}$ ($\textbf{I}$ is the identity martrix). Now imagine that we use QR decomposition on $\textbf{A}_1$ and find the similarity matrix $\textbf{A}_2$ in the same manner. We can now show by induction that this process for step $i+1$ by using the QR decomposition on $\textbf{A}_i$;
 
-\begin{align*}
+\begin{align}
 \textbf{A}_i = \textbf{S}_i \textbf{U}_i \,,
-\end{align*}
+\label{eq_20}
+\end{align}
 
 and we now find the similarity matrix $\textbf{A}_{i+1}$ to $\textbf{A}_i$ as follows
 
-\begin{align*}
+\begin{align}
 \textbf{A}_{i+1} = \textbf{S}_i^{\text{T}} \textbf{A}_i \textbf{S}_i 
 =\textbf{S}_i^{\text{T}} \textbf{S}_i\textbf{U}_i \textbf{S}_i = \textbf{U}_i \textbf{S}_i \,.
-\end{align*}
+\label{eq_21}
+\end{align}
 
 We assume that $\textbf{A}_i$ is a symmetric tridiagonal matrix with the elements 
 
 \begin{align*}
-a_{i,k,\ell} = \begin{cases} a_{i,k,k+\abs{\ell-k}} & \text{when } \ell \in \mathbb{N}_{k-1}^{k+1} \\ 0 & \text{otherwise,}\end{cases}
+a_{ik\ell} = \begin{cases} a_{ik(k+\abs{\ell-k})} & \text{when } \ell \in \mathbb{N}_{k-1}^{k+1} \\ 0 & \text{otherwise,}\end{cases}
 \end{align*}
 
-which I will show by induction. To find the upper matrix we use successively rotation matrices $\textbf{R}_{i,j}$ to eliminate the elements in the lower triangle part of the tridiagonal matrix $\textbf{A}_i$ 
+which I will show by induction. To find the upper matrix we use successively rotation matrices $\textbf{R}_{ij}$ to eliminate the elements in the lower triangle part of the tridiagonal matrix $\textbf{A}_i$ 
+
+\begin{align}
+\textbf{U}_i = \prod_{j=1}^{n-1} \textbf{R}_{i(n-j)}^{\text{T}} \textbf{A}_i \,,
+\label{eq_22}
+\end{align}
+
+where the rotation matrix $\textbf{R}_{ij}$ is defined as
 
 \begin{align*}
-\textbf{U}_i = \prod_{j=1}^{n-1} \textbf{R}_{i,j}^{\text{T}} \textbf{A}_i \,,
+r_{ijk\ell} = \begin{cases} \cos\theta_{ij} & \text{when } k,\ell \in\mathbb{N}_j^{j+1} \\ \sin\theta_{ij} & \text{when } k=\ell-1= j \\ -\sin\theta_{ij} & \text{when } k-1=\ell= j \\ 1 & \text{when } k,\ell\in\mathbb{N}_1^n/\mathbb{N}_j^{j+1} \\ 0 & \text{elsewhere.} \end{cases}  
 \end{align*}
 
-where the rotation matrix $\textbf{R}_{i,j}$ has the elements
+Note that the rotation matrix is orthogonal which means that the elements of $\textbf{R}_{ij}^{\text{T}}$ is given by $r_{ijk\ell}^{\text{T}} = r_{ij\ell k}$. I continue by defining the matrix
 
 \begin{align*}
-r_{i,j,k,\ell} = \begin{cases} \cos\theta_{i,j} & \text{when } j=k=\ell \\ -\sin\theta_{i,j} & \text{when } j=k=\ell-1 \\ \sin\theta_{i,j} & \text{when } j=k-1=\ell \\ \cos\theta_{i,j} & \text{when } j = k-1 = \ell-1 \\ 1 & \text{when } k=\ell\in\mathbb{N}_1^n / \mathbb{N}_j^{j+1}  \\ 0 & \text{otherwise.}\end{cases}
+\textbf{A}_{i(j+1)} = \begin{cases}\textbf{A}_i &\text{when } j=0 \\ \textbf{R}_{ij}^{\text{T}}\textbf{A}_{ij} & \text{when } j\in\mathbb{N}_1^{n-1}\,, \end{cases}
 \end{align*}
 
-Note that the rotation matrix is orthogonal which means that the elements of $\textbf{R}_{i,j}^{\text{T}}$ is given by $r_{i,j,k,\ell}^{\text{T}} = r_{i,j,\ell,k}$. I define the matrix
+which means that we are going to show that $\textbf{U}_i = \textbf{A}_{in}$, where the matrix $\textbf{A}_{ij}$ has the elements $a_{ijk\ell}$. I start by doing the matrix multiplication $\textbf{A}_{i2} = \textbf{R}_{i1}^{\text{T}}\textbf{A}_{i1}$;
 
 \begin{align*}
-\textbf{A}_{i,j+1} = \begin{cases}\textbf{A}_i &\text{when } j=0 \\ \textbf{R}_{i,j}^{\text{T}}\textbf{A}_{i,j} & \text{when } j\in\mathbb{N}_1^{n-1}\,, \end{cases}
-\end{align*}
-
-which means that we are going to show that $\textbf{U}_i = \textbf{A}_{i,n}$, where the matrix $\textbf{A}_{i,j}$ has the elements $a_{i,j,k\ell}$. I start by doing the matrix multiplication $\textbf{A}_{i,2} = \textbf{R}_{i,1}^{\text{T}}\textbf{A}_{i,1}$;
-
-\begin{align*}
-a_{i,2,k,\ell} &= \sum_{m=1}^n r_{i,1,k,m}^{\text{T}} a_{i,1,m,\ell} = \sum_{m=-1}^1 r_{i,1,k,\ell+m}^{\text{T}} a_{i,1,\ell+m,\ell}
-= \begin{cases} \sum_{m=-1}^1 r_{i,1,k,\ell+m}^{\text{T}} a_{i,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}\\ a_{i,1,k,\ell} & \text{otherwise.}\end{cases} 
+a_{i2k\ell} &= \sum_{m=1}^n r_{i1km}^{\text{T}} a_{i1m\ell} = \sum_{m=-1}^1 r_{i1k(\ell+m)}^{\text{T}} a_{i1(\ell+m)\ell}
+= \begin{cases} \sum_{m=-1}^1 r_{i1k(\ell+m)}^{\text{T}} a_{i1(\ell+m)\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}\\ a_{i1k\ell} & \text{otherwise.}\end{cases} 
 \\
-&= \begin{cases} \sum_{m=-1}^1 r_{i,1,k,\ell+m}^{\text{T}} a_{i,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}} \text{ and } \ell \in\mathbb{N}_1^3\\ a_{i,1,k,\ell} & \text{otherwise.}\end{cases}
+&= \begin{cases} \sum_{m=-1}^1 r_{i1k(\ell+m)}^{\text{T}} a_{i1(\ell+m)\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}} \text{ and } \ell \in\mathbb{N}_1^3\\ a_{i1k\ell} & \text{otherwise.}\end{cases}
 \end{align*}
 
 The notation $\leftidx{^2}{\mathbb{N}}{_1^2} = \mathbb{N}_1^2 \times \mathbb{N}_1^2$, which means all the permutations of the natural number from 1 to 2; $(1,1)$, $(1,2)$, $(2,1)$ and $(2,2)$. We want our transformation to zero out the lower triangle element $(2,1)$
 
 \begin{align*}
-a_{i,2,2,1} = \sum_{m=-1}^1 r_{i,1,2,m+1}^{\text{T}} a_{i,1,m+1,1} = \sum_{m=0}^1 r_{i,1,2,m+1}^{\text{T}} a_{i,1,m+1,1} = 0\,,
+a_{i221} = \sum_{m=-1}^1 r_{i12(m+1)}^{\text{T}} a_{i1(m+1)1} = \sum_{m=0}^1 r_{i12(m+1)}^{\text{T}} a_{i1(m+1)1} = 0\,,
 \end{align*}
 
 which means that 
 
 \begin{align*}
-a_{i,2,k,\ell} = \begin{cases} \sum_{m=-1}^1 r_{i,1,k,\ell+m}^{\text{T}} a_{i,1,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}, (k,\ell)\neq(2,1) \text{ and } \ell \in\mathbb{N}_1^3\\ 0 & \text{when } (k,\ell)=(2,1) \\ a_{i,1,k,\ell} & \text{otherwise.}\end{cases}
+a_{i2k\ell} = \begin{cases} \sum_{m=-1}^1 r_{i1k(\ell+m)}^{\text{T}} a_{i1(\ell+m)\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_1^2}}, (k,\ell)\neq(2,1) \text{ and } \ell \in\mathbb{N}_1^3\\ 0 & \text{when } (k,\ell)=(2,1) \\ a_{i1k\ell} & \text{otherwise.}\end{cases}
 \end{align*}
 
-Note that all the lower off diagonal elements  $a_{i,2,k,\ell}$ is the same as $a_{i,1,k,\ell}$, expect $a_{i,2,2,1} = 0$. Note also that $a_{i,2,1,3}$ is the only upper triangle element that isn't necessarily zero that was zero in matrix $\textbf{A}_{i,1}$. If we now continue the matrix multiplication to step $j$, $\textbf{A}_{i,j+1} = \textbf{R}_{i,j}^{\text{T}} \textbf{A}_{i,j}$;
+Note that all the lower off diagonal elements  $a_{i2k\ell}$ is the same as $a_{i1k\ell}$, expect $a_{i221} = 0$. Note also that $a_{i213}$ is the only upper triangle element that isn't necessarily zero that was zero in matrix $\textbf{A}_{i1}$. If we now continue the matrix multiplication to step $j$, $\textbf{A}_{i(j+1)} = \textbf{R}_{ij}^{\text{T}} \textbf{A}_{ij}$;
 
 \begin{align*}
-a_{i,j+1,k,\ell} &= \sum_{m=1}^n r_{i,j,k,m}^{\text{T}} a_{i,j,m,\ell} = \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} 
-= \begin{cases} \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}}\\ a_{i,j,k,\ell} & \text{otherwise.}\end{cases}
+a_{i(j+1)k\ell} &= \sum_{m=1}^n r_{ijkm}^{\text{T}} a_{ijm\ell} = \sum_{m=-1}^1 r_{ijk(\ell+m)}^{\text{T}} a_{ij(\ell+m)\ell} 
+= \begin{cases} \sum_{m=-1}^1 r_{ijk(\ell+m)}^{\text{T}} a_{ij(\ell+m)\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}}\\ a_{ijk\ell} & \text{otherwise.}\end{cases}
 \\
-&= \begin{cases} \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j-1}^{j+2}\\ a_{i,j,k,\ell} & \text{otherwise.}\end{cases}
+&= \begin{cases} \sum_{m=-1}^1 r_{ijk(\ell+m)}^{\text{T}} a_{ij(\ell+m)\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j-1}^{j+2}\\ a_{ijk\ell} & \text{otherwise.}\end{cases}
 \\
-&= \begin{cases} \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j}^{j+2}\\ a_{i,j,k,\ell} & \text{otherwise,}\end{cases}
+&= \begin{cases} \sum_{m=-1}^1 r_{ijk(\ell+m)}^{\text{T}} a_{ij(\ell+m)\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}} \text{ and } \ell \in\mathbb{N}_{j}^{j+2}\\ a_{ijk\ell} & \text{otherwise,}\end{cases}
 \end{align*}
 
-where I have used that $a_{i,j,j,j-1}=0$ due to zero out of the previous rotation. We want now want our transformation to zero out the lower triangle element $(j+1,j)$
+where I have used that $a_{ijj(j-1)}=0$ due to zero out of the previous rotation. We now want our transformation to zero out the lower triangle element $(j+1,j)$
 
 \begin{align*}
-a_{i,j+1,j+1,j} = \sum_{m=-1}^1 r_{i,j,j+1,j+m}^{\text{T}} a_{i,j,j+m,j} = \sum_{m=0}^1 r_{i,j,j+1,j+m}^{\text{T}} a_{i,j,j+m,j} = 0
+a_{i(j+1)(j+1)j} = \sum_{m=-1}^1 r_{i,j,j+1,j+m}^{\text{T}} a_{ij(j+m)j} = \sum_{m=0}^1 r_{ij(j+1)(j+m)}^{\text{T}} a_{ij(j+m)j} = 0
 \end{align*}
 
-where I have used the fact that $r_{i,j,j+1,j-1}^{\text{T}} = 0$. This means that
+where I have used the fact that $r_{ij(j+1)(j-1)}^{\text{T}} = 0$. This means that
+
+\begin{align}
+a_{i(j+1)k\ell} = \begin{cases} \sum_{m=-1}^1 r_{ijk(\ell+m)}^{\text{T}} a_{ij(\ell+m)\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}}, (k,\ell)\neq (j+1,j) \text{ and } \ell \in\mathbb{N}_{j}^{j+2}\\ 0 & \text{when } (k,\ell)=(j+1,j) \\ a_{ijk\ell} & \text{otherwise.}\end{cases} 
+\label{eq_23}
+\end{align}
+
+I have now shown that all the lower off diagonal elements $a_{i(j+1)k\ell}$ is the same as $a_{ijk\ell}$, expect $a_{i(j+1)(j+1)j}=0$. Then using the assumption that $\textbf{A}_i$ is a tridiagonal matrix, induction gives us that $\textbf{A}_{in} = \textbf{U}_i$ is a upper triangle matrix. Furthermore $a_{i(j+1)j(j+2)}$ is the only upper triangle element that isn't zero that was zero in the matrix $\textbf{A}_{ij}$, hence induction give us the following upper triangle matrix elements
+
+\begin{align}
+u_{ik\ell} = \begin{cases} a_{ink\ell} & \text{when } \ell\in\mathbb{N}_k^{k+2} \\ 0 & \text{otherwise.} \end{cases}
+\label{eq_24}
+\end{align}
+
+Since $\textbf{A}_i = \textbf{S}_i \textbf{U}_i$ and \eqref{eq_22} means that 
 
 \begin{align*}
-a_{i,j+1,k,\ell} = \begin{cases} \sum_{m=-1}^1 r_{i,j,k,\ell+m}^{\text{T}} a_{i,j,\ell+m,\ell} & \text{when } \p{k,\ell+m}\in{\leftidx{^2}{\mathbb{N}}{_j^{j+1}}}, (k,\ell)\neq (j+1,j) \text{ and } \ell \in\mathbb{N}_{j}^{j+2}\\ 0 & \text{when } (k,\ell)=(j+1,j) \\ a_{i,j,k,\ell} & \text{otherwise.}\end{cases} 
+\textbf{S}_i^{\text{T}} = \prod_{j=1}^{n-1} \textbf{R}_{i(n-j)}^{\text{T}} \,,
 \end{align*}
 
-I have now shown that all the lower off diagonal elements $a_{i,j+1,k,\ell}$ is the same as $a_{i,j,k\ell}$, expect $a_{i,j+1,j+1,j}=0$. Then using the assumption that $\textbf{A}_i$ is a tridiagonal matrix, induction gives us that $\textbf{A}_{i,n} = \textbf{U}_i$ is a upper triangle matrix. Furthermore $a_{i,j+1,j,j+2}$ is the only upper triangle element that isn't zero that was zero in the matrix $\textbf{A}_{i,j}$, hence induction give us the following upper triangle matrix elements
+and due to the similarity transformation $\textbf{A}_{i+1} = \textbf{S}_i^{\text{T}} \textbf{A}_i \textbf{S}_i = \prod_{j=1}^{n-1}\textbf{R}_{i(n-j)}^{\text{T}} \textbf{A}_i \prod_{i=1}^{n-1}\textbf{R}_{ij}$ we have that
 
 \begin{align*}
-u_{i,k,\ell} = \begin{cases} a_{i,n,k,\ell} & \text{when } \ell\in\mathbb{N}_k^{k+2} \\ 0 & \text{otherwise.} \end{cases}
+\textbf{S}_i = \prod_{j=1}^{n-1} \textbf{R}_{ij} \,.
 \end{align*}
 
-Since $\textbf{A}_i = \textbf{S}_i \textbf{U}_i$ means that 
+To find the similarity matrix $\textbf{A}_{i+1}$ to $\textbf{A}_i$ we use successively rotation matrices $\textbf{R}_{ij}$ by defining the matrix
 
 \begin{align*}
-\textbf{S}_i^{\text{T}} = \prod_{j=1}^{n-1} \textbf{R}_{i,j}^{\text{T}} \,,
+\textbf{U}_{i(j+1)} = \begin{cases} \textbf{U}_i & \text{when } j = 0 \\ \textbf{U}_{ij}\textbf{R}_{ij} & \text{when } j\in \ \mathbb{N}_1^{n-1}\,, \end{cases}
 \end{align*}
 
-and due to the similarity transformation $\textbf{A}_{i+1} = \textbf{S}_i^{\text{T}} \textbf{A}_i \textbf{S}_i = \prod_{j=1}^{n-1}\textbf{R}_{i,j}^{\text{T}} \textbf{A}_i \prod_{i=1}^{n-1}\textbf{R}_{i,n-j}$ we have that
+where $\textbf{U}_{in} = \textbf{A}_{i+1}$. Doing the matrix multiplication $\textbf{U}_{i2} = \textbf{U}_{i1} \textbf{R}_{i1}$;
 
 \begin{align*}
-\textbf{S}_i = \prod_{j=1}^{n-1} \textbf{R}_{i,n-j} \,.
-\end{align*}
-
-To find the similarity matrix $\textbf{A}_{i+1}$ to $\textbf{A}_i$ we use successively rotation matrices $\textbf{R}_{i,j}$ by defining the matrix
-
-\begin{align*}
-\textbf{U}_{i,j} = \begin{cases} \textbf{U}_i & \text{when } j = n \\ \textbf{U}_{i,j+1}\textbf{R}_{i,j} & \text{when } j\in \ \mathbb{N}_1^{n-1}\,, \end{cases}
-\end{align*}
-
-where $\textbf{U}_{i,1} = \textbf{A}_{i+1}$. Doing the matrix multiplication $\textbf{U}_{i,n-1} = \textbf{U}_{i,n} \textbf{R}_{i,n-1}$;
-
-\begin{align*}
-u_{i,n-1,k,\ell} &= \sum_{m=1}^n u_{i,n,k,m} r_{i,n-1,m,\ell} = \sum_{m=0}^2 u_{i,n,k,k+m} r_{i,n-1,k+m,\ell} 
-= \begin{cases} \sum_{m=0}^2 u_{i,n,k,k+m} r_{i,n-1,k+m,\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{n-1}^n}} \\ u_{i,n,k,\ell} & \text{otherwise} \end{cases}
+u_{i2k\ell} &= \sum_{m=1}^n u_{i1km} r_{i1m\ell} = \sum_{m=0}^2 u_{i1k(k+m)} r_{i1(k+m)\ell} 
+= \begin{cases} \sum_{m=0}^2 u_{i1k(k+m)} r_{i1(k+m)\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_1^2}} \\ u_{i1k\ell} & \text{otherwise} \end{cases}
 \\
-&= \begin{cases} \sum_{m=0}^2 u_{i,n,k,k+m} r_{i,n-1,k+m,\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{n-1}^n}} \text{ and } k\in\mathbb{N}_{n-3}^n  \\ u_{i,n,k,\ell} & \text{otherwise.} \end{cases}
+&= \begin{cases} \sum_{m=0}^1 u_{i1k(k+m)} r_{i1(k+m)\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{1}^2}} \text{ and } k\in\mathbb{N}_1^2  \\ u_{i1k\ell} & \text{otherwise.} \end{cases}
 \end{align*} 
 
-Note that all lower off diagonal elements $u_{i,n-1,k,\ell}$ is the same as $u_{i,n,k,\ell}$, except $u_{i,n-1,n,n-1}$ which now may be different than zero. If we now continue the matrix multiplication to step $n-j+1$, $\textbf{U}_{i,j-1} = \textbf{U}_{i,j}\textbf{R}_{i,j-1}$;
+Note that all lower off diagonal elements $u_{i2k\ell}$ is the same as $u_{i1k\ell}$, except $u_{i221}$ which now may be different than zero. If we now continue the matrix multiplication to step $j$, $\textbf{U}_{i(j+1)} = \textbf{U}_{ij}\textbf{R}_{ij}$;
+
+\begin{align}
+u_{i(j+1)k\ell} &= \sum_{m=1}^n u_{ijkm} r_{ijm\ell} = \sum_{m=0}^2 u_{ijk(k+m)} r_{ij(k+m)\ell} 
+= \begin{cases} \sum_{m=0}^2 u_{ijk(k+m)} r_{ij(k+m)\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{j}^{j+1}}} \\ u_{ijk\ell} & \text{otherwise} \end{cases}
+\nonumber\\
+&= \begin{cases} \sum_{m=0}^2 u_{ijk(k+m)} r_{ij(k+m)\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{j}^{j+1}}} \text{ and } k\in\mathbb{N}_{j-2}^{j+1}  \\ u_{ijk\ell} & \text{otherwise,} \end{cases}
+\label{eq_25}
+\end{align}
+
+and we see that the lower off diagonal elements $u_{i(j+1)k\ell}$ is the same as $u_{ijk\ell}$, except $u_{i(j+1)(j+1)j}$ which now may be different than zero. Hence by induction I shown that the only non-zero lower off diagonal elements in $\textbf{A}_{i+1}=\textbf{U}_{in}$ is the elements $u_{ink(k-1)}$;
+
+\begin{align}
+a_{(i+1)k\ell} = \begin{cases} u_{ink\ell} & \text{when } \ell\in\mathbb{N}_{k-1}^n \\ 0 & \text{otherwise.} \end{cases}
+\label{eq_26}
+\end{align}
+
+But we can actually show that $\textbf{A}_{i+1}$ is tridiagonal matrix by using the assumption that $\textbf{A}_i$ is a symmetric matrix. This we can do by showing that when $\textbf{A}_i$ is symmetric then $\textbf{A}_{i+1}$ is also symmetric by doing the matrix multiplication of the similarity transformation $\textbf{A}_{i+1}^{\text{T}} = \p{\textbf{S}_i^{\text{T}}\textbf{A}_i \textbf{S}_i}^\text{T}$;
 
 \begin{align*}
-u_{i,j-1,k,\ell} &= \sum_{m=1}^n u_{i,j,k,m} r_{i,j-1,m,\ell} = \sum_{m=0}^2 u_{i,j,k,k+m} r_{i,j-1,k+m,\ell} 
-= \begin{cases} \sum_{m=0}^2 u_{i,j,k,k+m} r_{i,j-1,k+m,\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{j-1}^{j}}} \\ u_{i,j+1,k,\ell} & \text{otherwise} \end{cases}
-\\
-&= \begin{cases} \sum_{m=0}^2 u_{i,j,k,k+m} r_{i,j-1,k+m,\ell} & \text{when } (k+m,\ell)\in{\leftidx{^2}{\mathbb{N}}{_{j-1}^{j}}} \text{ and } k\in\mathbb{N}_{j-3}^{j}  \\ u_{i,j,k,\ell} & \text{otherwise,} \end{cases}
+a_{(i+1)k\ell}^{\text{T}} = \p{\sum_{m,o=1}^n s_{ikm}^{\text{T}}a_{imo} s_{io\ell}}^{\text{T}} = \sum_{m,o=1}^n s_{i\ell m}^{\text{T}}a_{imo} s_{iok} = a_{(i+1)\ell k} \,.
 \end{align*}
 
-and we see that the lower off diagonal elements $u_{i,j-1,k,\ell}$ is the same as $u_{i,j,k,\ell}$, except $u_{i,j-1,j,j-1}$ which now may be different than zero. Hence by induction I shown that the only non-zero lower off diagonal elements in $\textbf{A}_{i+1}=\textbf{U}_{i,1}$ is the elements $u_{i,1,k,k-1}$;
+Since we have shown that $\textbf{A}_{i+1}$ is symmetric due to that $\textbf{A}_i$ is symmetric, and that $\textbf{A}_{i+1}$ has only non-zero elements in the lower off diagonal $a_{ik(k-1)}$, means that $a_{ik(k+1)}$ is the only higher off diagonal elements that are non-zero as well;
 
-\begin{align*}
-a_{i+1,k,\ell} = \begin{cases} u_{i,1,k,\ell} & \text{when } \ell\in\mathbb{N}_{k-1}^n \\ 0 & \text{otherwise.} \end{cases}
-\end{align*}
-
-But we can actually show that $\textbf{A}_{i+1}$ is tridiagonal matrix by using the assumption that $\textbf{A}_i$ is a symmetric matrix. This we can do by showing that when $\textbf{A}_i$ is a symmetric then $\textbf{A}_{i+1}$ is also symmetric by doing the matrix multiplication of the similarity transformation $\textbf{A}_{i+1}^{\text{T}} = \p{\textbf{S}_i^{\text{T}}\textbf{A}_i \textbf{S}_i}^\text{T}$;
-
-\begin{align*}
-a_{i+1,k,\ell}^{\text{T}} = \p{\sum_{m=1}^n \sum_{o=1}^n s_{i,k,m}^{\text{T}}a_{i,m,o} s_{i,o,\ell}}^{\text{T}} = \sum_{m=1}^n \sum_{o=1}^n s_{i,\ell,m}^{\text{T}}a_{i,m,o} s_{i,o,k} = a_{i+1,\ell,k} \,.
-\end{align*}
-
-Since we have shown that $\textbf{A}_{i+1}$ is symmetric be due to that $\textbf{A}_i$ is symmetric, and that $\textbf{A}_{i+1}$ has only non-zero elements in the lower off diagonal $a_{i,k,k-1}$, means that $a_{i,k,k+1}$ is the only higher off diagonal elements that are non-zero as well;
-
-\begin{align*}
-a_{i+1,k,\ell} = \begin{cases} a_{i+1,k,k+\abs{\ell-k}} & \text{when } \ell \in \mathbb{N}_{k-1}^{k+1} \\ 0 & \text{otherwise.}\end{cases}
-\end{align*}
+\begin{align}
+a_{(i+1)k\ell} = \begin{cases} a_{(i+1)k(k+\abs{\ell-k})} & \text{when } \ell \in \mathbb{N}_{k-1}^{k+1} \\ 0 & \text{otherwise.}\end{cases}
+\label{eq_27}
+\end{align}
 
 And we have indeed shown by induction that $\textbf{A}_i$ is symmetric tridiagonal matrix because the initial matrix $\textbf{A}_0$ is symmetric tridiagonal matrix. Now if the off diagonal elements decreases for each QR transformation, then the similarity matrices $\textbf{A}_i$ will converge to a diagonal matrix, and hence we have found the eigenvalues. \linebreak
 
-Now lets take a look at how we can calculate the elements in the symmetric tridiagonal matrix $\textbf{A}_{i+1}$ we are primarily interested in calculating the elements $u_{i,j-1,j,j}$ and $u_{i,j-1,j,j-1}$ in $\textbf{U}_{i,j-1}$, because this elements does not change in next matrix $\textbf{U}_{i,j-2}$. So let us see what we need to calculate these elements;
+Lastly I will show to calculate the rotation matrix $\textbf{R}_{ij}$ from the already established relation
 
 \begin{align*}
-u_{i,j-1,j,j} &= \sum_{m=0}^2 u_{i,j,j,j+m} r_{i,j-1,j+m,j}  =  u_{i,j,j,j} r_{i,j-1,j,j}
-\\
-u_{i,j-1,j,j-1} &= \sum_{m=0}^2 u_{i,j,j,j+m} r_{i,j-1,j+m,j-1} = u_{i,j,j,j} r_{i,j-1,j,j-1}
-\end{align*}
-
-So we need $u_{i,j,j,j}$ to calculate the elements $u_{i,j-1,j,j}$ and $u_{i,j-1,j,j-1}$, which means that we need to calculate $u_{i,j-1,j-1,j-1}$ as well;
-
-\begin{align*}
-u_{i,j-1,j-1,j-1} = \sum_{m=0}^2 u_{i,j,j-1,j+m-1} r_{i,j-1,j+m-1,j-1} = u_{i,j,j-1,j-1} r_{i,j-1,j-1,j-1} + u_{i,j,j-1,j} r_{i,j-1,j,j-1} \,.
-\end{align*}
-
-The matrix elements $u_{i,j,j-1,j-1}$ and $u_{i,j,j-1,j}$ are the same for the previous $\textbf{U}_{i,k}$ with $k \in \mathbb{N}_{j+1}^{n-1}$, in fact these elements haven't changed since the transformation to $\textbf{A}_{i,j}$, which means that
-
-\begin{align*}
-u_{i,j-1,j-1,j-1} = a_{i,j,j-1,j-1} r_{i,j-1,j-1,j-1} + a_{i,j,j-1,j} r_{i,j-1,j,j-1} \,.
-\end{align*}
-
-Hence for the elements in interest we have
-
-\begin{align*}
-u_{i,j-1,j,j} &= \begin{cases} a_{i,n,n,n} r_{i,n-1,n,n} & \text{when } j = n \\ \p{a_{i,j+1,j,j} r_{i,j,j,j} + a_{i,j+1,j,j+1} r_{i,j,j+1,j}}r_{i,j-1,j,j} & \text{otherwise}\end{cases}
-\\
-u_{i,j-1,j,j-1} &= \begin{cases} a_{i,n,n,n} r_{i,n-1,n,n-1} & \text{when } j= n \\ \p{a_{i,j+1,j,j} r_{i,j,j,j} + a_{i,j+1,j,j+1} r_{i,j,j+1,j}} r_{i,j-1,j,j-1} & \text{otherwise.}\end{cases}
-\end{align*}
-
-Next step is to calculate the elements $a_{i,j+1,j,j}$ and $a_{i,j+1,j,j+1}$;
-
-\begin{align*}
-a_{i,j+1,j,j} &= \sum_{m=-1}^1 r_{i,j,j,j+m}^{\text{T}} a_{i,j,j+m,j} = r_{i,j,j,j}^{\text{T}}a_{i,j,j,j} + r_{i,j,j,j+1}^{\text{T}} a_{i,j,j+1,j} 
-\\
-&= r_{i,j,j,j}^{\text{T}}a_{i,j,j,j} + r_{i,j,j,j+1}^{\text{T}} a_{i,j+1,j}
-\\
-a_{i,j+1,j,j+1} &= \sum_{m=-1}^1 r_{i,j,j,j+m+1}^{\text{T}} a_{i,j,j+m+1,j+1} = r_{i,j,j,j}^{\text{T}} a_{i,j,j,j+1} + r_{i,j,j,j+1}^{\text{T}} a_{i,j,j+1,j+1}
-\\
-&= r_{i,j,j,j}^{\text{T}} a_{i,j,j,j+1} + r_{i,j,j,j+1}^{\text{T}} a_{i,j+1,j+1}
-\end{align*} 
-
-where we recognize that the elements $a_{i,j,j+1,j}$ and  $a_{i,j,j+1,j+1}$ haven't been changed yet by the previous transformations $\textbf{A}_{i,k}$ with $k\in\mathbb{N}_1^{j-1}$, and are therefore the same as the original elements $a_{i,j+1,j}$ and $a_{i,j+1,j+1}$ in $\textbf{A}_0$. So we need both $a_{i,j,j,j}$ and $a_{i,j,j,j+1}$ to calculate $a_{i,j+1,j,j}$ and $a_{i,j+1,j,j+1}$, and therefore we want to calculate $a_{i,j+1,j+1,j+1}$ and $a_{i,j+1,j+1,j+2}$ to prepare for next rotation;
-
-\begin{align*}
-a_{i,j+1,j+1,j+1} &= \sum_{m=-1}^1 r_{i,j,j+1,j+m+1}^{\text{T}} a_{i,j,j+m+1,j+1} = r_{i,j,j+1,j}^{\text{T}} a_{i,j,j,j+1} + r_{i,j,j+1,j+1}^{\text{T}} a_{i,j,j+1,j+1}
-\\
-&= r_{i,j,j+1,j}^{\text{T}} a_{i,j,j,j+1} + r_{i,j,j+1,j+1}^{\text{T}} a_{i,j+1,j+1}
-\\
-a_{i,j+1,j+1,j+2}  &= \sum_{m=-1}^1 r_{i,j,j+1,j+m+2}^{\text{T}} a_{i,j,j+m+2,j+2} = r_{i,j,j+1,j+1}^{\text{T}} a_{i,j,j+1,j+2} = r_{i,j,j+1,j+1}^{\text{T}} a_{i,j+1,j+2} \,,
-\end{align*}
-
-where we recognize again that $a_{i,j,j+1,j+1}$ and $a_{i,j,j+1,j+2}$ haven't been changed yet by the previous transformations $\textbf{A}_{i,k}$ with $k\in\mathbb{N}_1^{j-1}$, and are therefore the same as the original elements $a_{i,j+1,j+1}$ and $a_{i,j+1,j+2}$. Lastly I will show to calculate the rotation matrix $\textbf{R}_{i,j}$ from the already established relation
-
-\begin{align*}
-a_{i,j+1,j+1,j} = \sum_{m=0}^1 r_{i,j,j+1,j+m}^{\text{T}} a_{i,j,j+m,j} = a_{i,j,j+1,j}\cos\theta_{i,j}-a_{i,j,j,j}\sin\theta_{i,j} = 0 \,,
+a_{i(j+1)(j+1)j} = \sum_{m=0}^1 r_{ij(j+1)(j+m)}^{\text{T}} a_{ij(j+m)j} = a_{ij(j+1)j}\cos\theta_{ij}-a_{ijjj}\sin\theta_{ij} = 0 \,,
 \end{align*}
 
 which gives
 
-\begin{align*}
-\cos\theta_{i,j} &= \frac{a_{i,j,j,j}}{\sqrt{{a_{i,j,j,j}}^2+{a_{i,j,j+1,j}}^2}}
+\begin{align}
+\cos\theta_{ij} &= \frac{a_{ijjj}}{\sqrt{{a_{ijjj}}^2+{a_{ij(j+1)j}}^2}}
+\label{eq_28}
 \\
-\sin\theta_{i,j} &= \frac{a_{i,j,j+1,j}}{\sqrt{{a_{i,j,j,j}}^2+{a_{i,j,j+1,j}}^2}} \,.
-\end{align*}
+\sin\theta_{ij} &= \frac{a_{ij(j+1)j}}{\sqrt{{a_{ijjj}}^2+{a_{ij(j+1)j}}^2}} \,.
+\label{eq_29}
+\end{align}
+
+The method described here suggest to calculate the upper tridiagonal matrix $\textbf{U}_i$ and then similarity matrix $\textbf{A}_{i+1}$, but this way of doing it would require we must store the calculated angles $\theta_{ij}$. However from \eqref{eq_23} we see  that elements $a_{i(j+1)k\ell}$ with $k < j$ is not changed, and from \eqref{eq_25} we see that elements $u_{i(j+1)k\ell}$ with $k >j+1$, which means that we can calculate $u_{ijk\ell}$ after $a_{i(j+1)k\ell}$. This require us only to store one set of $\sin\theta_{ij}$ and $\cos\theta_{ij}$ values, because we need $\sin\theta_{ij}$ and $\cos\theta_{ij}$ after we have calculated $\sin\theta_{i(j+1)}$ and $\cos\theta_{i(j+1)}$, but for the steps afterwards we don't need the $\sin\theta_{ij}$ and $\cos\theta_{ij}$ anymore. Hence the only memory needed to solve the symmetric tridiagonal matrix eigenvalue problem is the memory of the symmetric tridiagonal matrix it self.
 
 \section{Numerical implementation}
 
+\subsection{Matrices}
+
+Since the properties of a matrices is important for choosing the most effective method for solving a problem with regard to speed and memory usage, have I made partial specializations of a template class \texttt{template<MatrixType Type, class T> class Matrix}, where \texttt{MatrixType} it the partial specialization and $\texttt{class T}$ specializes the matrix class to the type \texttt{T}.
+
+\begin{lstlisting}[title={Matrix partial specialization}]
+enum class MatrixType {
+    Square,
+    SquareT,
+    Symmetric,
+    Tridiagonal,
+    TridiagonalSymmetric,
+    Tridiagonal_m1_X_m1,
+    Tridiagonal_m1_2_m1,
+    Tridiagonal_m1_2_m1_6n,
+    Tridiagonal_m1_2_m1_4n,
+    LU_decomposition,
+    tqli
+};
+\end{lstlisting}
+
+This enables enables us to use \texttt{MatrixType} to tell the compile which type of matrix we want, and the compiler will then link up the solvers and functionality that is tailored for the desired matrix. In addition the program does not need to allocate more memory that are needed for represent the properties of the matrix, which will save a lot of memory for tridiagonal matrices for instance. This all well and fine, but actually not needed, we could just name the different matrices classes differently and we would achieve the the same thing. But it's still nicer to call all the different matrix class for \texttt{Matrix}, and not \texttt{Matrix1}, \texttt{Matrix2}, ..., \texttt{Matrixn} for instance. However the true power of partial specialization comes to light when a function takes a matrix as input, but don't care what kind of matrix it is but only that it's matrix. An example of such a function is function that print out the content of matrix;
+
+\begin{lstlisting}[title={Printing a matrix}]
+template<MatrixType Type, class T> void MatrixCout(Matrix<Type, T>& matrix) {
+    for(unsigned int i = 0; i < matrix.n; i++) {
+        for(unsigned int j = 0; j < matrix.n; j++)
+            cout << matrix(i,j) << "\t";
+        cout << '\n';
+    }
+    cout << '\n';
+}
+
+template <class M, class T> T& MatrixElements<M,T>::operator() (const unsigned int& row, const unsigned int& col) { 
+	return matrix[row][col];
+}
+
+template <class T> T& MatrixElements<Matrix<MatrixType::Symmetric, T>, T>::operator() (const unsigned int& row, const unsigned int& col) {
+	return row < col ? matrix[col-row][row] : matrix[row-col][col];
+}
+
+template <class T> T& MatrixElements<Matrix<MatrixType::TridiagonalSymmetric, T>, T>::operator() (const unsigned int row, const unsigned int col) {    
+   	if(row == col)
+    		return b[row];
+   	else if(row-1 == col)
+    		return a[col];
+    	else if(row == col-1)
+		return a[row];
+	other = 0;
+	return other;
+}
+\end{lstlisting}
+
+Furthermore you can use the partial specialization to tell the compiler how you want two different partial specialized class shall interact. An example is if you want to take matrix multiplication of a tridiagonal matrix and square matrix, you could let the compiler figure out how this should be linked up without you actually needing to know what kind of matrices you are multiplying. The compiler will always keep track of the matrix type, even if it's almost impossible for you to know it. This gives you the a very high level feature on a low programming level, which makes it easy optimize your code for speed and memory usage without having to do the hard work to link up optimized code, the compiler does it for you. The disadvantage is that it requires some fancy programming skills to write such partial specialized classes that tells how the compiler should link up the different cases. And if you do something wrong with the syntax, the compiler is usually less then helpful to tell you what is wrong. But when the difficult work of actually writing such class the application of them becomes quite robust and easy to use in combination with C11 features \texttt{auto} and \texttt{decltype}, which enables you to hide the cumbersome and long names of the classes with the partial specialization. One should also keep in mind that such a code put a lot of work load on the compiler and the different possibilities of combination of partial specialization is written as code at compile time by the compiler, which makes your program substantially larger in size. \linebreak
+
+Sometimes you want to a partial specialization of a function, but unfortunately this is not supported, and you would have to do a work around to achieve it. An example is a base class $\texttt{Matrix}$ that sets value on a diagonal in the matrix. Sometimes you want only to set the same value on the entire diagonal, and other times you want to set an array on the diagonal. Make such function a template function that calls the partial specialized classes static function with the template argument, you have actually specialized you function;
+
+\begin{lstlisting}[title={Printing a matrix}]
+template<class M, class T> class MatrixDiagonal {
+    private: M* owner;
+    private: template<class P> class Type {
+        public: static inline void Diagonal(M* owner, const int diagonal, const P value, const unsigned int n) {
+            unsigned int d = abs(diagonal);
+            owner->n = n;
+            unsigned int nmax = n - d;
+            if(diagonal > 0) {
+                for(unsigned int i = 0; i < nmax; i++)
+                    owner->operator()(i,i+d) = value;
+            } else {
+                for(unsigned int i = 0; i < nmax; i++)
+                    owner->operator()(i+d,i) = value;
+            }
+        }
+    };
+    private: template<class P> class Type<P*> {
+        public: static inline void Diagonal(M* owner, const int diagonal, const P* value, const unsigned int n) {
+            unsigned int d = abs(diagonal);
+            owner->n = n;
+            unsigned int nmax = n - d;
+            if(diagonal > 0) {
+                for(unsigned int i = 0; i < nmax; i++)
+                    owner->operator()(i,i+d) = value[i];
+            } else {
+                for(unsigned int i = 0; i < nmax; i++)
+                    owner->operator()(i+d,i) = value[i];
+            }
+        }
+    };
+    protected: MatrixDiagonal(M* owner) : owner(owner) {
+    }
+    public: template<class P> inline void Diagonal(const int diagonal, const P value) {
+        Type<P>::Diagonal(owner, diagonal, value, owner->n);
+    }
+    public: template<class P> inline void Diagonal(const int diagonal, const P value, const unsigned int n) {
+        Type<P>::Diagonal(owner, diagonal, value, n);
+    }
+};
+\end{lstlisting} 
+
+And now you can call the \anf{same} function \texttt{Diagonal} when you have only one value or an array of values.  
+
+\begin{lstlisting}[title={Printing a matrix}]
+double* d = new double[10];
+auto matrix = Matrix<MatrixType::TridiagonalSymmetric, double>(10);
+matrix.Diagonal(0, d);
+matrix.Diagonal(1,-1);
+\end{lstlisting} 
+
 \subsection{Jacobi's eigenvalue algorithm}
-
-We can optimize the calculation of diagonal elements in \eqref{eq_7} by rewriting them by using the trigonometrical relation $\cos^2\theta+\sin^2\theta = 1$;
-
-\begin{align}
-b_{ii} &= a_{ii}\cos^2\theta + a_{jj}\sin^2\theta + 2 a_{ij}\sin\theta\cos\theta 
-= a_{ii}\p{1-\sin^2\theta} + a_{jj}\sin^2\theta + 2 a_{ij}\sin\theta\cos\theta
-\nonumber\\
-&= a_{ii} + \kl{\p{a_{jj}-a_{ii}}\sin^2\theta + 2 a_{ij}\sin\theta\cos\theta}
-\\
-b_{jj} &= a_{jj}\cos^2\theta + a_{ii}\sin^2\theta - 2a_{ij}\sin\theta\cos\theta
-= a_{jj}\p{1-\sin^2\theta} + a_{ii}\sin^2\theta - 2a_{ij}\sin\theta\cos\theta
-\nonumber\\
-&= a_{jj} - \kl{\p{a_{jj}-a_{ii}}\sin^2\theta + 2a_{ij}\sin\theta\cos\theta}
-\end{align}
-
-Note that it's better to use $\sin^2\theta$ instead of $\cos^2\theta$, because when we look at 
-
-\begin{align*}
-b_{ii} &= a_{jj} + \kl{\p{a_{ii}-a_{jj}}\cos^2\theta + 2a_{ij}\cos\theta\sin\theta}
-\\
-b_{jj} &= a_{ii} - \kl{\p{a_{ii}-a_{jj}}\cos^2\theta + 2a_{ij}\cos\theta\sin\theta} \,,
-\end{align*}
-
-we see that $a_{jj}$ corresponds to $b_{ii}$ and $a_{ii}$ corresponds to $b_{jj}$, which means that we need to backup either $a_{ii}$ or $a_{jj}$ before we do the calculation, so we don't overwrite the value before we have used in the calculation. However for the $\sin^2\theta$ expressions we have that $a_{ii}$ corresponds to $b_{ii}$ and $a_{jj}$ corresponds to $b_{jj}$, which means that we don't need to backup $a_{ii}$ or $a_{jj}$, and we can  use the program operator \texttt{+=} directly on the diagonal elements. 
 
 \section{Results}
 
@@ -481,7 +610,6 @@ The source files developed are
 
 \begin{enumerate}
 \item{\href{http://qt-project.org/downloads}{QT Creator 5.3.1 with C11}}
-\item{\href{http://arma.sourceforge.net/}{Armadillo}}
 \item{\href{https://www.eclipse.org/downloads/}{Eclipse Standard/SDK  - Version: Luna Release (4.4.0) with PyDev for Python}}
 \item{\href{http://www.ubuntu.com/download/desktop}{Ubuntu 14.04.1 LTS}}
 \item{\href{http://shop.lenovo.com/no/en/laptops/thinkpad/w-series/w540/#tab-reseller}{ThinkPad W540 P/N: 20BG0042MN with 32 GB RAM}}
@@ -491,6 +619,7 @@ The source files developed are
 \bibitem{project1}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-2-deadline-september-22/project2_2014.pdf}{\emph{FYS4130 - Project 2}} - \emph{Schr\"{o}dinger's equation for two electrons in a three-dimensional harmonic oscillator well}, \href{http://www.uio.no}{University of Oslo}, 2014} 
 \bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014}  
 \bibitem{TwoElectron}{M. Taut, \emph{\href{http://prola.aps.org/abstract/PRA/v48/i5/p3561\_1}{Two electrons in an external oscillator potential:} Particular analytic solutions of a Coulomb correlation problem}, Physical Review A Volume 48 Number 5, 1993}
+\bibitem{Griffiths}{David J. Griffiths, \emph{\href{http://www.amazon.com/Introduction-Quantum-Mechanics-David-Griffiths/dp/0131118927/ref=sr_1_1?ie=UTF8&qid=1412067343&sr=8-1&keywords=introduction+to+quantum+mechanics+griffiths}{Introduction to Quantum Mechanics}}, 2.ed, Pearson Education Inc., 2005}
 \bibitem{Eigenvaule}{\href{http://en.wikipedia.org/wiki/Eigenvalues\_and\_eigenvectors}{http://en.wikipedia.org/wiki/Eigenvalues\_and\_eigenvectors}}
 \bibitem{JacobiMethod}{\href{http://en.wikipedia.org/wiki/Jacobi\_eigenvalue\_algorithm}{http://en.wikipedia.org/wiki/Jacobi\_eigenvalue\_algorithm}}
 \bibitem{MatrixSimularity}{\href{http://en.wikipedia.org/wiki/Matrix\_similarity}{http://en.wikipedia.org/wiki/Matrix\_similarity}}

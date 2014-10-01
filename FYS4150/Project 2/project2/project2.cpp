@@ -33,10 +33,10 @@ template<class T> int Compare(const void* a, const void* b);
 template<class T> int CompareR(const void* a, const void* b);
 template<class T> T* CopyOfArray(T* arr, unsigned int n);
 template<class T> void CoutArray(T* array, unsigned int n);
-template<class T> unsigned int FindMin(T* u, unsigned int n);
+//template<class T> unsigned int FindMin(T* u, unsigned int n);
 template<MatrixType Type, class T> T* GetMatrixDiagonal(Matrix<Type, T>* matrix);
 template<class T> T* Norm(T* u, unsigned int n);
-template<class T> T Normalize(T* v, unsigned int n);
+//template<class T> T Normalize(T* v, unsigned int n);
 template<class T> T* NormalizeEigenVectors(T** v, unsigned int n);
 template<class T> T RelativeError(T* u, T* v, unsigned int n);
 template<class T> T* Sort(T* a, size_t n);
@@ -75,7 +75,7 @@ int main() {
         clock_t t0;
         FLOAT* l0;
         auto matrix = Matrix<MatrixType::tqli, FLOAT>(n[i]);    // Benchmark, tqli in lib.cpp
-        if(n[i] <= 1000) {
+        if(n[i] <= 10000) {
             matrix.Clear();
             matrix.Diagonal(0, d);
             matrix.Diagonal(1,-1);
@@ -96,8 +96,8 @@ int main() {
         auto l = matrix0.QRalgorithm(1e-6, num);
         timefile << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
         numfile << num << " & ";
-        if(n[i] <= 1000)
-            errorfile << RelativeError(l0, l, n[i]) << " & ";
+        if(n[i] <= 10000)
+            errorfile << RelativeError(l0, Sort(l,n[i]), n[i]) << " & ";
         else
             errorfile << "- & ";
 
@@ -399,18 +399,6 @@ template<class T> void CoutArray(T* array, unsigned int n) {
         cout << array[i] << '\t';
     cout << endl;
 }
-template<class T> unsigned int FindMin(T* u, unsigned int n) {
-    unsigned int j = 0;
-    T min = u[0];
-    for(unsigned int i = 1; i < n; i++) {
-        if(u[i] < min) {
-            min = u[i];
-            j = i;
-        }
-    }
-    return j;
-}
-
 template<MatrixType Type, class T> T* GetMatrixDiagonal(Matrix<Type, T>* matrix) {
     T* d = new T[matrix->n];
     for(unsigned int i = 0; i < matrix->n; i++)
@@ -427,15 +415,6 @@ template<class T> T* Norm(T* u, unsigned int n) {
     for(unsigned int i = 0; i < n; i++)
         u[i] = sqrt(u[i])*sum;
     return u;
-}
-template<class T> T Normalize(T* v, unsigned int n) {
-    T sum = 0;
-    for(unsigned int i = 0; i < n; i++)
-        sum += v[i]*v[i];
-    sum = (T)1/sqrt(sum);
-    for(unsigned int i = 0; i < n; i++)
-        v[i] *= sum;
-    return (T)1/sum;
 }
 template<class T> T* NormalizeEigenVectors(T** v, unsigned int n) {
     T* f = new T[n];

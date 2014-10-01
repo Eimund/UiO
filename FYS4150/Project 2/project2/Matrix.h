@@ -696,14 +696,14 @@ template<class T> class Matrix<MatrixType::Symmetric, T> :
         T a = this->matrix[0][j] - this->matrix[0][i];  // Calculate cos and sin
         T t = a/b;
         if(t > 0)
-            t = (T)1/(t+sqrt(1+t*t));
+            t = (T)1/(t+sqrt(1+t*t));   // Calculate -tan !
         else
-            t = (T)1/(t-sqrt(1+t*t));
+            t = (T)1/(t-sqrt(1+t*t));   // Calculate -tan !
         T s2 = (T)1/(1+t*t);
         T s = sqrt(s2);
         T c = t*s;
 
-        a = a*s2 + b*s*c;
+        a = a*s2 + b*s*c;               // s*c = - sin*cos because of t=-tan
         this->matrix[0][i] += a;       // bii eq(9)
         this->matrix[0][j] -= a;       // bjj eq(10)
 
