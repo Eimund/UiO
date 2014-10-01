@@ -46,7 +46,7 @@ template<class T> T* SortEigenValues(T* u, T** v, unsigned int n);
 template<class T> void WriteArrayToFile(ofstream* file, T* array, unsigned int n);
 
 int main() {
-    unsigned int n[] = {10,100,1000,10000};
+    unsigned int n[] = {10,100,1000/*,10000*/};
     unsigned int num;
     ofstream timefile, errorfile, errorfile2, numfile;
     timefile.open("time.dat");
@@ -234,7 +234,7 @@ int main() {
     numfile.close();
 
     /* Single electron harmonic oscillator */
-    unsigned int nstep[] = {4,10,20,50,100,1000};
+    unsigned int nstep[] = {4,10,20,50,100,1000,10000};
     FLOAT _rho = 0;
     FLOAT rho_[] = {1,2,4,10,100,1000};
     FLOAT L1[] = {3,7,11};

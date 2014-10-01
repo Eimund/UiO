@@ -27,7 +27,7 @@
 \begin{flushleft}
 
 \begin{abstract}
-This report looks at different algorithms to solve the one-dimensional Poisson's equation with Dirichlet boundary condition. The algorithms are compared by speed and floating point error in the solution. The results show how different ways of writing code effect speed and floating point error, and discusses how the machines architecture and functionally are the reason for the performance difference.
+This report looks at different algorithms to solve eigenvalue problems for matricies and apply them on Shr\"{o}dinger's equation for both a single electron and two electrons in a harmonic oscillator well with Coulumb repulsion between the electrons. I have investigated the Jacobi eigenvalue algorithm  and Francis QR algorithm in more detail. I have done different optimization to be able to solve the eigenvalue problem faster, and compare the different algorithms. The results were a Jacobi algorithm that is 10 times faster than the standard implementation for solving the eigenvalue problems for the Shr\"{o}dinger's equations in this report. Similarly I have made a QR algorithm for finding eigenvalues of symmetric tridiagonal matrix that solves the problem in this report significantly faster \texttt{tqli} in \texttt{lib.cpp} of the course site, without loss of precision in the cases investigated in this report.
 \end{abstract}
 
 \section{The radial Schr\"{o}dinger's equation and numerical implementation}
@@ -178,7 +178,7 @@ a_{ij} {s_{ji}}^2 - \p{a_{jj}-a_{ii}}s_{ii}s_{ji} - a_{ji}{s_{ii}}^2 &= 0 \,. \l
 
 If the matrix $\mathbf{A}$ is indeed diagonalizable then the above three equations above solvable. We further observer that we have four unknowns in the three equations, which means that we can choose one of them as we want, I suggest $s_{ii}=1$. I will not show the solution here, but it involves in principle in two second order equations $a x^2 + b x + c = 0$ which has a well known analytical solution $x = \frac{-b\pm\sqrt{b^2 - 4ac}}{2a}$. Be aware of that the coefficient $a$ may be zero which would make it a first order equations to solve instead. If the coefficient $b=0$ in addition to $a=0$, then the matrix $\mathbf{A}$ is not diagonalizable. \linebreak
 
-\subsection{Jacobi's eigenvalue algorithm}
+\subsection{Jacobi's eigenvalue algorithm} \label{sec_Jacobi}
 
 The Jacobi's eigenvalue algorithm is a special case of diagonalize by matrix similarity algorithm discussed in section \ref{sec_Diagonalize}, where I use a two dimensional rotation matrix $\textbf{R}_{ij}$ in $n$ dimensional space which has the following elements
 
@@ -265,7 +265,7 @@ we see that $a_{jj}$ corresponds to $b_{ii}$ and $a_{ii}$ corresponds to $b_{jj}
 
 We see from the terms $a_{xy}\cos\theta_{ij}\pm a_{zw}\sin\theta_{ij}$ in \eqref{eq_14} that elements that was zero in $\textbf{A}$ isn't necessarily zero in $\textbf{B}$. And we therefore seeks to minimize the off diagonal elements by searching for the largest of diagonal elements and zero it out by the Jacobi method. This minimize the number of rotation transformation we need to do, however it requires $\mathcal{O}\p{n^2}$ to search for the maximum off diagonal element.
 
-\subsection{QR algorithm and tridiagonal matrices}
+\subsection{Francis QR algorithm}\label{sec_QR}
 
 We want to find the eigenvalues of a tridiagonal symmetric matrix $\textbf{A}_0$ of $n\times n$ with QR decomposition on
 
@@ -449,6 +449,38 @@ which gives
 
 The method described here suggest to calculate the upper tridiagonal matrix $\textbf{U}_i$ and then similarity matrix $\textbf{A}_{i+1}$, but this way of doing it would require we must store the calculated angles $\theta_{ij}$. However from \eqref{eq_23} we see  that elements $a_{i(j+1)k\ell}$ with $k < j$ is not changed, and from \eqref{eq_25} we see that elements $u_{i(j+1)k\ell}$ with $k >j+1$, which means that we can calculate $u_{ijk\ell}$ after $a_{i(j+1)k\ell}$. This require us only to store one set of $\sin\theta_{ij}$ and $\cos\theta_{ij}$ values, because we need $\sin\theta_{ij}$ and $\cos\theta_{ij}$ after we have calculated $\sin\theta_{i(j+1)}$ and $\cos\theta_{i(j+1)}$, but for the steps afterwards we don't need the $\sin\theta_{ij}$ and $\cos\theta_{ij}$ anymore. Hence the only memory needed to solve the symmetric tridiagonal matrix eigenvalue problem is the memory of the symmetric tridiagonal matrix it self.
 
+\subsection{Eigenvectors}\label{sec_Eigenvectors}
+
+When we do a similarity transformation with the change of basis matrix $\textbf{S}$, the eigenvector $\textbf{x}$ changes to $\textbf{S}^{-1}\textbf{x}$, as discussed in section \ref{sec_Diagonalize}. Which means that you would have to update your approximation to the eigenvectors for each similarity transform. Since an matrix of dimensionality $n$ has $n$ eigenvalues and therefore $n$ eigenvectors, we would actually need to calculate new values for the eigenvectors $n^2$ times, which is very costly. Granted, for a simple rotation matrix there are only $2n$ elements we need to update. Never the less this has a huge impact on preformance on the Francis QR algorithm for instance, which has $n-1$ rotations for each QR transformation. \linebreak
+
+However if we assume that we where able to calculate a very good approximation of the eigenvalues, we can calculate the eigenvectors afterwards. For symmetric tridiagonal matrix this becomes very simply. The idea is to use Gaussian elimination on \eqref{eq_2}  to eliminate all $e_{i+1}$ elements (lower off diagonal elements). In our case of the radial Schr\"{o}dinger equation, we can rewrite \eqref{eq_2} such that the elements $e_i = -1$, which is very beneficial with regard to number of FLOPS needed. So I will continue with $e_i=-1$.\linebreak
+
+I start by using the Gaussian elimination to eliminate the element $a_{21}$ in symmetric tridiagonal matrix $\text{A}$ of dimensionality $n$ with $e_i=-1$. This gives
+
+\begin{align*}
+\check{a}_{22} = a_{22} - \lambda -\frac{1}{\check{a}_{11}} \,,
+\end{align*}
+
+where $\check{a}_{11} = a_{11}$ and $\lambda$ is our approximated eigenvalue. And we can show by induction that
+
+\begin{align}
+\check{a}_{ii} = a_{ii} - \lambda -\frac{1}{\check{a}_{(i-1)(i-1)}} \qquad \text{for } i\in\mathbb{N}_2^{n-1} \text{ with } \check{a}_{11} = a_{11}\,.
+\label{eq_30}
+\end{align}
+
+If the $\lambda$ is an good approximation to a eigenvalue to $\textbf{A}$, we will then get that $\p{a_{nn}-\lambda}x_{n}-x_{n-1} \approx c\p{\check{a}_{(n-1)(n-1)} x_{n-1} - x_n}$, where $c$ is a constant. By assuming that this approximation is good, we can exclude row $n$, and we can easily show that the eigenvector elements $x_i$ are related as follows
+
+\begin{align}
+x_{i+1} = \check{a}_{ii} x_i \qquad \text{for } i\in\mathbb{N}_1^{n-1} \,.
+\label{eq_31}
+\end{align}
+
+As you can see, we can now quite easily iteratively calculate an approximate eigenvector after we have calculated the approximated eigenvalue, and the performance cost is very low. Note that one has to start with choosing an value for $x_1$, where a natural chose would be $x_1 = 1$.  And then you would have to normalize the eigenvector after all the elements are calculated, if you want it normalized. \linebreak
+
+The disadvantage with this method is that \eqref{eq_31} is approximately correct, which means that $\check{a}_{ii}$ has an error. By doing the calculation in accordance with \eqref{eq_31}, we accumulate more an more errors for each iterations. This means that the eigenvector elements $x_i$ early in the iteration has a very good approximation to the real eigenvector, but will have a very bad approximation at the end. When you calculate the new eigenvector $\textbf{S}^{-1}\textbf{x}$ for each rotation instead, you have distrusted the error between the eigenvector elements, and therefore don't have this problem.
+
+However in our case when we study the Schr\"{o}dinger equation for a electron, we let $\rho_{\text{max}}\to intry$, but we are only interested at the start of the interval of $\rho$. Which means we are free to cut off the end elements of the eigenvector and still get what we want, and then this Gaussian method of finding the eigenvector will give a good approximation. And indeed you can start your Gaussian method of iteration at an arbitrary element, to target a specific are of the eigenvector that you want a good approximation.
+
 \section{Numerical implementation}
 
 \subsection{Matrices}
@@ -471,7 +503,7 @@ enum class MatrixType {
 };
 \end{lstlisting}
 
-This enables enables us to use \texttt{MatrixType} to tell the compile which type of matrix we want, and the compiler will then link up the solvers and functionality that is tailored for the desired matrix. In addition the program does not need to allocate more memory that are needed for represent the properties of the matrix, which will save a lot of memory for tridiagonal matrices for instance. This all well and fine, but actually not needed, we could just name the different matrices classes differently and we would achieve the the same thing. But it's still nicer to call all the different matrix class for \texttt{Matrix}, and not \texttt{Matrix1}, \texttt{Matrix2}, ..., \texttt{Matrixn} for instance. However the true power of partial specialization comes to light when a function takes a matrix as input, but don't care what kind of matrix it is but only that it's matrix. An example of such a function is function that print out the content of matrix;
+This enables enables us to use \texttt{MatrixType} to tell the compiler which type of matrix we want, and the compiler will then link up the solvers and functionality that is tailored for the desired matrix. In addition the program does not need to allocate more memory that are needed to represent the properties of the matrix, which will save a lot of memory for tridiagonal matrices for instance. This is all well and fine, but actually not needed, we could just name the different matrices classes differently and we would achieve the the same thing. But it's still nicer to call all the different matrix class for \texttt{Matrix}, and not \texttt{Matrix1}, \texttt{Matrix2}, ..., \texttt{Matrixn} for instance. However the true power of partial specialization comes to light when a function takes a matrix as input, but don't care what kind of matrix it is but only that it's matrix. An example of such a function is a function that print out the content of a matrix;
 
 \begin{lstlisting}[title={Printing a matrix}]
 template<MatrixType Type, class T> void MatrixCout(Matrix<Type, T>& matrix) {
@@ -503,11 +535,11 @@ template <class T> T& MatrixElements<Matrix<MatrixType::TridiagonalSymmetric, T>
 }
 \end{lstlisting}
 
-Furthermore you can use the partial specialization to tell the compiler how you want two different partial specialized class shall interact. An example is if you want to take matrix multiplication of a tridiagonal matrix and square matrix, you could let the compiler figure out how this should be linked up without you actually needing to know what kind of matrices you are multiplying. The compiler will always keep track of the matrix type, even if it's almost impossible for you to know it. This gives you the a very high level feature on a low programming level, which makes it easy optimize your code for speed and memory usage without having to do the hard work to link up optimized code, the compiler does it for you. The disadvantage is that it requires some fancy programming skills to write such partial specialized classes that tells how the compiler should link up the different cases. And if you do something wrong with the syntax, the compiler is usually less then helpful to tell you what is wrong. But when the difficult work of actually writing such class the application of them becomes quite robust and easy to use in combination with C11 features \texttt{auto} and \texttt{decltype}, which enables you to hide the cumbersome and long names of the classes with the partial specialization. One should also keep in mind that such a code put a lot of work load on the compiler and the different possibilities of combination of partial specialization is written as code at compile time by the compiler, which makes your program substantially larger in size. \linebreak
+Furthermore you can use the partial specialization to tell the compiler how you want two different partial specialized class to interact. An example is if you want to take matrix multiplication of a tridiagonal matrix and a square matrix, you could let the compiler figure out how this should be linked up without you actually needing to know what kind of matrices you are multiplying. The compiler will always keep track of the matrix type, even if it's almost impossible for you to know it. This gives you a very high level feature on a low programming level, which makes it easy to optimize your code for speed and memory usage without having to do the hard work to link up optimized code, the compiler does it for you. The disadvantage is that it requires some fancy programming skills to write such partial specialized classes that tells how the compiler should link up the different cases. And if you do something wrong with the syntax, the compiler is usually less then helpful to tell you what is wrong. But when the difficult work of actually writing such classes the application of them becomes quite robust and easy to use in combination with C11 features \texttt{auto} and \texttt{decltype}, which enables you to hide the cumbersome and long names of the classes with the partial specialization. One should also keep in mind that such a code put a lot of work load on the compiler and the different possibilities of combination of partial specialization is written as code at compile time by the compiler, which makes your program substantially larger in size. \linebreak
 
-Sometimes you want to a partial specialization of a function, but unfortunately this is not supported, and you would have to do a work around to achieve it. An example is a base class $\texttt{Matrix}$ that sets value on a diagonal in the matrix. Sometimes you want only to set the same value on the entire diagonal, and other times you want to set an array on the diagonal. Make such function a template function that calls the partial specialized classes static function with the template argument, you have actually specialized you function;
+Sometimes you want a partial specialization of a function, but unfortunately this is not supported, and you would have to do a work around to achieve it. An example is a base class of $\texttt{Matrix}$ that sets value on a diagonal in the matrix. Sometimes you want only to set the same value on the entire diagonal, and other times you want to set an array on the diagonal. Make such a function a template function that calls the partial specialized classes static function with the template argument, and then you have actually partially specialized your function;
 
-\begin{lstlisting}[title={Printing a matrix}]
+\begin{lstlisting}[title={The base class \texttt{MatrixDiagonal<M, T>}}]
 template<class M, class T> class MatrixDiagonal {
     private: M* owner;
     private: template<class P> class Type {
@@ -551,7 +583,7 @@ template<class M, class T> class MatrixDiagonal {
 
 And now you can call the \anf{same} function \texttt{Diagonal} when you have only one value or an array of values.  
 
-\begin{lstlisting}[title={Printing a matrix}]
+\begin{lstlisting}[title={Example of usage of partial specialized \texttt{MatrixDiagonal<M, T>::Diagonal}}]
 double* d = new double[10];
 auto matrix = Matrix<MatrixType::TridiagonalSymmetric, double>(10);
 matrix.Diagonal(0, d);
@@ -560,21 +592,452 @@ matrix.Diagonal(1,-1);
 
 \subsection{Jacobi's eigenvalue algorithm}
 
+This algorithms solve only the eigenvalue problem, which means that the eigenvectors are not calculated here.
+
+\subsubsection{Jacobi lecture} \label{sec_Jacobi_lecture}
+
+This is mostly a direct implementation of the Jacobi algorithm given in the lecture notes \cite[p. 218]{lecture}. Note that this implementation uses a complete square matrix even though it solves for a symmetric matrix. This means that half of the memory is redundant.
+
+\begin{lstlisting}[title={\texttt{template<class T> class Matrix<MatrixType::Square, T>::JacobiMethod}}]
+void JacobiMethod(T error, unsigned int &num /**/) {
+	MatrixIndex I;
+	T s, c, t, tau, a_kk, a_ll, a_ik, a_il;
+	num = 0;
+	while(error < MaxAbs(this->matrix, this->_n, I)) {
+		tau = (this->matrix[I.j][I.j] - this->matrix[I.i][I.i]) / (2*this->matrix[I.i][I.j]);
+		if (tau > 0)
+			t = 1.0/(tau + sqrt(1.0 + tau*tau));
+		else
+			t = -1.0/( -tau + sqrt(1.0 + tau*tau));
+		c = 1/sqrt(1+t*t);
+		s = c*t;
+		
+		a_kk = this->matrix[I.i][I.i];
+		a_ll = this->matrix[I.j][I.j];
+		// changing the matrix elements with indices k and l
+		this->matrix[I.i][I.i] = c*c*a_kk - 2.0*c*s*this->matrix[I.i][I.j] + s*s*a_ll;
+		this->matrix[I.j][I.j] = s*s*a_kk + 2.0*c*s*this->matrix[I.i][I.j] + c*c*a_ll;
+		this->matrix[I.i][I.j] = 0.0; // hard-coding of the zeros
+		this->matrix[I.j][I.i] = 0.0;
+		
+		// and then we change the remaining elements
+		for (int i = 0; i < this->_n; i++ ) {
+			if ( i != I.i && i != I.j ) {
+				a_ik = this->matrix[i][I.i];
+				a_il = this->matrix[i][I.j];
+				this->matrix[i][I.i] = c*a_ik + s*a_il;
+				this->matrix[I.i][i] = this->matrix[i][I.i];
+				this->matrix[i][I.j] = c*a_il - s*a_ik;
+				this->matrix[I.j][i] = this->matrix[i][I.j];
+			}
+		}
+		num++;
+	}
+}
+\end{lstlisting}
+
+And the search function for the maximum absolute value in the off diagonal elements.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Square, T>::MaxAbs}}]
+T MaxAbs(T** matrix, unsigned int n, MatrixIndex& I) {
+	T max = 0, abs1;
+	for(unsigned int i = 0, j; i < n; i++) {
+		for(j = i+1; j < n; j++) {
+			abs1 = abs(matrix[i][j]);
+			if(abs1 > max) {
+				max = abs1;
+				I.i = i;            
+				I.j = j;            
+			}
+		}
+	}
+	return max;
+}
+\end{lstlisting}
+
+\subsubsection{My Jacobi algorithms} \label{sec_my_Jacobi}
+
+My implementation of Jacobi's algorithm uses the class \texttt{Matrix<MatrixType::Symmetric, T>} which uses the fact that we are solving a symmetric matrix, and therefore store only the upper triangle matrix in memory. The indexing of this matrix is done diagonal number \texttt{d} and row number \texttt{r} (\texttt{matrix[d][r]}), to better exploit the symmetry of the matrix. 
+
+\begin{lstlisting}[title={Matrix indexing of \texttt{Matrix<MatrixType::Symmetric, T>}}]
+T& operator() (const unsigned int& row, const unsigned int& col) {
+	return row < col ? matrix[col-row][row] : matrix[row-col][col];
+}
+\end{lstlisting}
+
+This is especially useful when we use it in combination with \texttt{tqli} in \texttt{lib.cpp}, where you want to send the main diagonal and the side diagonal of the tridiagonal matrix. By indexing by diagonal number we can easily obtain a pointer to the diagonals in the matrix, without doing remapping of memory.
+
+I made a function that does rotation transformation in the Jacobi algorithm, which is basically the same as done in the lecture note \cite{lecture}, but with the optimization discussed in section \ref{sec_Jacobi}.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Symmetric, T>::Rotate}}]
+void Rotate(unsigned int i, unsigned int j, unsigned int& num) {
+	T b = 2*this->matrix[j][i];
+	this->matrix[j][i] = 0;     // bij=bji=0
+	
+	j += i;	// Convert j from diagonalnumber to column number
+	
+	// Calculate cos and sin
+	T a = this->matrix[0][j] - this->matrix[0][i];
+	T t = a/b;
+	if(t > 0)
+		t = (T)1/(t+sqrt(1+t*t));   // Calculate -cot !
+	else
+		t = (T)1/(t-sqrt(1+t*t));   // Calculate -cot !
+	T s2 = (T)1/(1+t*t);
+	T s = sqrt(s2);
+	T c = t*s;
+	
+	a = a*s2 + b*s*c; 	// s*c = - sin*cos because of t=-cot
+	this->matrix[0][i] += a;       // bii eq(18)
+	this->matrix[0][j] -= a;       // bjj eq(19)
+	
+	unsigned int k, l, n;
+	// Calculate bik and bjk, row < i and row < j
+	for(k = i, l = j, n = 0; n < i; k--, l--, n++) {
+		a = this->matrix[k][n];
+		b = this->matrix[l][n];
+		this->matrix[k][n] = a*c - b*s;
+		this->matrix[l][n] = b*c + a*s;
+	}
+         
+   	// row > i and row < j
+   	for(k++, l--, n++; n < j; k++, l--, n++) {
+   		a = this->matrix[k][i];
+   		b = this->matrix[l][n];
+   		this->matrix[k][i] = a*c - b*s;
+   		this->matrix[l][n] = b*c + a*s;
+   	}
+        
+   	// row > i and row > j
+   	for(k++, l++, n = this->_n-j; l < n; k++, l++) {
+   		a = this->matrix[k][i];
+   		b = this->matrix[l][j];
+   		this->matrix[k][i] = a*c - b*s;
+   		this->matrix[l][j] = b*c + a*s;
+   	}
+   	num++;	// To be removed
+}
+\end{lstlisting}
+
+The last three for loops does the same, but the reason for separating them in such a way is due to the fact that we have a symmetric matrix, where only the upper triangle of the matrix is allocated in memory. So the three different for loops handles the indexing differently to make sure we operate in the correct element in the matrix.
+
+\subsubsubsection{Jacobi}
+
+This implementation does basically the same as the lecture implementation shown in section \ref{sec_Jacobi_lecture}, where the algorithm searches for the maximum absolute value of the off diagonal elements and zero it out by rotation transformation in the Jacobi algorithm as shown in \ref{sec_my_Jacobi}.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Symmetric, T>::JacobiMethod}}]
+T* JacobiMethod(T error, unsigned int& num /**/) {
+	MatrixIndex I;
+	T** offdiagonal = &this->matrix[1];
+	unsigned int offn = this->_n-1;
+	num = 0;                                    
+	while(error < MaxAbs(offdiagonal, offn, I)) 
+		Rotate(I.j, ++I.i, num);
+	return this->matrix[0];
+}
+\end{lstlisting}
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Symmetric, T>::MaxAbs}}]
+T MaxAbs(T** matrix, unsigned int n, MatrixIndex& I) {
+	T max = 0, abs1;
+	for(unsigned int i = 0, j; n; i++, n--) {
+		for(j = 0; j < n; j++) {
+			abs1 = abs(matrix[i][j]);
+			if(abs1 > max) {
+				max = abs1;
+				I.i = i; 	// I.i is the diagonal number = col-row
+				I.j = j;    // I.j is the row number
+			}
+		}
+	}
+	return max;
+}
+\end{lstlisting}
+
+\subsubsubsection{Jacobi FD}
+
+The standard Jacobi algorithm searches for the maximum absolute value off diagonal element, which is quit time expensive to use since it's goes as $\mathcal{O}\p{n^2}$. But by studying the behavior of the off diagonal elements during the Jacobi algorithm a pattern emerges regarding the approximate position of the maximum diagonal elements for a symmetric  tridiagonal matrix. Hence one can develop a Jacobi algorithm that doesn't do the search for maximum absolute value off diagonal elements, but rather iterate over the elements in a certain way. I will present different ways of doing this and compare the results from the different methods. \linebreak
+
+The first method I made is the Jacobi Forward Diagonal iteration, which first does the Jacobi transformation on all the elements in diagonal next to the main diagonal (symmetry diagonal) of the matrix. And then goes to the next diagonal and do the Jacobi transformation, and continues to the last diagonal of one element in the corner of the matrix is reached. Then the process starts from the beginning again, till all the off diagonal elements is less than a given value.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Symmetric, T>::JacobiMethodFD}}]
+T* JacobiMethodFD(T error, unsigned int& num /**/) {
+	bool run = true;
+	num = 0;
+	while(run) {
+		run = false;
+		// Run through the diagonals
+		for(unsigned int d = 1, r, n = this->_n-1; n; d++, n--) {   
+			for(r = 0; r < n; r++) {	// Run through the rows
+				if(error < abs(this->matrix[d][r])) {
+					run = true;
+					Rotate(r, d, num);
+				}
+			}
+		}
+	}
+	return this->matrix[0];
+}
+\end{lstlisting}
+
+\subsubsubsection{Jacobi RD}
+
+This is the Jacobi Reverse Diagonal iteration, which is the same as Jacobi FD but the process is reversed.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Symmetric, T>::JacobiMethodRD}}]
+T* JacobiMethodRD(T error, unsigned int& num /**/) {
+	bool run = true;
+	num = 0;
+	while(run) {
+		run = false;
+		// Run through the diagonals
+		for(unsigned int d = this->_n-1, r, p = 1; d; d--, p++) {   
+			for(r = 0; r < p; r++) { // Run through the rows
+				if(error < abs(this->matrix[d][r])) {
+					run = true;
+					Rotate(r, d, num);
+				}
+			}
+		}
+	}
+	return this->matrix[0];
+}
+\end{lstlisting}
+
+\subsubsubsection{Jacobi FC}
+
+This is the Jacobi Forward Column iteration, which starts at the lowest column number and does the Jacobi transformation on all it's elements before moving on to the next. Otherwise similar behavior to Jacobi FD.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Symmetric, T>::JacobiMethodFC}}]
+T* JacobiMethodFC(T error, unsigned int& num /**/) {
+	bool run;
+	num = 0;
+	do {
+		run = false;
+		for(unsigned int r = 0, d, n = this->_n; r < this->_n; r++, n--) {
+			for(d = 1; d < n; d++) {
+				if(error < abs(this->matrix[d][r])) {
+					run = true;
+					Rotate(r, d, num);
+				}
+			}
+		}
+	} while(run);
+	return this->matrix[0];
+}
+\end{lstlisting}
+
+\subsubsubsection{Jacobi RC}
+
+This is the Jacobi Reverse Column iteration, which is the reverse of Jacobi FC.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Symmetric, T>::JacobiMethodRC}}]
+T* JacobiMethodRC(T error, unsigned int& num /**/) {
+	bool run;
+	num = 0;
+	do {
+		run = false;
+		for(unsigned int r = 0, d, n = this->_n-1; r < this->_n; r++, n--) {
+			for(d = n; d; d--) {
+				if(error < abs(this->matrix[d][r])) {
+					run = true;
+					Rotate(r, d, num);
+				}
+			}
+		}
+	} while(run);
+	return this->matrix[0];
+}
+\end{lstlisting}
+
+\subsubsubsection{Jacobi FR}
+
+This is the Jacobi Forward Row iteration, which starts at the lowest row number and does the Jacobi transformation on all it's elements before moving on to the next.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Symmetric, T>::JacobiMethodFR}}]
+T* JacobiMethodFR(T error, unsigned int& num /**/) {
+	bool run;
+	num = 0;                                                        // To be removed
+	do {
+		run = false;
+		for(unsigned int r, d = 1, c; d < this->_n; d++) {
+			for(r = 0, c = d; c; r++, c--) {
+				if(error < abs(this->matrix[c][r])) {
+					run = true;
+					Rotate(r, c, num);
+				}
+			}
+		}
+	} while(run);
+	return this->matrix[0];
+}
+\end{lstlisting}
+
+\subsubsubsection{Jacobi RR}
+
+This is the Jacobi Reverse Row iteration, which is the reverse of Jacobi FR.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Symmetric, T>::JacobiMethodRR}}]
+T* JacobiMethodRR(T error, unsigned int& num /**/) {
+	bool run;
+	num = 0;
+	do {
+		run = false;
+		for(unsigned int r, d = 1, c; d < this->_n; d++) {
+			for(r = d-1, c = 1; c <= d; r--, c++) {
+				if(error < abs(this->matrix[c][r])) {
+					run = true;
+					Rotate(r, c, num);
+				}
+			}
+		}
+	} while(run);
+	return this->matrix[0];
+}
+\end{lstlisting}
+
+\subsection{Francis QR algorithm}
+
+This algorithm is designed for solving a symmetric tridiagonal matrix, and is solved as described in section \ref{sec_QR}. Surprisingly this algorithm is quit slow, which is due to the fact that it needs $n_{\text{step}}-1$ rotation transformation for each QR transformation, which you can see in \reftab{tab_num}. \linebreak
+
+However closer investigation showed that the QR algorithm gave vary big difference in absolute value of the off-diagonal elements. Many elements became small very fast, whereas others didn't. To speed up the algorithm I introduced a if check that determines whether the off-diagonal element is already smaller than a given value before doing the rotation transformation on it. If the off-diagonal element in question is smaller than the given value, it skips the rotation transformation. This reduces the number of rotation transformation that is needed to preform the QR algorithm significantly, rough estimates indicated a speed up of 25 times at tridiagonal matrix of dimensionality 100. \linebreak
+
+The first and last rotation in the QR transformation needs to be handled a little bit differently than the other rotation transformations, to be able to handle the corners of the matrix. Therefore the QR algorithm that I made has three section that does almost the same thing, but handles the three different stages of the QR transformation, namely first, intermediate and last rotation. This to avoid if checks that would be run frequently.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::TridiagonalSymmetric, T>::QRalgorithm}}]
+T* QRalgorithm(T error, unsigned int& num) {
+	unsigned int i, j, n = this->_n-2;
+	T c, s, _c, _s, temp, temp2, max, a, b;
+
+	num = 0;
+	do {
+		// First rotation in QR transformation
+		max = 0;
+		a = this->a[0];
+		b = this->b[0];
+
+		temp = sqrt((T)1/(a*a+b*b));	// Calculate sin and cos
+		c = b*temp;
+		s = a*temp;
+		
+		temp = a*s;                  	// Eigenvalues
+		this->b[0] = b*c*c + this->b[1]*s*s + 2*temp*c;
+		this->b[1] = this->b[1]*c - temp;
+		
+		num++;
+		
+		// The intermediate rotations in QR transformation
+		i = 1;
+		while(i < n) {
+			if(abs(this->a[i]) > error) {	// Offdiagonal element still to large?
+
+				_c = c;
+				_s = s;
+				a = this->a[i];
+				b = this->b[i];
+				
+				// Calculate sin and cos
+				temp = (T)1/sqrt(a*a + b*b);	
+				c = b*temp;
+				s = a*temp;
+				
+				temp = a*s;		// Eigenvalues
+				b = b*c + temp;
+				this->a[i-1] = b*_s;
+				temp2 = abs(this->a[i-1]);
+				if(max < temp2)
+					max = temp2;
+				temp *= _c;
+				this->b[i] = b*_c*c + temp*c + this->b[++i]*s*s;
+				this->b[i] = this->b[i]*c - temp;
+				
+				num++;
+			
+			} else {    // Offdiagonal element less then error
+				if(s) { // If previous sin not zero, then update elements
+					
+					_c = c;
+					_s = s;
+					
+					this->a[i-1] = this->b[i]*_s;   // Eigenvalues
+					this->b[i] = this->b[i]*_c;
+					temp2 = abs(this->a[i-1]);
+					if(max < temp2)
+						max = temp2;
+					
+					c = 1;
+					s = 0;
+				}
+				i++;
+			}
+		}
+		
+		// Last rotation in QR transformation
+		a = this->a[i];
+		b = this->b[i];
+		
+		temp = (T)1/sqrt(a*a + b*b);    // Calculate sin and cos
+		_c = b*temp;
+		_s = a*temp;
+		
+		temp = a*_s;	// Eigenvalues
+		b = b*_c + temp;
+		this->a[i-1] = b*s;
+		temp2 = abs(this->a[i-1]);
+		if(max < temp2)
+			max = temp2;
+		temp *= c;
+		this->b[i] = b*_c*c + temp*_c + this->b[++i]*_s*_s;
+		b = this->b[i]*_c - temp;
+		this->a[i-1] = b*_s;
+		temp2 = abs(this->a[i-1]);
+		if(max < temp2)
+			max = temp2;
+		this->b[i] = b*_c;
+		
+		num++;
+
+	} while(max > error);
+
+    return this->b;
+}
+\end{lstlisting}
+
+\subsection{Eigenvectors}
+
+Here I will present the numerical implementation of finding the eigenvectors as discussed in section \ref{sec_Eigenvectors}. This method is what I have used to calculate the eigenvectors together with the QR algorithm for finding the eigenvalues.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Tridiagonal\_m1\_X\_m1, T>::Eigenvector}}]
+T* Eigenvector(T value) {
+	T temp = 1, temp2 = this->b[0] - value;
+	this->b[0] = 1;
+	for(unsigned int i = 1; i < this->_n; i++) {
+		temp  *= temp2;
+		temp2 = this->b[i] - value - (T)1/temp2;
+		this->b[i] = temp;
+	}
+	return this->b;
+}
+\end{lstlisting}
+
+This algorithm calculates only one eigenvector for a given eigenvalue.
+
+\newpage
 \section{Results}
 
-\subsection{Comparing different solvers}
+\subsection{Comparing different solvers}\label{sec_compare_solvers}
 
 \begin{tabell}{|r|c|c|c|c|c|c|c|c|c|c|}{\scriptsize}{Number & tqli & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lib.cpp) & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/time.dat}}{Time used in seconds to solve the different eigenvalue and eigenvector solvers. The Jacobi solvers and QR algorithm terminates when off-diagonal elements are less than $10^{-6}$. Used the case of single electron and $\rho_{\mathrm{max}}=10$.} {tab_speed}
 \end{tabell} 
 
-\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/error.dat}}{Order of relative error to result of eigenvalues to the tqli in lib.cpp. The Jacobi solvers and QR algorithm terminates when off-diagonal elements are less than $10^{-6}$. Used the case of single electron and $\rho_{\mathrm{max}}=10$.}{tab_speed}
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/error.dat}}{Order of relative error to result of eigenvalues to the tqli in lib.cpp. The Jacobi solvers and QR algorithm terminates when off-diagonal elements are less than $10^{-6}$. Used the case of single electron and $\rho_{\mathrm{max}}=10$.}{tab_error}
 \end{tabell}
 
-\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/numberoftransformations.dat}}{Number of rotations. The Jacobi solvers and QR algorithm terminates when off-diagonal elements are less than $10^{-6}$. Used the case of single electron and $\rho_{\mathrm{max}}=10$.}{tab_speed}
+\begin{tabell}{|r|c|c|c|c|c|c|c|c|c|}{\small}{Number & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/numberoftransformations.dat}}{Number of rotations. The Jacobi solvers and QR algorithm terminates when off-diagonal elements are less than $10^{-6}$. Used the case of single electron and $\rho_{\mathrm{max}}=10$.}{tab_num}
 \end{tabell}
 
 \newpage
-\subsection{Single electron harmonic oscillator}
+\subsection{Single electron harmonic oscillator}\label{sec_single_electron}
 
 \begin{tabell}{|r|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2header.dat}}{\input{build-project2-Desktop-Debug/errorQR.dat}}{Order of relative error of the three lower eigenvalues with $\ell = 0$ for a single electron trapped in a harmonic oscillator well. The relative error is compared to the exact eigenvalues  $\lambda_0 = 3$, $\lambda_1 = 7$ and $\lambda_2 = 11$. Solved with my QR algorithm with off-diagonal elements are less than $10^{-6}$.}{tab_one_electron}
 \end{tabell}
@@ -582,7 +1045,7 @@ matrix.Diagonal(1,-1);
 \begin{tabell}{|r|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2header.dat}}{\input{build-project2-Desktop-Debug/errortqli.dat}}{Order of relative error of the three lower eigenvalues with $\ell = 0$ for a single electron trapped in a harmonic oscillator well. The relative error is compared to the exact eigenvalues  $\lambda_0 = 3$, $\lambda_1 = 7$ and $\lambda_2 = 11$. Solved with my tqli in lib.cpp}{tab_one_electron_2}
 \end{tabell}
 
-\subsection{Two electrons harmonic oscillator with repulsive Coulomb interaction}
+\subsection{Two electrons harmonic oscillator with repulsive Coulomb interaction}\label{sec_two electrons}
 
 \begin{tabell}{|r|c|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2elheader.dat}}{\input{build-project2-Desktop-Debug/errorQRw0.dat}}{Order of relative error of the ground state with $\ell = 0$ and $\omega_r = 0.01$ for two electrons trapped in a harmonic oscillator well with repulsive Coulomb interaction. The relative error is compared to the exact eigenvalues  $\lambda_0 = 0.105041$. Solved with my QR algorithm with off-diagonal elements less than $10^{-6}$.}{tab_two_electron_w0}
 \end{tabell}
@@ -596,9 +1059,23 @@ matrix.Diagonal(1,-1);
 \begin{tabell}{|r|c|c|c|c|c|c|c|}{\small}{\input{build-project2-Desktop-Debug/error2elheader.dat}}{\input{build-project2-Desktop-Debug/errorQRw3.dat}}{Order of relative error of the ground state with $\ell = 0$ and $\omega_r = 5$ for two electrons trapped in a harmonic oscillator well with repulsive Coulomb interaction. The relative error is compared to the exact eigenvalues  $\lambda_0 = 14.1863$. Solved with my QR algorithm with off-diagonal elements less than $10^{-6}$.}{tab_two_electron_w3}
 \end{tabell}
 
+\figur{0.8}{Exact.eps}{The normalize exact solution of the wave function for two electrons in a harmonic oscillator well with Coulomb repulsion \eqref{eq_7}.}{fig_exact} 
+
+\figur{0.8}{QR.eps}{The normalize solution of the wave function from my own eigenvector algorithm for two electrons in a harmonic oscillator well with Coulomb repulsion, where Francis QR algorithm has been used to find the eigenvalues.}{fig_QR} 
+
+\figur{0.8}{tqli.eps}{The normalize solution of the wave function from tqli in lib.cpp for two electrons in a harmonic oscillator well with Coulomb repulsion, where Francis QR algorithm has been used to find the eigenvalues.}{fig_tqli} 
+
 \newpage
 
 \section{Conclusion}
+
+In this report I have shown that there are many different methods for solving a eigenvalue problem for a matrix, and the different solvers I have compared in section \ref{sec_compare_solvers}. \reftab{tab_speed} show big difference in computation time for different Jacobi solvers where we iterate over the off-diagonal elements in different ways. We see that both forward and reverse diagonal Jacobi method is very efficient to solve the eigenvalue problems in this report, which is 10 times faster than the standard Jacobi method where you search for the maximum absolute value off diagonal element. But \reftab{tab_speed} also show that certain iteration schemes for the Jacobi method is very inefficient, like the forward row and column iteration. All the solvers seems to go with $\mathcal{O}\p{n^3}$ except the QR algorithm that seems to go with $\mathcal{O}\p{n^2}$. \linebreak
+
+One should note that the \texttt{tqli} function calculates the eigenvectors as well, whereas the other solvers does not. This puts the \texttt{tqli}  at a disadvantage in the speed comparison in \reftab{tab_speed}, because the eigenvector calculation is quite expensive. However the implementation of the eigenvector algorithm that I made in \label{sec_Eigenvectors} that calculates the eigenvectors after the eigenvalue has been found, is very speed efficient and does not impact the results in \reftab{tab_speed}. Though this eigenvector algorithm is not as numerical stable as the implementation in \texttt{tqli}, where you get a good approximation of the eigenvector at certain areas of the eigenvector. But taking care and guidelines as depicted in \label{sec_Eigenvectors} one can still get very good results with my eigenvector algorithm, which \reffig{fig_exact}, \reffig{fig_QR} and \reffig{fig_tqli} shows. So my eigenvector algorithm with the QR algorithm that I made enables one to study heavy eigenvalue problems in matter of few minutes than rather of hours, which may be the difference between you getting insight to the problem or not, because you can run many more runs with a fast algorithm. \linebreak
+
+An unanswered question in this report is the results in \reftab{tab_error} where all the solvers I made seems to diverge by the same amount relative to the $\texttt{tqli}$ with higher numbers of steps. And decreasing the maximum absolute value of the off-diagonal elements did not seem to effect the results, which seems to indicate that the error is $\texttt{tqli}$. However \reftab{tab_one_electron}, \reftab{tab_one_electron_2}, \reftab{tab_two_electron_w0}, \reftab{tab_two_electron_w1}, \reftab{tab_two_electron_w2} and \reftab{tab_two_electron_w3} shows no significant difference in accuracy to known eigenvalues. The difference is that  \reftab{tab_error} compares all the eigenvalues and shows the largest difference, where as the other results shows only for few specific eigenvalues. \linebreak
+
+The algorithms that I made in this report terminates when the off-diagonal elements are less than a certain absolute value. This is however not an obvious indication of the accuracy of the results, and therefore a better way to input the desired accuracy of the solution would be beneficial.
 
 \section{Attachments}
 
@@ -606,17 +1083,25 @@ The files produced in working with this project can be found at \href{https://gi
 
 The source files developed are
 
+\begin{enumerate}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%202/project2/Matrix.h}{Matrix.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%202/project2/project2.cpp}{project2.cpp}}
+\end{enumerate}
+
+\newpage
+
 \section{Resources}
 
 \begin{enumerate}
 \item{\href{http://qt-project.org/downloads}{QT Creator 5.3.1 with C11}}
+\item{\href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Programs\%20\%20(as\%20tar.gz\%20file,\%20all\%20languages)/programs.tar.gz}{Morten Hjorth-Jensen's \texttt{lib.cpp}}}
 \item{\href{https://www.eclipse.org/downloads/}{Eclipse Standard/SDK  - Version: Luna Release (4.4.0) with PyDev for Python}}
 \item{\href{http://www.ubuntu.com/download/desktop}{Ubuntu 14.04.1 LTS}}
 \item{\href{http://shop.lenovo.com/no/en/laptops/thinkpad/w-series/w540/#tab-reseller}{ThinkPad W540 P/N: 20BG0042MN with 32 GB RAM}}
 \end{enumerate}
 
 \begin{thebibliography}{9}
-\bibitem{project1}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-2-deadline-september-22/project2_2014.pdf}{\emph{FYS4130 - Project 2}} - \emph{Schr\"{o}dinger's equation for two electrons in a three-dimensional harmonic oscillator well}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{project1}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-2-deadline-september-22/project2_2014.pdf}{\emph{FYS4150 - Project 2}} - \emph{Schr\"{o}dinger's equation for two electrons in a three-dimensional harmonic oscillator well}, \href{http://www.uio.no}{University of Oslo}, 2014} 
 \bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014}  
 \bibitem{TwoElectron}{M. Taut, \emph{\href{http://prola.aps.org/abstract/PRA/v48/i5/p3561\_1}{Two electrons in an external oscillator potential:} Particular analytic solutions of a Coulomb correlation problem}, Physical Review A Volume 48 Number 5, 1993}
 \bibitem{Griffiths}{David J. Griffiths, \emph{\href{http://www.amazon.com/Introduction-Quantum-Mechanics-David-Griffiths/dp/0131118927/ref=sr_1_1?ie=UTF8&qid=1412067343&sr=8-1&keywords=introduction+to+quantum+mechanics+griffiths}{Introduction to Quantum Mechanics}}, 2.ed, Pearson Education Inc., 2005}
@@ -625,10 +1110,10 @@ The source files developed are
 \bibitem{MatrixSimularity}{\href{http://en.wikipedia.org/wiki/Matrix\_similarity}{http://en.wikipedia.org/wiki/Matrix\_similarity}}
 \bibitem{RotationMatrix}{\href{http://en.wikipedia.org/wiki/Rotation\_matrix}{http://en.wikipedia.org/wiki/Rotation\_matrix}}
 \bibitem{OrthogonalMatrix}{\href{http://en.wikipedia.org/wiki/Orthogonal\_matrix}{http://en.wikipedia.org/wiki/Orthogonal\_matrix}}
-\bibitem{Frobenius}{\href{http://en.wikipedia.org/wiki/Matrix\_norm\#Frobenius\_norm}{http://en.wikipedia.org/wiki/Matrix\_norm\#Frobenius\_norm}}
 \bibitem{PlancksKonstant}{\href{http://en.wikipedia.org/wiki/Planck\_constant}{http://en.wikipedia.org/wiki/Planck\_constant}}
 \bibitem{Electron}{\href{http://en.wikipedia.org/wiki/Electron}{http://en.wikipedia.org/wiki/Electron}}
 \bibitem{QR}{\href{http://en.wikipedia.org/wiki/QR\_algorithm}{http://en.wikipedia.org/wiki/QR\_algorithm}}
+\bibitem{Gaussian_elimination}{\href{http://en.wikipedia.org/wiki/Gaussian\_elimination}{http://en.wikipedia.org/wiki/Gaussian\_elimination}}
 \end{thebibliography}
 
 \end{flushleft}
