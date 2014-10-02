@@ -416,10 +416,14 @@ a_{(i+1)k\ell} = \begin{cases} u_{ink\ell} & \text{when } \ell\in\mathbb{N}_{k-1
 \label{eq_26}
 \end{align}
 
-But we can actually show that $\textbf{A}_{i+1}$ is tridiagonal matrix by using the assumption that $\textbf{A}_i$ is a symmetric matrix. This we can do by showing that when $\textbf{A}_i$ is symmetric then $\textbf{A}_{i+1}$ is also symmetric by doing the matrix multiplication of the similarity transformation $\textbf{A}_{i+1}^{\text{T}} = \p{\textbf{S}_i^{\text{T}}\textbf{A}_i \textbf{S}_i}^\text{T}$;
+But we can actually show that $\textbf{A}_{i+1}$ is tridiagonal matrix by using the assumption that $\textbf{A}_i$ is a symmetric matrix. This we can do by showing that when $\textbf{A}_i$ is symmetric then $\textbf{A}_{i+1}$ is also symmetric by doing the matrix multiplication of the similarity transformation $\textbf{A}_{i+1} = \textbf{S}_i^{\text{T}}\textbf{A}_i \textbf{S}_i$ and using the fact that $a_{ik\ell} =a_{i\ell k}$;
 
 \begin{align*}
-a_{(i+1)k\ell}^{\text{T}} = \p{\sum_{m,o=1}^n s_{ikm}^{\text{T}}a_{imo} s_{io\ell}}^{\text{T}} = \sum_{m,o=1}^n s_{i\ell m}^{\text{T}}a_{imo} s_{iok} = a_{(i+1)\ell k} \,.
+a_{(i+1)k\ell} = \sum_{m,o=1}^n s_{ikm}^{\text{T}}a_{imo} s_{io\ell} 
+= \sum_{m,o=1}^n s_{ikm}^{\text{T}}a_{iom} s_{io\ell} 
+= \sum_{m,o=1}^n s_{io\ell}a_{iom}s_{ikm}^{\text{T}} 
+= \sum_{m,o=1}^n s_{i\ell o}^{\text{T}}a_{iom}s_{imk}
+= a_{(i+1)\ell k} \,.
 \end{align*}
 
 Since we have shown that $\textbf{A}_{i+1}$ is symmetric due to that $\textbf{A}_i$ is symmetric, and that $\textbf{A}_{i+1}$ has only non-zero elements in the lower off diagonal $a_{ik(k-1)}$, means that $a_{ik(k+1)}$ is the only higher off diagonal elements that are non-zero as well;
@@ -1025,6 +1029,12 @@ This algorithm calculates only one eigenvector for a given eigenvalue.
 \newpage
 \section{Results}
 
+Order of relative error of $\varv$ to $u$ is calculated by
+
+\begin{align*}
+\epsilon = \log_{10}\abs{\frac{\varv - u}{u}} \,.
+\end{align*}
+
 \subsection{Comparing different solvers}\label{sec_compare_solvers}
 
 \begin{tabell}{|r|c|c|c|c|c|c|c|c|c|c|}{\scriptsize}{Number & tqli & QR & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi & Jacobi\\ & (lib.cpp) & & (lecture) &  & (FD) & (RD) & (FC) & (RC) & (FR) & (RR)\\}{\input{build-project2-Desktop-Debug/time.dat}}{Time used in seconds to solve the different eigenvalue and eigenvector solvers. The Jacobi solvers and QR algorithm terminates when off-diagonal elements are less than $10^{-6}$. Used the case of single electron and $\rho_{\mathrm{max}}=10$.} {tab_speed}
@@ -1063,7 +1073,7 @@ This algorithm calculates only one eigenvector for a given eigenvalue.
 
 \figur{0.8}{QR.eps}{The normalize solution of the wave function from my own eigenvector algorithm for two electrons in a harmonic oscillator well with Coulomb repulsion, where Francis QR algorithm has been used to find the eigenvalues.}{fig_QR} 
 
-\figur{0.8}{tqli.eps}{The normalize solution of the wave function from tqli in lib.cpp for two electrons in a harmonic oscillator well with Coulomb repulsion, where Francis QR algorithm has been used to find the eigenvalues.}{fig_tqli} 
+\figur{0.8}{tqli.eps}{The normalize solution of the wave function from tqli in lib.cpp for two electrons in a harmonic oscillator well with Coulomb repulsion.}{fig_tqli} 
 
 \newpage
 
