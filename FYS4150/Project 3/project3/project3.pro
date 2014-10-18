@@ -2,7 +2,8 @@ SOURCES += \
     project3.cpp
 
 HEADERS += \
-    Differential.h
+    Differential.h \
+    Gravitation.h
 
 CONFIG += c++11
 

@@ -1,0 +1,244 @@
+#ifndef GRAVITATION_H
+#define GRAVITATION_H
+
+#include <cmath>
+#include <string>
+#include "Differential.h"
+
+using namespace std;
+
+enum class CircularDirection {
+    CW,
+    CCW
+};
+
+template<class T> struct Array {
+    T element;
+    Array<T>* prev;
+    Array<T>* next;
+    Array() {
+        prev = this;
+        next = this;
+    }
+    ~Array() {
+        if(next != this)
+            delete next;
+    }
+    Array<T>* operator[] (const int i) {
+        if(prev != this) {
+            if(i) {
+                if(i > 0)
+                    return (*next)[i-1];
+                else
+                    return (*prev)[i+1];
+            }
+            return this;
+        } else if(next != this)
+            return (*next)[i];
+        return nullptr;
+    }
+    Array<T>* Index (const int i) {
+        if(prev != this) {
+            if(i) {
+                if(i > 0)
+                    return next->Index(i-1);
+                else
+                    return prev->Index(i+1);
+            }
+            return this;
+        } else if(next != this)
+            return next->Index(i);
+        return nullptr;
+    }
+    void Add(T element) {
+        if(next != this)
+            next->Add(element);
+        else {
+            next = new Array<T>;
+            next->prev = this;
+            next->next = next;
+            next->element = element;
+        }
+    }
+    int Length() {
+        if(next != this)
+            return next->Length()+1;
+        return 0;
+    }
+};
+template<class T, unsigned int DIM> struct Body {
+    string name;
+    T m;
+    T x0[DIM], v0[DIM];
+    T* x[DIM];
+    T* v[DIM];
+    Body(string name, T m, T x0[DIM], T v0[DIM], unsigned int len) {
+        this->name = name;
+        this->m = m;
+        for(unsigned int i = 0; i < DIM; i++) {
+            x[i] = new T[len];
+            v[i] = new T[len];
+            x[i][0] = x0[i];
+            v[i][0] = v0[i];
+            this->x0[i] = x0[i];
+            this->v0[i] = v0[i];
+        }
+    }
+    ~Body() {
+        for(unsigned int i = 0; i < DIM; i++) {
+            delete [] x[i];
+            delete [] v[i];
+        }
+    }
+    void SetLength(unsigned int len) {
+        for(unsigned int i = 0; i < DIM; i++) {
+            delete [] x[i];
+            delete [] v[i];
+            x[i] = new T[len];
+            v[i] = new T[len];
+            x[i][0] = x0[i];
+            v[i][0] = v0[i];
+        }
+
+    }
+};
+template<class T, unsigned int DIM> class System : Differential_2<T> {
+    protected: unsigned int _length;
+    private: class _length_ {
+        private: System<T, DIM>* owner;
+        public: _length_(System<T, DIM>* owner) : owner(owner) {
+            this->owner->_length = 1;
+        }
+        public: unsigned int& operator = (const unsigned int& length) {
+            if(owner->_length != length) {
+                auto body = owner->body->next;
+                while(body->next != body) {
+                    body->element->SetLength(length);
+                    for(unsigned int i = 0; i < DIM; i++) {
+                        owner->x[i] = body->element->x[i];
+                        owner->v[i] = body->element->v[i];
+                    }
+                    body = body->next;
+                }
+                return owner->_length = length;
+            }
+            return owner->_length;
+        }
+        public: operator unsigned int () const {
+            return owner->_length;
+        }
+    };
+    public: _length_ length;
+    private: unsigned int width;
+    private: T G;
+    private: T* t, *a;
+    private: T** x, **v;
+    private: Array<Body<T,DIM>*>* body;
+    public: System(T G) : length(this) {
+        width = 0;
+        this->G = G;
+        t = new T[_length];
+        a = new T[0];
+        x = new T*[0];
+        v = new T*[0];
+        body = new Array<Body<T,DIM>*>;
+    }
+    public: ~System() {
+        delete [] a;
+        delete [] x;
+        delete [] v;
+        delete body;
+    }
+    public: void Add(string name, T m, T x0[DIM], T v0[DIM]) {
+        body->Add(new Body<T,DIM>(name, m, x0, v0, _length));
+
+        unsigned int len = body->Length();
+        width = DIM*len;
+        delete [] a;
+        delete [] x;
+        delete [] v;
+        a = new T[width];
+        x = new T*[width];
+        v = new T*[width];
+
+        for(unsigned int i = 0, j, k = 0; i < len; i++, k+=DIM) {
+            for(j = 0; j < DIM; j++) {
+                x[k+j] = (*body)[i]->element->x[j];
+                v[k+j] = (*body)[i]->element->v[j];
+            }
+        }
+    }
+    public: template<unsigned int x, unsigned int y> T* Coplanar(Body<T,DIM>* , Body<T,DIM>* ) {
+        T* alpha = new T[DIM-2];
+        return alpha;
+    }
+    public: T Distance(unsigned int i, Body<T,DIM>* b1, Body<T,DIM>* b2) {
+        T diff, dis = 0;
+        for(unsigned int j = 0; j < DIM; j++) {
+            diff = b1->x[j][i]-b2->x[j][i];
+            dis += diff*diff;
+        }
+        return sqrt(dis);
+    }
+    public: Body<T,DIM>* Find(string body) {
+        auto b = this->body;
+        do {
+            b = b->next;
+            if(!b->element->name.compare(body))
+                return b->element;
+
+        } while(b != b->next);
+        return nullptr;
+    }
+    public: template<unsigned int x, unsigned int y, CircularDirection D> void GoesAround(string satellite, string primary) {
+        auto sat = Find(satellite);
+        auto pri = Find(primary);
+        T* alpha = Coplanar<x,y>(sat,pri);
+        T r = Distance(0, sat, pri);
+        T v = sqrt(G*pri->m/r);
+        if(D == CircularDirection::CW) {
+            sat->v[x][0] = v*(sat->x[y][0]-pri->x[y][0])/r;
+            sat->v[y][0] = v*(pri->x[x][0]-sat->x[x][0])/r;
+        } else {
+            sat->v[x][0] = v*(pri->x[y][0]-sat->x[y][0])/r;
+            sat->v[y][0] = v*(sat->x[x][0]-pri->x[x][0])/r;
+        }
+        for(unsigned int i = 0; i < DIM-2; i++)
+            alpha[i] *= -1;
+        Rotate<x,y>(sat,pri,alpha);
+        delete [] alpha;
+    }
+    private: T* Gravity(T* x) {
+        T diff;
+        auto b1 = body->next;
+        decltype(b1) b2;
+        for(unsigned int i = 0; i < width; i++)
+            a[i] = 0;
+        for(unsigned int i = 0, j, k, i1, j1; i < width; i+=DIM, b1=b1->next) {
+            for(j=i+DIM, b2=b1->next; j < width; j+=DIM, b2=b2->next) {
+                for(k=0, i1=i, j1=j; k < DIM; k++, i1++, j1++) {
+                    diff = x[i1]-x[j1];
+                    if(diff > 0) {
+                        diff = G/(diff*diff);
+                        a[i1] -= diff*b2->element->m;
+                        a[j1] += diff*b1->element->m;
+                    } else if(diff <0){
+                        diff = G/(diff*diff);
+                        a[i1] += diff*b2->element->m;
+                        a[j1] -= diff*b1->element->m;
+                    }
+                }
+            }
+        }
+        return a;
+    }
+    public: template<unsigned int x, unsigned int y> void Rotate(Body<T,DIM>* , Body<T,DIM>* , T* ) {
+    }
+    public: template<DifferentialType Type> void Run(T t, unsigned int n) {
+        T dt = t/(n+1);
+        length = n;
+        this->template Solve<DifferentialType::Verlet>(this, &System<T,DIM>::Gravity, x, v, dt, DIM, n);
+    }
+};
+
+#endif // GRAVITATION_H

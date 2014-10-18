@@ -16,73 +16,21 @@ enum class DifferentialType {
     Verlet
 };
 
-template<class T> class Differential_1 {
-    private: T* (*f)(T, T*);
-    private: template<DifferentialType Type, class U> struct Diff;
-    private: template<class U> struct Diff<DifferentialType::RK4, U> {
-        public: inline static U Step( unsigned int i, U* (*f)(U, U*), U** x0, U t, U dt, unsigned int dim) {
-            U* x = new T[dim];
-            U* x2 = new T[dim];
-            unsigned int j;
-            for(j = 0; j < dim; j++) {
-                x[j] = x0[j][i-1];
-                x2[j] = x[j];
-            }
-            x2 = f(t, x2);
-            for(j = 0; j < dim; j++) {
-                x0[j][i] = x2[j];
-                x2[j] = x[j] + x2[j]*dt;
-            }
-            t += dt;
-            x2 = f(t, x2);
-            for(j = 0; j < dim; j++) {
-                x0[j][i] += 2*x2[j];
-                x2[j] = x[j] + x2[j]*dt;
-            }
-            x2 = f(t, x2);
-            t += dt;
-            dt += dt;
-            for(j = 0; j < dim; j++) {
-                x0[j][i] += 2*x2[j];
-                x2[j] = x[j] + x2[j]*dt;
-            }
-            x2 = f(t, x2);
-            for(j = 0; j < dim; j++) {
-                x0[j][i] += x2[j];
-                x0[j][i] *= dt/6;
-                x0[j][i] += x0[j][i-1];
-            }
-            delete [] x;
-            delete [] x2;
-            return t;
-        }
-        public: static U* func(U* (*f)(U, U*), U t, U* x) {
-            return f(t,x);
-        }
-    };
-    public: template<DifferentialType Type> T* func(T t, T* x) {
-        return Diff<Type,T>::func(f, t, x);
-    }
-    public: template<DifferentialType Type> inline T Step(unsigned int i, T* (*f)(T, T*), T** x0, T t, T dt, unsigned int dim) {
-        this->f = f;
-        return Diff<Type,T>::Step(i, &Differential_1<T>::func<Type>, x0, t, dt, dim);
-    }
-};
 template<class T>  class Differential_2 {
     private: T* (*f)(T, T*);
-    private: template<DifferentialType Type, class U> class Diff;
-    private: template<class U> class Diff<DifferentialType::RK4, U> {
-        public: inline static void Solve(U* t, T* (*f)(T*), T** x0, T dt, unsigned int dim, unsigned int step) {
-            U* a;
-            U* x = new T[dim];
-            U* x2 = new T[dim];
-            U* v = new T[dim];
+    private: template<DifferentialType Type, class C> class Diff;
+    private: template<class C> class Diff<DifferentialType::RK4, C> {
+    public: inline static void Solve(T* t, T* (C::*f)(T*), T** x0, T dt, unsigned int dim, unsigned int step) {
+            T* a;
+            T* x = new T[dim];
+            T* x2 = new T[dim];
+            T* v = new T[dim];
             for(unsigned int i = 0; i < dim; i++)
                 v[i] = (x[i][1] - x[i][0])/dt;
-            U* v1 = new T[dim];
-            U* v2 = new T[dim];
-            U dt2 = dt/2;
-            U dt6 = dt/6;
+            T* v1 = new T[dim];
+            T* v2 = new T[dim];
+            T dt2 = dt/2;
+            T dt6 = dt/6;
             for(unsigned int i = 2, i1 = 1, j; i < step; i++, i1++) {
                 for(j = 0; j < dim; j++)
                     x[j] = x[j][i1];
@@ -125,14 +73,23 @@ template<class T>  class Differential_2 {
             delete [] v2;
         }
     };
-    private: template<class U> class Diff<DifferentialType::Verlet, U> {
-        public: inline static void Solve(U* t, T* (*f)(T*), T** x0, T dt, unsigned int dim, unsigned int step) {
-            U* a;
-            U* x2 = new U[dim];
+    private: template<class C> class Diff<DifferentialType::Verlet, C> {
+        public: inline static void Solve(C* owner, T* (C::*f)(T*), T* t, T** x0, T** v0, T dt, unsigned int dim, unsigned int step) {
+            T* a;
+            T* x1 = new T[dim];
+            T* x2 = new T[dim];
+            for(unsigned int j = 0; j < dim; j++) {
+                x2[j] = x0[j][0];
+                x1[j] = x2[j] - v0[j][0]*dt;
+            }
+            a = (owner->*f)(x2);
+            for(unsigned int j = 0; j < dim; j++)
+                x0[j][1] = x2[j] + dt*(v0[j][0] + dt*a[j]);
+
             for(unsigned int i = 2, i1=1, i2=0, j; i < step; i++, i1++, i2++) {
                 for(j = 0; j < dim; j++)
                     x2[j] = x0[j][i1];
-                a = f(x2);
+                a = (owner->*f)(x2);
                 for(j = 0; j < dim; j++)
                     x0[j][i] = 2*x2[j] - x0[j][i2] + dt*dt*a[j];
                 t[i] = t[i1]+dt;
@@ -140,11 +97,11 @@ template<class T>  class Differential_2 {
             delete [] x2;
         }
     };
-    public: template<DifferentialType Type> T* Solve(T* (*f)(T*), T** x0, T dt, unsigned int dim, unsigned int step) {
+    public: template<DifferentialType Type, class C> T* Solve(C* owner, T* (C::*f)(T*), T** x0, T** v0, T dt, unsigned int dim, unsigned int step) {
         T* t = new T[step];
-        t[0] = -dt;
-        t[1] = 0;
-        Diff<Type,T>::Solve(t, f, x0, dt, dim, step);
+        t[0] = 0;
+        t[1] = dt;
+        Diff<Type,C>::Solve(owner, f, t, x0, v0, dt, dim, step);
         return t;
     }
 };
