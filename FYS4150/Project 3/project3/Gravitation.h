@@ -132,6 +132,8 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
             if(owner->_length != length) {
                 auto body = owner->body;
                 unsigned int j = 0;
+                delete [] owner->t;
+                owner->t = new T[length];
                 while(body->next != body) {
                     body = body->next;
                     body->element->SetLength(length);
@@ -167,6 +169,7 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
         delete [] a;
         delete [] x;
         delete [] v;
+        delete [] t;
         delete body;
     }
     public: void Add(string name, T m, T x0[DIM], T v0[DIM]) {
@@ -256,6 +259,13 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
         return a;
     }
     public: void Print(ofstream& file) {
+        for(unsigned int i = 0; i < _length; i++) {
+            if(i)
+                file << '\t';
+            file << t[i];
+        }
+        file << endl;
+
         auto body = this->body;
         while(body != body->next) {
             if(body != this->body)
@@ -267,9 +277,9 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
     public: template<unsigned int x, unsigned int y> void Rotate(Body<T,DIM>* , Body<T,DIM>* , T* ) {
     }
     public: template<DifferentialType Type> void Run(T t, unsigned int n) {
-        T dt = t/(n+1);
+        T dt = t/(n-1);
         length = n;
-        this->template Solve<DifferentialType::Verlet>(this, &System<T,DIM>::Gravity, x, v, dt, width, n);
+        this->template Solve<Type>(this, &System<T,DIM>::Gravity, this->t, x, v, dt, width, n);
     }
 };
 
