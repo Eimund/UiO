@@ -2,6 +2,7 @@
 #define GRAVITATION_H
 
 #include <cmath>
+#include <fstream>
 #include <string>
 #include "Differential.h"
 
@@ -90,6 +91,25 @@ template<class T, unsigned int DIM> struct Body {
             delete [] v[i];
         }
     }
+    void Print(ofstream& file, unsigned int len) {
+        file << name;
+        for(unsigned int j = 0, i; j < DIM; j++) {
+            file << endl;
+            for(i = 0; i < len; i++) {
+                if(i)
+                    file << '\t';
+                file << x[j][i];
+            }
+        }
+        for(unsigned int j = 0, i; j < DIM; j++) {
+            file << endl;
+            for(i = 0; i < len; i++) {
+                if(i)
+                    file << '\t';
+                file << v[j][i];
+            }
+        }
+    }
     void SetLength(unsigned int len) {
         for(unsigned int i = 0; i < DIM; i++) {
             delete [] x[i];
@@ -99,7 +119,6 @@ template<class T, unsigned int DIM> struct Body {
             x[i][0] = x0[i];
             v[i][0] = v0[i];
         }
-
     }
 };
 template<class T, unsigned int DIM> class System : Differential_2<T> {
@@ -111,14 +130,15 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
         }
         public: unsigned int& operator = (const unsigned int& length) {
             if(owner->_length != length) {
-                auto body = owner->body->next;
+                auto body = owner->body;
+                unsigned int j = 0;
                 while(body->next != body) {
-                    body->element->SetLength(length);
-                    for(unsigned int i = 0; i < DIM; i++) {
-                        owner->x[i] = body->element->x[i];
-                        owner->v[i] = body->element->v[i];
-                    }
                     body = body->next;
+                    body->element->SetLength(length);
+                    for(unsigned int i = 0; i < DIM; i++, j++) {
+                        owner->x[j] = body->element->x[i];
+                        owner->v[j] = body->element->v[i];
+                    }
                 }
                 return owner->_length = length;
             }
@@ -197,47 +217,59 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
         T r = Distance(0, sat, pri);
         T v = sqrt(G*pri->m/r);
         if(D == CircularDirection::CW) {
-            sat->v[x][0] = v*(sat->x[y][0]-pri->x[y][0])/r;
-            sat->v[y][0] = v*(pri->x[x][0]-sat->x[x][0])/r;
+            sat->v[x][0] = v*(sat->x[y][0]-pri->x[y][0])/r + pri->v[x][0];
+            sat->v[y][0] = v*(pri->x[x][0]-sat->x[x][0])/r + pri->v[y][0];
         } else {
-            sat->v[x][0] = v*(pri->x[y][0]-sat->x[y][0])/r;
-            sat->v[y][0] = v*(sat->x[x][0]-pri->x[x][0])/r;
+            sat->v[x][0] = v*(pri->x[y][0]-sat->x[y][0])/r + pri->v[x][0];
+            sat->v[y][0] = v*(sat->x[x][0]-pri->x[x][0])/r + pri->v[x][0];
         }
+        sat->v0[x] = sat->v[x][0];
+        sat->v0[y] = sat->v[y][0];
         for(unsigned int i = 0; i < DIM-2; i++)
             alpha[i] *= -1;
         Rotate<x,y>(sat,pri,alpha);
         delete [] alpha;
     }
     private: T* Gravity(T* x) {
-        T diff;
+        T d,r, diff[DIM];
         auto b1 = body->next;
         decltype(b1) b2;
         for(unsigned int i = 0; i < width; i++)
             a[i] = 0;
         for(unsigned int i = 0, j, k, i1, j1; i < width; i+=DIM, b1=b1->next) {
             for(j=i+DIM, b2=b1->next; j < width; j+=DIM, b2=b2->next) {
+                r = 0;
                 for(k=0, i1=i, j1=j; k < DIM; k++, i1++, j1++) {
-                    diff = x[i1]-x[j1];
-                    if(diff > 0) {
-                        diff = G/(diff*diff);
-                        a[i1] -= diff*b2->element->m;
-                        a[j1] += diff*b1->element->m;
-                    } else if(diff <0){
-                        diff = G/(diff*diff);
-                        a[i1] += diff*b2->element->m;
-                        a[j1] -= diff*b1->element->m;
+                    diff[k] = x[i1]-x[j1];
+                    r += diff[k]*diff[k];
+                }
+                if(r) {
+                    r = G/(r*sqrt(r));
+                    for(k=0, i1=i, j1=j; k < DIM; k++, i1++, j1++) {
+                        d = r*diff[k];
+                        a[i1] -= d*b2->element->m;
+                        a[j1] += d*b1->element->m;
                     }
                 }
             }
         }
         return a;
     }
+    public: void Print(ofstream& file) {
+        auto body = this->body;
+        while(body != body->next) {
+            if(body != this->body)
+                file << endl;
+            body = body->next;
+            body->element->Print(file, _length);
+        }
+    }
     public: template<unsigned int x, unsigned int y> void Rotate(Body<T,DIM>* , Body<T,DIM>* , T* ) {
     }
     public: template<DifferentialType Type> void Run(T t, unsigned int n) {
         T dt = t/(n+1);
         length = n;
-        this->template Solve<DifferentialType::Verlet>(this, &System<T,DIM>::Gravity, x, v, dt, DIM, n);
+        this->template Solve<DifferentialType::Verlet>(this, &System<T,DIM>::Gravity, x, v, dt, width, n);
     }
 };
 

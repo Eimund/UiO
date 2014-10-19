@@ -75,17 +75,21 @@ template<class T>  class Differential_2 {
     };
     private: template<class C> class Diff<DifferentialType::Verlet, C> {
         public: inline static void Solve(C* owner, T* (C::*f)(T*), T* t, T** x0, T** v0, T dt, unsigned int dim, unsigned int step) {
+            T test;
             T* a;
-            T* x1 = new T[dim];
+            //T* x1 = new T[dim];
             T* x2 = new T[dim];
+
+            // Initial step
             for(unsigned int j = 0; j < dim; j++) {
                 x2[j] = x0[j][0];
-                x1[j] = x2[j] - v0[j][0]*dt;
+                //x1[j] = x2[j] - v0[j][0]*dt;
             }
             a = (owner->*f)(x2);
             for(unsigned int j = 0; j < dim; j++)
                 x0[j][1] = x2[j] + dt*(v0[j][0] + dt*a[j]);
 
+            // Continuing step
             for(unsigned int i = 2, i1=1, i2=0, j; i < step; i++, i1++, i2++) {
                 for(j = 0; j < dim; j++)
                     x2[j] = x0[j][i1];

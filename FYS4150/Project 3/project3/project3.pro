@@ -6,4 +6,3 @@ HEADERS += \
     Gravitation.h
 
 CONFIG += c++11
-
