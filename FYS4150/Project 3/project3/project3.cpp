@@ -68,6 +68,9 @@ int main() {
     file.open("RK4_Sun_and_Earth_100.dat");
     SolarSystem.Print(file);
     file.close();
+    file.open("RK4_Energy_momentum_100.dat");
+    SolarSystem.PrintEnergyMomentum(file);
+    file.close();
     time << 1000 << " & ";
     t0 = clock();
     SolarSystem.Run<DifferentialType::Verlet>(1, 1000);
@@ -75,13 +78,63 @@ int main() {
     t0 = clock();
     SolarSystem.Run<DifferentialType::RK4>(1, 1000);
     time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;
-    time << 100000000 << " & ";
+    auto earth = SolarSystem.Find("Earth");
+    auto sun = SolarSystem.Find("Sun");
+    earth->v[0][0] = sqrt(2*SolarSystem.G*sun->m/earth->x[0][0]);
+    earth->v[1][0] = 0;
+    SolarSystem.Run<DifferentialType::RK4>(100, 1000);
+    file.open("RK4_Sun_and_Earth_escape_1000.dat");
+    SolarSystem.Print(file);
+    file.close();
+    SolarSystem.GoesAround<0,1, CircularDirection::CCW>("Earth", "Sun");
+    /*time << 100000000 << " & ";
     t0 = clock();
     SolarSystem.Run<DifferentialType::Verlet>(1, 100000000);
     time << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
     t0 = clock();
     SolarSystem.Run<DifferentialType::RK4>(1, 100000000);
-    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;*/
+
+    SolarSystem.Add("Jupiter", 317.8, LIST(FLOAT){5.458104,0}, LIST(FLOAT){0,0});
+    SolarSystem.GoesAround<0,1, CircularDirection::CCW>("Jupiter", "Sun");
+
+    SolarSystem.Run<DifferentialType::Verlet>(13, 1000);
+    file.open("Verlet_Sun_Earth_Jupiter_1000.dat");
+    SolarSystem.Print(file);
+    file.close();
+    SolarSystem.Run<DifferentialType::RK4>(13, 1000);
+    file.open("RK4_Sun_Earth_Jupiter_1000.dat");
+    SolarSystem.Print(file);
+    file.close();
+    auto jupiter = SolarSystem.Find("Jupiter");
+    jupiter->m *= 10;
+    SolarSystem.Run<DifferentialType::Verlet>(13, 1000);
+    file.open("Verlet_Sun_Earth_10Jupiter_1000.dat");
+    SolarSystem.Print(file);
+    file.close();
+    SolarSystem.Run<DifferentialType::RK4>(13, 1000);
+    file.open("RK4_Sun_Earth_10Jupiter_1000.dat");
+    SolarSystem.Print(file);
+    file.close();
+    jupiter->m *= 10;
+    SolarSystem.Run<DifferentialType::Verlet>(13, 1000);
+    file.open("Verlet_Sun_Earth_100Jupiter_1000.dat");
+    SolarSystem.Print(file);
+    file.close();
+    SolarSystem.Run<DifferentialType::RK4>(13, 1000);
+    file.open("RK4_Sun_Earth_100Jupiter_1000.dat");
+    SolarSystem.Print(file);
+    file.close();
+    jupiter->m *= 10;
+    SolarSystem.Run<DifferentialType::Verlet>(13, 1000);
+    file.open("Verlet_Sun_Earth_1000Jupiter_1000.dat");
+    SolarSystem.Print(file);
+    file.close();
+    SolarSystem.Run<DifferentialType::RK4>(13, 1000);
+    file.open("RK4_Sun_Earth_1000Jupiter_1000.dat");
+    SolarSystem.Print(file);
+    file.close();
+    jupiter->m /= 1000;
 
     time.close();
 }

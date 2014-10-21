@@ -94,6 +94,10 @@ template<class T>  class Differential_2 {
                 }
                 t[i] = t[i1]+dt;
             }
+            unsigned int i1 = step-1;
+            unsigned int i2 = step-2;
+            for(unsigned int j = 0; j < dim; j++)
+                v0[j][i1] = v0[j][i2] + a[j]*dt;
             delete [] x2;
         }
     };

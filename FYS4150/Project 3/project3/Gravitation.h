@@ -13,6 +13,15 @@ enum class CircularDirection {
     CCW
 };
 
+template<class T> struct Null {
+    static const T value;
+};
+template<class T> const T Null<T>::value = 0;
+template<class T> struct Null<T*> {
+    static const T* value;
+};
+template<class T> const T* Null<T*>::value = nullptr;
+
 template<class T> struct Array {
     T element;
     Array<T>* prev;
@@ -25,7 +34,7 @@ template<class T> struct Array {
         if(next != this)
             delete next;
     }
-    Array<T>* operator[] (const int i) {
+    T operator[] (const int i) {
         if(prev != this) {
             if(i) {
                 if(i > 0)
@@ -33,10 +42,10 @@ template<class T> struct Array {
                 else
                     return (*prev)[i+1];
             }
-            return this;
+            return this->element;
         } else if(next != this)
             return (*next)[i];
-        return nullptr;
+        return (T)Null<T>::value;
     }
     Array<T>* Index (const int i) {
         if(prev != this) {
@@ -152,7 +161,7 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
     };
     public: _length_ length;
     private: unsigned int width;
-    private: T G;
+    public: T G;
     private: T* t, *a;
     private: T** x, **v;
     private: Array<Body<T,DIM>*>* body;
@@ -186,8 +195,8 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
 
         for(unsigned int i = 0, j, k = 0; i < len; i++, k+=DIM) {
             for(j = 0; j < DIM; j++) {
-                x[k+j] = (*body)[i]->element->x[j];
-                v[k+j] = (*body)[i]->element->v[j];
+                x[k+j] = (*body)[i]->x[j];
+                v[k+j] = (*body)[i]->v[j];
             }
         }
     }
@@ -272,6 +281,51 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
                 file << endl;
             body = body->next;
             body->element->Print(file, _length);
+        }
+    }
+    public: void PrintEnergyMomentum(ofstream& file) {
+        for(unsigned int i = 0; i < _length; i++) {
+            if(i)
+                file << '\t';
+            file << t[i];
+        }
+        file << endl;
+
+        T value;
+        for(unsigned int i = 0; i < _length; i++) {
+            value = 0;
+            for(unsigned int j = 0; j < body->Length(); j++) {
+                for(unsigned int k = 0; k < DIM; k++)
+                    value += 0.5*(*body)[j]->m*(*body)[j]->v[k][i]*(*body)[j]->v[k][i];
+            }
+            if(i)
+                file << '\t';
+            file << value;
+        }
+        file << endl;
+
+        for(unsigned int i = 0; i < _length; i++) {
+            for(unsigned int j = 0; j < body->Length()-1; j++) {
+                value = 0;
+                for(unsigned int k = j+1; k < body->Length(); k++)
+                    value -= G*(*body)[j]->m*(*body)[k]->m/Distance(i,(*body)[j], (*body)[k]);
+                if(i)
+                    file << '\t';
+                file << value;
+            }
+        }
+
+
+        for(unsigned int k = 0; k < DIM; k++) {
+            file << endl;
+            for(unsigned int i = 0; i < _length; i++) {
+                value = 0;
+                for(unsigned int j = 0; j < body->Length(); j++)
+                    value += (*body)[j]->m*(*body)[j]->v[k][i];
+                if(i)
+                    file << '\t';
+                file << value;
+            }
         }
     }
     public: template<unsigned int x, unsigned int y> void Rotate(Body<T,DIM>* , Body<T,DIM>* , T* ) {
