@@ -335,6 +335,21 @@ template<class T, unsigned int DIM> class System : Differential_2<T> {
         length = n;
         this->template Solve<Type>(this, &System<T,DIM>::Gravity, this->t, x, v, dt, width, n);
     }
+    public: void ZeroMomentum(string body) {
+        auto b = Find(body);
+        for(unsigned int i = 0; i < DIM; i++) {
+            b->v0[i] = 0;
+            auto s = this->body;
+            do {
+                s = s->next;
+                if(s->element != b)
+                    b->v0[i] -= s->element->m*s->element->v0[i];
+
+            } while(s != s->next);
+            b->v0[i] /= b->m;
+            b->v[i][0] = b->v0[i];
+        }
+    }
 };
 
 #endif // GRAVITATION_H
