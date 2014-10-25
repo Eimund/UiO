@@ -1,0 +1,550 @@
+\documentclass[11pt,english,a4paper]{article}
+\include{mitt_oppsett}
+\usepackage{fullpage}
+
+\renewcommand\title{FYS4150 - Computational Physics - Project 3}
+
+\renewcommand\author{Eimund Smestad}
+%\newcommand\adress{}
+\renewcommand\date{\today}
+\newcommand\email{\href{mailto:eimundsm@fys.uio.no}{eimundsm@fys.uio.no}}
+
+%\lstset{language=[Visual]C++,caption={Descriptive Caption Text},label=DescriptiveLabel}
+\lstset{language=c++}
+\lstset{basicstyle=\small}
+\lstset{backgroundcolor=\color{white}}
+\lstset{frame=single}
+\lstset{stringstyle=\ttfamily}
+\lstset{keywordstyle=\color{black}\bfseries}
+\lstset{commentstyle=\itshape\color{black}}
+\lstset{showspaces=false}
+\lstset{showstringspaces=false}
+\lstset{showtabs=false}
+\lstset{breaklines}
+
+\begin{document}
+\maketitle
+\begin{flushleft}
+
+\begin{abstract}
+In this project I have simulated the solar system by solving the Newton's law of gravitation with the Verlet and RK4 method for second order ODE's. Computation time, accuracy and stability are considered.
+\end{abstract}
+
+\section{Newton's law of gravitation}
+
+Newton's law of gravitation force $F$ between two bodies of masses $m$ and $M$ with a distance $r$ between them are given by
+
+\begin{align}
+F = G \frac{m M}{r^2}
+\label{eq_1}
+\end{align}
+
+where $G = 6.67384\E{-11}\unit{\bfrac{m^3}{kg\cdot s^2}}$ is the gravitational constant. The gravitational force acts in radial direction between the bodies towards each other. Assuming the bodies are coplanar and using Newton's second law of motion $F=ma$ in Cartesian coordinates $r^2=\sum_{i=1}^2 {x_i}^2$ we can write
+
+\begin{align*}
+\frac{\mathrm{d}^2 x_i}{\mathrm{d}t^2} = \frac{F_i}{m} \qquad \text{for } i\in\mathbb{N}_1^2
+\end{align*}
+
+where the subscript $i$ indicates the Cartesian coordinate number for body $m$. This can be written as set of coupled first order differential equations
+
+\begin{align*}
+\frac{\mathrm{d}\varv_i}{\mathrm{d}t} = \frac{F_i}{m} \qquad \text{and} \qquad
+\frac{\mathrm{d}x_i}{\mathrm{d}t} = \varv_i \qquad \text{for } i\in\mathbb{N}_1^2\,.
+\end{align*}
+
+We need to have initial conditions for the bodies, and we should know the initial position. But we also need an initial velocity as well to define the system. If we assume that the body $m$ goes around $M$ we can guess the initial velocity with the centripetal force
+
+\begin{align*}
+F = \frac{m\varv^2}{r} \,,
+\end{align*}
+
+which applies for circular motion. Combining the centripetal force with Newton's law of gravitation \eqref{eq_1} we can now calculate the velocity
+
+\begin{align*}
+\varv = \pm \sqrt{\frac{GM}{r}} \,,
+\end{align*}
+
+where we need to decide direction of the tangential velocity $\varv$. From this we can find the initial velocity. \linebreak
+
+If we have many bodies that interact with gravitational force on each other, then the force $\vec{F}_i$ that acts on the body $i$ adds the the gravitational force $\vec{F}_{ij}$ from the other bodies $j$ as follows
+
+\begin{align*}
+\vec{F}_i = \sum_j \vec{F}_{ij}\,.
+\end{align*}
+
+The radial escape velocity $\varv_e$ of $m$ from $M$ can be derived from \eqref{eq_1} by using Newton's second law $F=ma$, which gives us the following equation to start with
+
+\begin{align*}
+\frac{\mathrm{d}^2 r}{\mathrm{d}t^2} = \frac{\mathrm{d}\varv_r}{\mathrm{d}t} = \frac{\mathrm{d}\varv_r}{\mathrm{d}r}\frac{\mathrm{d}r}{\mathrm{d}t} = \varv_r \frac{\mathrm{d}\varv_r}{\mathrm{d}r} =  - G \frac{M}{r^2} \,,
+\end{align*}
+
+where the minus sign comes from the fact that the force acts in opposite direction of motion. We can integrate up this expression as follows
+
+\begin{align*}
+\int_{\varv_0}^{\varv_r} \varv_r\,\mathrm{d}\varv_r = - GM \int_{r_0}^r \frac{\mathrm{d}r}{r^2} \,,
+\end{align*}
+
+which leads to the radial velocity
+
+\begin{align*}
+\varv_r = \sqrt{{\varv_0}^2 + 2GM\p{\frac{1}{r}-\frac{1}{r_0}}}\,.
+\end{align*}
+
+The escape velocity $\varv_e$ is given when the expression in the square root is zero and $r\to \infty$;
+
+\begin{align*}
+\lim_{r\to \infty}{\varv_0}^2 + 2GM\p{\frac{1}{r}-\frac{1}{r_0}} = 0 \,, 
+\end{align*}
+
+which gives
+
+\begin{align}
+\varv_e = \sqrt{\frac{2GM}{r_0}}\,.
+\label{eq_2}
+\end{align}
+
+Note that the escape velocity $\varv_e$ is independent of the mass $m$ of the escaping body, but depends on the mass $M$ of the body that it tries to escape. 
+
+\section{Numerical methods}
+
+In this section we will discretize the following equation set
+
+\begin{align}
+\frac{\mathrm{d}x}{\mathrm{d}t} = \varv\p{x,t} \qquad \text{and} \qquad \frac{\mathrm{d}\varv}{\mathrm{d}t} = a\p{x,t} \,.
+\label{eq_3}
+\end{align}
+
+\subsection{Verlet algorithm}
+
+Using Taylor expansion of $x\p{t}$ with a step size $\Delta t$ forward and backwards yields
+
+\begin{align}
+x\p{t\pm\Delta t} = \sum_{i=0}^{\infty} \frac{\T{x}{(i)}\p{t}}{i!}\p{\pm\Delta t}^i \,,
+\label{eq_4}
+\end{align}
+
+where $\frac{\mathrm{d}^i x}{\mathrm{d}t^i} = \T{x}{(i)}\p{t}$. Adding the forward and backward expansion yields
+
+\begin{align*}
+x\p{t+\Delta t} + x\p{t-\Delta t} = 2\sum_{i=0}^{\infty} \frac{\T{x}{(2i)}\p{t}}{(2i)!}\Delta t^{2i} \,.
+\end{align*}
+
+This can be discretized as 
+
+\begin{align}
+x_{i+1} = 2 x_i - x_{i-1} + a_i \Delta t^2 \qquad \text{for } i\in\mathbb{N}_0 \text{ and given $x_0$ and $x_{-1}$,}
+\label{eq_5}
+\end{align}
+
+which has a local truncation error $\mathcal{O}\p{\Delta t^4}$. Usually we have the initial condition $x_0$, however we might have initial velocity $\varv_0$ instead of $x_{-1}$. To resolve this we may us the backward Euler scheme
+
+\begin{align*}
+\frac{x_0 - x_{-1}}{\Delta t} = \T{x}{(1)}_0 = \varv_0 \,,
+\end{align*}
+
+which yields
+
+\begin{align*}
+x_{-1} = x_0 - \varv_0 \Delta t\,,
+\end{align*}
+
+and the initial step is then given by
+
+\begin{align}
+x_{1} = x_0 + \varv_{0}\Delta t + a_0 \Delta t^2
+\label{eq_6}
+\end{align}
+
+The discretization of the velocity $\varv$ can be done by first subtracting the forward and backward expansion in \eqref{eq_4}:
+
+\begin{align*}
+x\p{t+\Delta t} - x\p{t-\Delta t} = 2\sum_{i=0}^{\infty} \frac{\T{x}{(2i+1)}}{\p{2i+1}!}\Delta t^{2i+1}
+\end{align*}
+
+which leads to
+
+\begin{align}
+\varv_i = \frac{x_{i+1}-x_{i-1}}{2\Delta t} 
+\label{eq_7}
+\end{align}
+
+with local truncation error $\mathcal{O}\p{\Delta x^2}$. We face a similar problem when calculating the last point of velocity $\varv_{n-1}$ as we did for the initial step of $x_1$, I resolve this by using the following forward Euler scheme
+
+\begin{align}
+\varv_{n-1} = \varv_{n-2} + a_{n-2}\Delta t \,.
+\label{eq_8}
+\end{align}
+
+\subsection{Second order ODE with RK4}
+
+We start by do polynomial interpolation with Lagrange polynomials of the points $\p{t_i,a_i}$ with $i\in\mathbb{N}_0^2$; 
+
+\begin{align*}
+p\p{t} = \sum_{i=0}^2 a_i\prod_{\scriptsize\begin{matrix}0\leq j \leq n \\ j\neq i\end{matrix}}^n\frac{t-t_j}{t_i-t_j} \,,
+\end{align*}
+
+where $a_i = a\p{t_i,x_i}$. Integrating this polynomial with the endpoints $t_0$ and $t_2$ ans choosing $t_1=\frac{t_0+t_2}{2}$ as the midpoint, we get;
+
+\begin{align*}
+\int_{t_0}^{t_2} p\p{t}\,\mathrm{d}t = \frac{t_2-t_0}{6}\p{a_0 + 4 a_1 + a_2}\,.
+\end{align*}
+
+When we discretize this integral we get the velocity steps
+
+\begin{align*}
+\varv_{i+1} = \varv_i + \frac{\Delta t}{6}\p{a_{i} + 4 a_{i+1/2} + a_{i+1}} \,,
+\end{align*}
+
+with $\mathcal{O}\p{\Delta t^5}$ truncation error. We can approximate this difference equation with the so called RK4 method
+
+\begin{align}
+\varv_{i+1} &= \varv_i + \frac{\Delta t}{6}\p{a_i+2 k_{\varv1} + 2 k_{\varv2} + k_{\varv3}}
+\label{eq_9}\\
+k_{\varv1} &= a\p{t_i+\frac{\Delta t}{2},x_i + \frac{\Delta t}{2}a_i}
+\label{eq_10}\\
+k_{\varv2} &= a\p{t_i+\frac{\Delta t}{2},x_i + \frac{\Delta t}{2} k_{\varv1}}
+\label{eq_11}\\
+k_{\varv3} &= a\p{t_i+\Delta t,x_i + \Delta t k_{\varv2}} \,.
+\label{eq_12}
+\end{align}
+
+We can do similar discretization with for position steps
+
+\begin{align*}
+x_{i+1} = x_i + \frac{\Delta t}{6}\p{\varv_{i} + 4 \varv_{i+1/2} + \varv_{i+1}} \,,
+\end{align*}
+
+and the RK4 approximation yields
+
+\begin{align}
+x_{i+1} &= x_i + \frac{\Delta t}{6}\p{\varv_i+2 k_{x1} + 2 k_{x2} + k_{x3}}
+\label{eq_13}\\
+k_{x1} &=  \varv_i + \frac{\Delta t}{2} a_i
+\label{eq_14}\\
+k_{x2} &= \varv_i + \frac{\Delta t}{2} k_{\varv1}
+\label{eq_15}\\
+k_{x3} &= \varv_i + \Delta t k_{\varv2} \,.
+\label{eq_16}
+\end{align}
+
+\section{Numerical implementation}
+
+I have made a \texttt{template<class T> class Differential\_2} that contains both the Verlet  and RK4 solver. The solvers are accessed through the \texttt{Differential\_2::Solve}
+
+\begin{lstlisting}[title={\texttt{Differential\_2::Solve}}]
+public: template<DifferentialType Type, class C> void Solve(C* owner, T* (C::*f)(T*), T* t, T** x0, T** v0, T dt, unsigned int dim, unsigned int step) {
+	/* owner - the owner of the data
+	*  f - callback function to calculate forces
+	*  t - array to the time steps
+	*  x0 - array to all the position components for all the bodies for every time step. Initial value should be set at x0[i][0] prior to call
+	*  v0 - array for all the velocity components for all the bodies for every time step. Initial value should be set at x0[i][0] prior to call
+	*  dim - number of vector components times number of bodies (width of the arrays)
+	*  step - number of time steps (length of the arrays)
+	*/
+	
+	t[0] = 0;
+	t[1] = dt;
+	Diff<Type,C>::Solve(owner, f, t, x0, v0, dt, dim, step);
+}
+\end{lstlisting}
+
+This function takes a function pointer as an argument to able to execute force calculation inside the Verlet and RK4 solver. This is a generic implementation of the solvers and can execute any type of calculation, instead of force calculation. Note that all the bodies are solve at once inside these solvers. To tell which solver you want to use, you send is with the template argument \texttt{DifferentialType}.
+
+\begin{lstlisting}[title={\texttt{enum DifferentialType}}]
+enum class DifferentialType {
+	RK4,
+	Verlet
+};
+\end{lstlisting}
+
+The \texttt{Differential\_2::Solve} is partially specialized by \texttt{template<DifferentialType Type, class C> class Diff} to give the different solvers.
+
+\begin{lstlisting}[title={\texttt{Differential\_2::Diff<DifferentialType::Verlet,C>::Solve}}]
+inline static void Solve(C* owner, T* (C::*f)(T*), T* t, T** x0, T** v0, T dt, unsigned int dim, unsigned int step) {
+	T* a;
+	T* x2 = new T[dim];
+	
+	// Initial step
+	for(unsigned int j = 0; j < dim; j++)
+		x2[j] = x0[j][0];
+	a = (owner->*f)(x2);
+	for(unsigned int j = 0; j < dim; j++)
+		x0[j][1] = x2[j] + dt*(v0[j][0] + dt*a[j]);	// eq 6
+	
+	// Continuing step
+	for(unsigned int i = 2, i1=1, i2=0, j; i < step; i++, i1++, i2++) {
+		for(j = 0; j < dim; j++)
+			x2[j] = x0[j][i1];
+		a = (owner->*f)(x2);
+		for(j = 0; j < dim; j++) {
+			x0[j][i] = 2*x2[j] - x0[j][i2] + dt*dt*a[j];// eq 5
+			v0[j][i1] = (x0[j][i]-x0[j][i2])/(2*dt); // eq 7
+		}
+		t[i] = t[i1]+dt;
+	}
+	
+	// Last step
+	unsigned int i1 = step-1;
+	unsigned int i2 = step-2;
+	for(unsigned int j = 0; j < dim; j++)
+		v0[j][i1] = v0[j][i2] + a[j]*dt;	// eq 8
+	delete [] x2;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[title={\texttt{Differential\_2::Diff<DifferentialType::RK4,C>::Solve}}]
+inline static void Solve(C* owner, T* (C::*f)(T*), T* t, T** x0, T** v0, T dt, unsigned int dim, unsigned int step) {
+	T* a;
+	T* x = new T[dim];
+	T* x2 = new T[dim];
+	T* v = new T[dim];
+	T* v2 = new T[dim];
+	T dt2 = dt/2;
+	T dt6 = dt/6;
+	
+	for(unsigned int i = 1, i1 = 0, j; i < step; i++, i1++) {
+		for(j = 0; j < dim; j++) {
+			x[j] = x0[j][i1];
+			v[j] = v0[j][i1];		// v_i
+		}
+		a = (owner->*f)(x);			// a_i
+		for(j = 0; j < dim; j++) {
+			x0[j][i] = v[j];
+			v0[j][i] = a[j];
+			x2[j] = x[j] + v[j]*dt2;	
+			v2[j] = v[j] + a[j]*dt2;	// k_x1 (eq 14)
+		}
+		a = (owner->*f)(x2);			// k_v1 (eq 10)
+		for(j = 0; j < dim; j++) {
+			x0[j][i] += 2*v2[j];
+			v0[j][i] += 2*a[j];
+			x2[j] = x[j] + v2[j]*dt2;
+			v2[j] = v[j] + a[j]*dt2;	// k_x2 (eq 15)
+		}
+		a = (owner->*f)(x2);			// k_v2 (eq 11)
+		for(j = 0; j < dim; j++) {
+			x0[j][i] += 2*v2[j];
+			v0[j][i] += 2*a[j];
+			x2[j] = x[j] + v2[j]*dt;
+			v2[j] = v[j] + a[j]*dt;		//k_x3 (eq 16)
+		}
+		a = (owner->*f)(x2);			// k_v3 (eq 12)
+		for(j = 0; j < dim; j++) {
+			x0[j][i] += v2[j];
+			x0[j][i] *= dt6;
+			x0[j][i] += x[j];		// x_(i+1) (eq 13)
+			v0[j][i] += a[j];
+			v0[j][i] *= dt6;
+			v0[j][i] += v[j]; 		// v_(i+1) (eq 9)
+		}
+		t[i] = t[i1]+dt;
+	}
+	delete [] x;
+	delete [] v;
+	delete [] x2;
+	delete [] v2;
+}
+\end{lstlisting}
+
+This project is about solving the solar system, and therefore I made \texttt{template<class T, unsigned int DIM> class System : Differential\_2<T>} which is a class which contains a collection of bodies that interact with each other through gravitation, \eqref{eq_1}. The \texttt{System} class has been prepared to support arbitrary number of spatial vector components through the template argument \texttt{DIM}. The \texttt{System} class inherits from \texttt{Differential\_2<T>} which enables it to use the Verlet or RK4 solver to simulate the solar system.
+
+\begin{lstlisting}[title={\texttt{System::Run}}]
+template<DifferentialType Type> void Run(T t, unsigned int n) {
+	T dt = t/(n-1);
+	length = n;
+	this->template Solve<Type>(this, &System<T,DIM>::Gravity, this->t, x, v, dt, width, n);
+}
+\end{lstlisting}
+
+We see that \texttt{System::Gravity} is used as callback function to Verlet or RK4 solvers, which calculates acceleration of all the bodies at once.
+
+\begin{lstlisting}[title={\texttt{System::Gravity}}]
+T* Gravity(T* x) {
+	T d,r, diff[DIM];
+	auto b1 = body->next;
+	decltype(b1) b2;
+	for(unsigned int i = 0; i < width; i++)
+		a[i] = 0;	// Reset force
+		
+	for(unsigned int i = 0, j, k, i1, j1; i < width; i+=DIM, b1=b1->next) {
+		for(j=i+DIM, b2=b1->next; j < width; j+=DIM, b2=b2->next) {
+			r = 0;
+			
+			// Calculate distance between two bodies
+			for(k=0, i1=i, j1=j; k < DIM; k++, i1++, j1++) {
+				diff[k] = x[i1]-x[j1];
+				r += diff[k]*diff[k];	
+			}
+			if(r) {
+				r = G/(r*sqrt(r));
+				// Calculate the acceleration component k for both bodies 
+				for(k=0, i1=i, j1=j; k < DIM; k++, i1++, j1++) {
+					d = r*diff[k];			
+					a[i1] -= d*b2->element->m;	
+					a[j1] += d*b1->element->m;	
+				}
+			}
+		}
+	}
+	return a;
+}
+\end{lstlisting}
+
+The planets are stored in an costume made array \texttt{Array<Body<T,DIM>*>* body} which does not need to reallocate memory when a new element is added. Each planet have an object to \texttt{template<class T, unsigned int DIM> struct Body} to represent it self. \text{Array} contains the array element and pointer to the previous and next element. This pointers enables just to insert a new element to the array by just rearranging the neighboring elements pointers.
+
+\begin{lstlisting}[title={struct Array}]
+template<class T> struct Array {
+	T element;
+	Array<T>* prev;
+	Array<T>* next;
+	Array() {
+		prev = this;
+		next = this;
+	}
+	~Array() {
+		if(next != this)
+			delete next;
+	}
+	T operator[] (const int i) {
+		if(prev != this) {
+			if(i) {
+				if(i > 0)
+					return (*next)[i-1];
+				else
+					return (*prev)[i+1];
+			}
+			return this->element;
+		} else if(next != this)
+			return (*next)[i];
+		return (T)Null<T>::value;
+	}
+	void Add(T element) {
+		if(next != this)
+			next->Add(element);
+		else {
+			next = new Array<T>;
+			next->prev = this;
+			next->next = next;
+			next->element = element;
+		}
+	}
+	int Length() {
+		if(next != this)
+			return next->Length()+1;
+		return 0;
+	}
+};
+\end{lstlisting}
+
+\section{Result}
+
+\figur{1}{Verlet_sun_earth.eps}{Simulation of the orbit for the earth and sun system only, where the Verlet solver is used for different number of steps $n$. The initial velocity for the earth is assumed from the centripetal acceleration, and the sun's initial velocity is zero.}{fig1}
+
+\figur{1}{Verlet_sun_earth_vel.eps}{Simulation of the periodicity for the earth and sun system only, where the Verlet solver is used for different number of steps $n$. The initial velocity for the earth is assumed from the centripetal acceleration, and the sun's initial velocity is zero.}{fig2}
+\newpage
+
+\figur{1}{RK4_sun_earth.eps}{Simulation of the orbit for the earth and sun system only, where the RK4 solver is used for different number of steps $n$. The initial velocity for the earth is assumed from the centripetal acceleration, and the sun's initial velocity is zero.}{fig3}
+\newpage 
+
+\figur{1}{RK4_sun_earth_vel.eps}{Simulation of the periodicity for the earth and sun system only, where the RK4 solver is used for different number of steps $n$. The initial velocity for the earth is assumed from the centripetal acceleration, and the sun's initial velocity is zero.}{fig4}
+\newpage 
+
+\figur{0.8}{RK4_sun.eps}{Simulation of the sun's movment for the earth and sun system only, where the RK4 solver is used for different number of steps $n$. The initial velocity for the earth is assumed from the centripetal acceleration, and the sun's initial velocity is zero. The orbit of the sun does not return to initial position because the initial momentum for the earth and sun system is not zero.}{fig5}
+\newpage
+
+\figur{0.8}{RK4_sun_vel.eps}{Simulation of the sun's periodicity for the earth and sun system only, where the RK4 solver is used for different number of steps $n$. The initial velocity for the earth is assumed from the centripetal acceleration, and the sun's initial velocity is zero.}{fig6}
+\newpage
+
+\figur{0.8}{RK4_sun_earth_energy_momentum.eps}{This plot shows the conservation of energy and momentum for the earth and sun system with a RK4 solver. The initial velocity for the earth is assumed from the centripetal acceleration, and the sun's initial velocity is zero.}{fig7}
+
+\figur{0.8}{RK4_earth_escape.eps}{The initial radial velocity calculated from \eqref{eq_2}, where $M$ is the mass of the sun and $r_0$ is the distance between the earth and sun.}{fig8}
+
+\begin{tabell}{|rIc|c|}{\small}{$n$ & Verlet & RK4 \\}{\input{build-project3-Desktop-Debug/time.dat}}{Computation time for the earth and sun system. RK4 is about 4 times slower than the Verlet solver with the same number of steps $n$. This comes from the fact that RK4 calculates the forces 4 times for each time step, where as Verlet calculates only one time.}{tab1}
+\end{tabell}
+
+\figur{1}{Verlet_sun_earth_jupiter.eps}{Simulation of the orbit for the sun, earth and Jupiter system only with different masses of Jupiter, where the Verlet solver is used. The initial velocity for the earth and Jupiter is assumed from the centripetal acceleration, and the sun's initial velocity is such that the systems initial momentum is zero.}{fig9}
+
+\figur{1}{Verlet_sun_earth_jupiter_vel.eps}{Simulation of the periodicity for the sun, earth and Jupiter system only with different masses of Jupiter, where the Verlet solver is used. The initial velocity for the earth and Jupiter is assumed from the centripetal acceleration, and the sun's initial velocity is such that the systems initial momentum is zero.}{fig10}
+\newpage
+
+\figur{1}{RK4_sun_earth_jupiter.eps}{Simulation of the orbit for the sun, earth and Jupiter system only with different masses of Jupiter, where the RK4 solver is used. The initial velocity for the earth and Jupiter is assumed from the centripetal acceleration, and the sun's initial velocity is such that the systems initial momentum is zero.}{fig11}
+\newpage
+
+\figur{1}{RK4_sun_earth_jupiter_vel.eps}{Simulation of the periodicity for the sun, earth and Jupiter system only with different masses of Jupiter, where the RK4 solver is used. The initial velocity for the earth and Jupiter is assumed from the centripetal acceleration, and the sun's initial velocity is such that the systems initial momentum is zero.}{fig12}
+\newpage
+
+\figur{1}{Verlet_SolarSystem.eps}{Simulation of the orbits for the solar system, where the Verlet solver is used. The initial velocity for the plantes is assumed from the centripetal acceleration, and the sun's initial velocity is such that the solar systems initial momentum is zero.}{fig13}
+\newpage
+
+\figur{1}{Verlet_SolarSystem_vel.eps}{Simulation of the periodicity for the solar system, where the Verlet solver is used. The initial velocity for the plantes is assumed from the centripetal acceleration, and the sun's initial velocity is such that the solar systems initial momentum is zero.}{fig14}
+\newpage
+
+\figur{1}{RK4_SolarSystem.eps}{Simulation of the orbits for the solar system, where the RK4 solver is used. The initial velocity for the plantes is assumed from the centripetal acceleration, and the sun's initial velocity is such that the solar systems initial momentum is zero.}{fig15}
+\newpage
+
+\figur{1}{RK4_SolarSystem_vel.eps}{Simulation of the periodicity for the solar system, where the RK4 solver is used. The initial velocity for the plantes is assumed from the centripetal acceleration, and the sun's initial velocity is such that the solar systems initial momentum is zero.}{fig16}
+
+\begin{tabell}{|rIc|c|}{\small}{$n$ & Verlet & RK4 \\}{\input{build-project3-Desktop-Debug/time2.dat}}{Computation time for the solar system. RK4 is about 4 times slower than the Verlet solver with the same number of steps $n$. This comes from the fact that RK4 calculates the forces 4 times for each time step, where as Verlet calculates only one time.}{tab2}
+\end{tabell}
+
+\newpage
+
+\section{Conclusion}
+
+The results for the solution of the solar system does not give an accurate representation of the actual solar system. The plants have a more elliptic orbit, and this is clearly evident from the orbit of Pluto. This is due to poor initial condition of the velocity. I have only used the centripetal acceleration as assumption of to find the initial velocity, which would result in a perfect circular motion in a two-body system. However the aim for this project is to study Verlet and RK4 method for solving second order ODE's. \linebreak
+
+We see from \reffig{fig1} and \reffig{fig3} that RK4 converges faster to the correct solution than the Verlet method. This comes from the fact that Verlet method has a local truncation error of order 4, where as the RK4 is of order 5. However the RK4 has an unpleasant side affect when we use it in a gravitational problem, and that is that the error tends to make the body spiral inwards. This we can see a tendency of in the first plot in \reffig{fig3}, where the earth's rotation is counter-clockwise. For the simulation for the whole solar system it showed that for to large time step with RK4, Mercury was thrown out of the solar system after few orbits around the sun. This was due to the decreasing orbit Mercury, which accelerated it to reach the escape velocity. The Verlet solver did not have this problem. We can see the reason for this in \reffig{fig1}, where the error tends to spiral outwards, however slowly and no dramatic changes happens like it did for the RK4 solver. For this reason the stability to solve a gravitational problem is better with the Verlet solver than the RK4 solver. And for the solar system a better approximation was reached with fewer time steps with the Verlet method than with the RK4, even though the RK4 has higher order of accuracy. \linebreak
+
+Another advantage for the Verlet method is the speed. As seen from \reftab{tab1} and \reftab{tab2} the Verlet method is about 4 times faster than RK4 method with the same number of time steps. And the time scalability of the Verlet method is also better, where we see from \reftab{tab1} and \reftab{tab2}, when we increased with 8 bodies in the system, the computation time only increased 8 times with the same number of time steps. Whereas for the RK4 method the scalability was not as good, where the computation time increased 9 times when we added 8 bodies.
+
+\section{Attachments}
+
+The files produced in working with this project can be found at \href{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%203/project3}{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%203/project3}.\linebreak
+
+The source files developed are
+
+\begin{enumerate}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%203/project3/Differential.h}{Differential.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%203/project3/Gravitation.h}{Gravitation.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%203/project3/project3.cpp}{project3.cpp}}
+\end{enumerate}
+
+\section{Resources}
+
+\begin{enumerate}
+\item{\href{http://qt-project.org/downloads}{QT Creator 5.3.1 with C11}}
+\item{\href{https://www.eclipse.org/downloads/}{Eclipse Standard/SDK  - Version: Luna Release (4.4.0) with PyDev for Python}}
+\item{\href{http://www.ubuntu.com/download/desktop}{Ubuntu 14.04.1 LTS}}
+\item{\href{http://shop.lenovo.com/no/en/laptops/thinkpad/w-series/w540/#tab-reseller}{ThinkPad W540 P/N: 20BG0042MN with 32 GB RAM}}
+\end{enumerate}
+
+\begin{thebibliography}{1}
+\bibitem{project3}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-3--deadline-october-20/project3_2014.pdf}{\emph{FYS4150 - Project 3}} - \emph{Building a model for the solar system}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{NewtonGravitation}\href{http://en.wikipedia.org/wiki/Newton\%27s\_law\_of\_universal\_gravitation}{http://en.wikipedia.org/wiki/Newton\%27s\_law\_of\_universal\_gravitation}
+\bibitem{G}\href{http://en.wikipedia.org/wiki/Gravitational\_constant}{http://en.wikipedia.org/wiki/Gravitational\_constant}
+\bibitem{AU}\href{http://en.wikipedia.org/wiki/Astronomical\_unit}{http://en.wikipedia.org/wiki/Astronomical\_unit}
+\bibitem{Year}\href{http://en.wikipedia.org/wiki/Year}{http://en.wikipedia.org/wiki/Year}
+\bibitem{F=ma}\href{http://en.wikipedia.org/wiki/Newton\%27s\_laws\_of\_motion\#Newton.27s\_second\_law}{http://en.wikipedia.org/wiki/Newton\%27s\_laws\_of\_motion\#Newton.27s\_second\_law}
+\bibitem{Centripetal}\href{http://en.wikipedia.org/wiki/Centripetal\_force}{http://en.wikipedia.org/wiki/Centripetal\_force}
+\bibitem{Escape}\href{http://en.wikipedia.org/wiki/Escape\_velocity}{http://en.wikipedia.org/wiki/Escape\_velocity}
+\bibitem{Taylor}\href{http://en.wikipedia.org/wiki/Taylor\_series}{http://en.wikipedia.org/wiki/Taylor\_series}
+\bibitem{LagrangePolynomial}\href{http://en.wikipedia.org/wiki/Lagrange\_polynomial}{http://en.wikipedia.org/wiki/Lagrange\_polynomial}
+\bibitem{PolynomialInterpolation}\href{http://en.wikipedia.org/wiki/Polynomial\_interpolation}{http://en.wikipedia.org/wiki/Polynomial\_interpolation}
+\bibitem{Simpson}\href{http://en.wikipedia.org/wiki/Simpson\%27s\_rule}{http://en.wikipedia.org/wiki/Simpson\%27s\_rule}
+\bibitem{RK}\href{http://en.wikipedia.org/wiki/Runge\%E2\%80\%93Kutta\_methods}{http://en.wikipedia.org/wiki/Runge\%E2\%80\%93Kutta\_methods}
+\bibitem{Verlet}\href{http://en.wikipedia.org/wiki/Verlet\_integration}{http://en.wikipedia.org/wiki/Verlet\_integration}
+\bibitem{Sun}\href{http://en.wikipedia.org/wiki/Sun}{http://en.wikipedia.org/wiki/Sun}
+\bibitem{Mercury}\href{http://en.wikipedia.org/wiki/Mercury\_\%28planet\%29}{http://en.wikipedia.org/wiki/Mercury\_\%28planet\%29}
+\bibitem{Venus}\href{http://en.wikipedia.org/wiki/Venus}{http://en.wikipedia.org/wiki/Venus}
+\bibitem{Earth}\href{http://en.wikipedia.org/wiki/Earth}{http://en.wikipedia.org/wiki/Earth}
+\bibitem{Mars}\href{http://en.wikipedia.org/wiki/Mars}{http://en.wikipedia.org/wiki/Mars}
+\bibitem{Jupiter}\href{http://en.wikipedia.org/wiki/Jupiter}{http://en.wikipedia.org/wiki/Jupiter}
+\bibitem{Saturn}\href{http://en.wikipedia.org/wiki/Saturn}{http://en.wikipedia.org/wiki/Saturn}
+\bibitem{Uranus}\href{http://en.wikipedia.org/wiki/Uranus}{http://en.wikipedia.org/wiki/Uranus}
+\bibitem{Neptune}\href{http://en.wikipedia.org/wiki/Neptune}{http://en.wikipedia.org/wiki/Neptune}
+\bibitem{Pluto}\href{http://en.wikipedia.org/wiki/Pluto}{http://en.wikipedia.org/wiki/Pluto}
+\end{thebibliography}
+
+\end{flushleft}
+\end{document}

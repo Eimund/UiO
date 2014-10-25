@@ -1,0 +1,1746 @@
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[titles]{tocloft}
+\usepackage[auth-sc]{authblk}
+\usepackage[usenames]{color}
+\usepackage[document]{ragged2e}
+\usepackage{babel}
+\usepackage[dvips]{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{accents}
+\usepackage{verbatim}
+\usepackage[nodayofweek]{datetime}
+\usepackage{epic,eepic}
+\usepackage[mathscr]{euscript}
+\usepackage{gastex}
+\usepackage{supertabular}
+\usepackage{nextpage}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{url}
+\usepackage{leftidx}
+\usepackage{ifthen,calc}
+\usepackage{varioref, ifthen}
+\usepackage{stmaryrd}
+\usepackage{wasysym}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{gensymb}
+\usepackage{ifsym}
+\usepackage{trfsigns}
+\usepackage{txfonts}
+\usepackage{chemarrow}
+\usepackage{textcomp}
+\usepackage{cancel}
+\usepackage{extarrows}
+\usepackage{rotating}
+\usepackage{varioref}
+\usepackage{slashed}
+\usepackage{setspace}
+\PassOptionsToPackage{hyphens}{url}\usepackage[dvips,letterpaper,linktocpage,hidelinks=true,colorlinks=true]{hyperref}
+\usepackage{multirow}
+\usepackage{fancyhdr}
+\usepackage{pstricks}
+\usepackage{pst-node}
+\usepackage{pst-blur}
+\usepackage{xypic}
+\input xy
+\xyoption{all}
+
+% Tekst kommandoer
+\newcommand{\sitat}[1]{\textquotedblleft{#1}\textquotedblright} 
+\newcommand{\anf}[1]{\textquotedbl{#1}\textquotedbl}
+
+% Matematikk kommandoer
+\newcommand{\ans}[1]{\underline{\underline{\,#1\,}}}
+\newcommand{\p}[1]{\left({#1}\right)}
+\newcommand{\kl}[1]{\left[{#1}\right]}
+\newcommand{\bag}[1]{\Lbag{#1}\Rbag}
+\newcommand{\Det}[1]{\left|{#1}\right|}
+\newcommand{\Norm}[1]{\left\Vert{#1}\right\Vert}
+\newcommand{\abs}[1]{\left\vert{\,#1\,}\right\vert}
+\newcommand{\ceil}[1]{\left\lceil{\,#1\,}\right\rceil}
+\newcommand{\floor}[1]{\left\lfloor{\,#1\,}\right\rfloor}
+\newcommand{\kr}[1]{\left\lbrace{#1}\right\rbrace}
+\let\vec\relax
+\newcommand{\vec}[1]{\accentset{\rightarrow}{#1}}
+\let\Vec\relax
+\newcommand{\Vec}[2]{\accentset{#2\rightarrow}{#1}}
+\newcommand{\T}[2]{\accentset{#2}{#1}}
+\newcommand{\U}[2]{\underaccent{#2}{#1}}
+\newcommand{\TU}[3]{\underaccent{#3}{\accentset{#2}{#1}}}
+\newcommand{\grad}{\vec{\nabla}}
+\newcommand{\Grad}[1]{\Vec{\nabla}{#1}}
+\newcommand{\fvec}[1]{\vec{\mathrm{#1}}}
+\newcommand{\vvec}[1]{\accentset{\rightrightarrows}{#1}}
+\newcommand{\vek}[1]{\mathbf{#1}}
+\newcommand{\Vek}[1]{\vec{\vek{#1}}}
+\newcommand{\ivec}{\hat{\boldsymbol{\imath}}}
+\newcommand{\jvec}{\hat{\boldsymbol{\jmath}}}
+\newcommand{\kvec}{\hat{\boldsymbol{k}}}
+\newcommand{\rhovec}{\hat{\boldsymbol{\rho}}}
+\newcommand{\thetavec}{\hat{\boldsymbol{\theta}}}
+\newcommand{\phivec}{\hat{\boldsymbol{\phi}}}
+\newcommand{\unit}[1]{\,[\,\mathrm{#1}\,]}
+\newcommand{\pow}[2]{{#1}^{#2}}
+\newcommand{\ppow}[2]{\p{#1}^{#2}}
+\newcommand{\abspow}[2]{\abs{#1}^{#2}}
+\newcommand{\klpow}[2]{\pow{\kl{#1}}{#2}}
+\newcommand{\krpow}[2]{\pow{\kr{#1}}{#2}}
+\newcommand{\E}[1]{\times \pow{10}{#1}}
+\newcommand{\Exp}[1]{\pow{\e}{#1}}
+\newcommand{\snitt}[1]{\left\langle{\,#1\,}\right\rangle}
+\newcommand{\D}[3]{\frac{\mathrm{d}^{#3}{#1}}{\mathrm{d}{#2}^{#3}}}
+\let\P\relax
+\newcommand{\P}[3]{\frac{\partial^{#3}{#1}}{\partial{#2}^{#3}}}
+\newcommand{\I}[4]{\int_{\,#1}^{\,#2} {#3} \, \mathrm{d}{#4}}
+\newcommand{\II}[4]{\int_{\,#1}^{\,#2} {#3} \, \boldsymbol{\mathrm{d}}{#4}}
+\newcommand{\bfrac}[2]{{#1}\,/\,{#2}}
+\newcommand{\mberegn}[1]{\qquad\p{\,#1\,}}
+\newcommand{\bra}[1]{\langle\,#1\,\vert}
+\newcommand{\ket}[1]{\,\vert\,#1\,\rangle}
+\newcommand{\braket}[2]{\langle\,#1\,\vert\,#2\,\rangle}
+\newcommand{\ketbra}[2]{\vert\,#1\,\rangle\,\langle\,#2\,\vert}
+\newcommand{\Sim}[1]{\begin{matrix}\scriptsize{\text{#1}}\normalsize\\\sim\\\end{matrix}}
+\newcommand{\norm}[1]{\Vert\,#1\,\Vert}
+\newcommand{\Op}[1]{\hat{\mathrm{#1}}}
+\newcommand{\OP}[1]{\hat{\mathbf{#1}}}
+\newcommand{\set}[2]{\left. #1 \right\vert_{#2}}
+\def\presuper#1#2{\mathop{}\mathopen{\vphantom{#2}}^{#1}\kern-\scriptspace#2}
+\newcommand{\nlessdot}{\,\slashed{\lessdot}\,}
+\newcommand{\verden}{\textbf{?}}
+\newcommand{\fantasi}{\reflectbox{\verden}}
+\newcommand{\hyperverden}{\reflectbox{\rotatebox[origin=lc]{180}{\verden}}}
+\newcommand{\jeg}{\textcircled{\scriptsize{I}}}
+\newcommand{\rightlefteqEA}{ \,\TU{\rightleftharpoons}{\hspace{-4pt}\exists}{\hspace{4pt}\forall}\,}
+\newcommand{\nmapsto}{\displaystyle\mapsto\hspace{-11.5pt}\arrownot\hspace{10.5pt}}
+\newcommand{\nmapsfrom}{\displaystyle\mapsfrom\hspace{-10pt}\arrownot\hspace{9pt}}
+\newcommand{\maptofrom}{\displaystyle\leftrightarrow\hspace{-7pt}\mmapstochar\hspace{6pt}}
+\newcommand{\nmaptofrom}{\displaystyle\leftrightarrow\hspace{-7pt}\mmapstochar\hspace{-5pt}\Arrownot\hspace{11pt}}
+\newcommand{\mapstofrom}{\begin{array}{c}\displaystyle\mapsto\\[-9pt]\displaystyle\mapsfrom\end{array}}
+\newcommand{\mapsfromto}{\begin{array}{c}\displaystyle\mapsfrom\\[-9pt]\displaystyle\mapsto\end{array}}
+\declareslashed{}{$$ \mbox{\tiny $\boldsymbol{/}$ } $$}{0.01}{0}{\mapsto}
+\declareslashed{}{$$ \mbox{\tiny $\boldsymbol{/}$ } $$}{0.13}{0}{\mapsfrom}
+\newcommand{\nmapstofrom}{\begin{array}{c}\displaystyle\slashed\mapsto\\[-9pt]\displaystyle\slashed\mapsfrom\end{array}}
+\newcommand{\rightleftarrowtail}{\begin{array}{c}\displaystyle\rightarrowtail\\[-9pt]\displaystyle\leftarrowtail\end{array}}
+\newcommand{\leftrightarrowtail}{\begin{array}{c}\displaystyle\leftarrowtail\\[-9pt]\displaystyle\rightarrowtail\end{array}}
+\newcommand{\rightleftsquigarrows}{\begin{array}{c}\displaystyle\rightsquigarrow\\[-9pt]\displaystyle\leftsquigarrow\end{array}}
+\newcommand{\leftrightsquigarrows}{\begin{array}{c}\displaystyle\leftsquigarrow\\[-9pt]\displaystyle\rightsquigarrow\end{array}}
+\newcommand{\leftrightdiamondarrow}{\displaystyle\leftrightarrow\hspace{-11.1pt}\diamond\hspace{5pt}}
+\newcommand{\tworightarrowsTF}[2]{
+	\mathrel{-\hspace{-0.3mm}\vcenter{
+		\xymatrix@!=1pc@*[r]@C=0ex@R=2ex@M=0ex@W=0ex
+		{
+			& & #1 \\
+			& \ar@{<->}'[l]^{\mathtt{F}}'[lu]'[lur]^{\mathtt{T}}  &	#2}}}}
+%\newcommand{\paradoks}{\mathtt{P}}
+%\newcommand{\toparadoks}{\xrightarrow{\paradoks}}
+\newcommand{\Set}[1]{\boldsymbol{\mathrm{#1}}}
+\newcommand{\eq}[1]{$\begin{matrix}{#1}\end{matrix}$}
+\newcommand{\upp}{\hspace{0.2ex}{^{\wedge}}\hspace{0.2ex}}
+\newcommand{\asinh}{\mathrm{asinh}}
+\newcommand{\sgn}{\mathrm{sgn}}
+\newcommand{\Forall}{\mathop{\vphantom{\sum}\mathchoice
+  {\vcenter{\hbox{\huge $\forall$}}}
+  {\vcenter{\hbox{\Large $\forall$}}}{\forall}{\forall}}\displaylimits}
+\newcommand{\Recursion}{\mathop{\vphantom{\sum}\mathchoice
+  {\vcenter{\hbox{\huge $\Omega$}}}
+  {\vcenter{\hbox{\Large $\Omega$}}}{\Omega}{\Omega}}\displaylimits}
+\newcommand{\SW}{\mathop{\vphantom{\sum}\mathchoice
+  {\vcenter{\hbox{\huge $\Xi$}}}
+  {\vcenter{\hbox{\Large $\Xi$}}}{\Xi}{\Xi}}\displaylimits}
+\newcommand{\Rightleftarrowtail}[2]{\T{\T{\mathop{\rightleftarrowtail}}{\vspace{-5pt}#1}}{\vspace{-24pt}#2}}
+\newcommand{\Leftrightarrowtail}[2]{\T{\T{\mathop{\leftrightarrowtail}}{\vspace{-5pt}#1}}{\vspace{-24pt}#2}}
+
+\def\kvadratsum{\,\textcircled{$\mathsf{c}$}\,}
+
+% Elektromagnetisme kommandoer
+\def\ems{\xi}
+\newcommand{\RaisingEdge}{\textifsym{L|H}}
+
+% Astrofysikk kommandoer
+\def\Earth{\varoplus}
+\def\Sun{\astrosun}
+
+% Kjemi
+\newcommand{\nuklide}[2]{$^{#2}\mathrm{#1}$}
+\newcommand{\molekyl}[1]{$\mathrm{#1}$}
+
+\delimitershortfall=-1pt
+
+\definecolor{light-gray}{gray}{0.95}
+%---------------------------------------------------------------------------------------------------------
+\renewcommand\maketitle{
+\begin{center}
+\LARGE\textsc{\title\ifx \rev \undefined  \else \, - \rev \fi} \normalsize \linebreak
+
+\textsc{\author} \linebreak
+\small
+\ifx \adress \undefined \else \textsc{\adress} \linebreak \fi
+\textsc{Email:} \texttt{\email}\linebreak
+\textsc{\date} \linebreak
+\rule{\textwidth}{2pt}
+\end{center}
+}
+%---------------------------------------------------------------------------------------------------------
+\newcounter{referanse}
+\newcommand\reference[2]{\refstepcounter{referanse} \begin{tabular}{p{0.5cm}p{\textwidth - 0.5cm}}[\thereferanse] & {#1} \end{tabular}\label{#2}}
+\newcommand\REF[1]{[\ref{#1}]}
+%---------------------------------------------------------------------------------------------------------
+%part
+
+\makeatletter
+\let\OLDpart = \part
+\def\part{\@ifstar\unnumberedpart\numberedpart}
+\def\numberedpart{\@ifnextchar[%]
+  \numberedpartwithtwoarguments\numberedpartwithoneargument}
+\def\unnumberedpart{\@ifnextchar[%]
+  \unnumberedpartwithtwoarguments\unnumberedpartwithoneargument}
+\def\numberedpartwithoneargument#1{\numberedpartwithtwoarguments[#1]{#1}}
+\def\unnumberedpartwithoneargument#1{\unnumberedpartwithtwoarguments[#1]{#1}}
+\def\numberedpartwithtwoarguments[#1]#2{%
+  \ifhmode\par\fi
+  \removelastskip
+  \vskip 3ex\goodbreak
+  \refstepcounter{part}%
+  \noindent
+  \begingroup
+  \leavevmode\huge\bfseries\raggedright
+  \thepart\quad 
+  #2
+  \par
+  \endgroup
+  \vskip 2ex\nobreak
+  \setcounter{section}{0}
+  \addcontentsline{toc}{part}{%
+    \protect\numberline{\thepart}%
+    #1}%
+  }
+\def\unnumberedpartwithtwoarguments[#1]#2{%
+  \ifhmode\par\fi
+  \removelastskip
+  \vskip 3ex\goodbreak
+    \refstepcounter{part}%
+  \noindent
+  \begingroup
+  \leavevmode\huge\bfseries\raggedright
+  \leavevmode\huge\bfseries\raggedright
+  %\thepart\quad 
+  #2
+  \par
+  \endgroup
+  \vskip 2ex\nobreak
+  \setcounter{section}{0}
+  \addcontentsline{toc}{part}{%
+    %\protect\numberline{\thepart}%
+    #1}%
+}
+\makeatother
+
+%---------------------------------------------------------------------------------------------------------
+
+% section
+
+\makeatletter
+\let\OLDsection = \section
+\def\section{\@ifstar\unnumberedsection\numberedsection}
+\def\numberedsection{\@ifnextchar[%]
+  \numberedsectionwithtwoarguments\numberedsectionwithoneargument}
+\def\unnumberedsection{\@ifnextchar[%]
+  \unnumberedsectionwithtwoarguments\unnumberedsectionwithoneargument}
+\def\numberedsectionwithoneargument#1{\numberedsectionwithtwoarguments[#1]{#1}}
+\def\unnumberedsectionwithoneargument#1{\unnumberedsectionwithtwoarguments[#1]{#1}}
+\def\numberedsectionwithtwoarguments[#1]#2{%
+  \ifhmode\par\fi
+  \removelastskip
+  \vskip 3ex\goodbreak
+  \refstepcounter{section}%
+  \noindent
+  \begingroup
+  \leavevmode\Large\bfseries\raggedright
+  \thesection\quad 
+  #2
+  \par
+  \endgroup
+  \vskip 2ex\nobreak
+  \addcontentsline{toc}{section}{%
+    \protect\numberline{\thesection}%
+    #1}%
+  }
+\def\unnumberedsectionwithtwoarguments[#1]#2{%
+  \ifhmode\par\fi
+  \removelastskip
+  \vskip 3ex\goodbreak
+    \refstepcounter{section}%
+  \noindent
+  \begingroup
+  \leavevmode\Large\bfseries\raggedright
+  \leavevmode\Large\bfseries\raggedright
+  %\thesection\quad 
+  #2
+  \par
+  \endgroup
+  \vskip 2ex\nobreak
+  \addcontentsline{toc}{section}{%
+    %\protect\numberline{\thesection}%
+    #1}%
+}
+\makeatother
+
+%---------------------------------------------------------------------------------------------------------
+% subsection
+
+\makeatletter
+\let\OLDsubsection = \subsection
+\def\subsection{\@ifstar\unnumberedsubsection\numberedsubsection}
+\def\numberedsubsection{\@ifnextchar[%]
+  \numberedsubsectionwithtwoarguments\numberedsubsectionwithoneargument}
+\def\unnumberedsubsection{\@ifnextchar[%]
+  \unnumberedsubsectionwithtwoarguments\unnumberedsubsectionwithoneargument}
+\def\numberedsubsectionwithoneargument#1{\numberedsubsectionwithtwoarguments[#1]{#1}}
+\def\unnumberedsubsectionwithoneargument#1{\unnumberedsubsectionwithtwoarguments[#1]{#1}}
+\def\numberedsubsectionwithtwoarguments[#1]#2{%
+  \ifhmode\par\fi
+  \removelastskip
+  \vskip 3ex\goodbreak
+  \refstepcounter{subsection}%
+  \noindent
+  \begingroup
+  \leavevmode\large\bfseries\raggedright
+  \thesubsection\quad 
+  #2
+  \par
+  \endgroup
+  \vskip 2ex\nobreak
+  \addcontentsline{toc}{subsection}{%
+    \protect\numberline{\thesubsection}%
+    #1}%
+  }
+\def\unnumberedsubsectionwithtwoarguments[#1]#2{%
+  \ifhmode\par\fi
+  \removelastskip
+  \vskip 3ex\goodbreak
+    \refstepcounter{subsection}%
+  \noindent
+  \begingroup
+  \leavevmode\large\bfseries\raggedright
+  \leavevmode\large\bfseries\raggedright
+  %\thesection\quad 
+  #2
+  \par
+  \endgroup
+  \vskip 2ex\nobreak
+  \addcontentsline{toc}{subsection}{%
+    %\protect\numberline{\thesection}%
+    #1}%
+}
+\makeatother
+
+% subsubsection
+
+\makeatletter
+\let\OLDsubsubsection = \subsubsection
+\def\subsubsection{\@ifstar\unnumberedsubsubsection\numberedsubsubsection}
+\def\numberedsubsubsection{\@ifnextchar[%]
+  \numberedsubsubsectionwithtwoarguments\numberedsubsubsectionwithoneargument}
+\def\unnumberedsubsubsection{\@ifnextchar[%]
+  \unnumberedsubsubsectionwithtwoarguments\unnumberedsubsubsectionwithoneargument}
+\def\numberedsubsubsectionwithoneargument#1{\numberedsubsubsectionwithtwoarguments[#1]{#1}}
+\def\unnumberedsubsubsectionwithoneargument#1{\unnumberedsubsubsectionwithtwoarguments[#1]{#1}}
+\def\numberedsubsubsectionwithtwoarguments[#1]#2{%
+  \ifhmode\par\fi
+  \removelastskip
+  \vskip 3ex\goodbreak
+  \refstepcounter{subsubsection}%
+  \noindent
+  \begingroup
+  \leavevmode\normalsize\bfseries\raggedright
+  \thesubsubsection\quad 
+  #2
+  \par
+  \endgroup
+  \vskip 2ex\nobreak
+  \addcontentsline{toc}{subsubsection}{%
+    \protect\numberline{\thesubsubsection}%
+    #1}%
+  }
+\def\unnumberedsubsubsectionwithtwoarguments[#1]#2{%
+  \ifhmode\par\fi
+  \removelastskip
+  \vskip 3ex\goodbreak
+    \refstepcounter{subsubsection}%
+  \noindent
+  \begingroup
+  \leavevmode\normalsize\bfseries\raggedright
+  \leavevmode\normalsize\bfseries\raggedright
+  %\thesection\quad 
+  #2
+  \par
+  \endgroup
+  \vskip 2ex\nobreak
+  \addcontentsline{toc}{subsubsection}{%
+    %\protect\numberline{\thesection}%
+    #1}%
+}
+\makeatother
+
+% subsubsubsection
+\makeatletter
+\newcounter{subsubsubsection}[subsubsection]
+\def\subsubsubsectionmark#1{}
+\def\thesubsubsubsection {\thesubsubsection.\arabic{subsubsubsection}}
+\def\subsubsubsection{\@startsection{subsubsubsection}{4}{\z@} {-3.25ex plus -1ex minus -.2ex}{1.5ex plus .2ex}{\normalsize\bf}}
+\def\l@subsubsubsection{\@dottedtocline{4}{4.8em}{4.2em}}
+\makeatother
+
+
+
+% section depth
+\setcounter{secnumdepth}{6}
+\setcounter{tocdepth}{6}
+
+%---------------------------------------------------------------------------------------------------------
+% Appendix
+
+\newcounter{appendix}[part]
+\renewcommand \theappendix{\Alph{appendix}}
+\newcounter{subappendix}[appendix]
+\renewcommand \thesubappendix{\theappendix.\arabic{subappendix}}
+\newcounter{subsubappendix}[subappendix]
+\renewcommand \thesubsubappendix{\thesubappendix.\arabic{subsubappendix}}
+
+\newcommand{\Appendix}[1]
+{
+	\ifthenelse{\value{appendix} = 0}
+	{
+		\renewcommand \thesection{\theappendix}
+		\renewcommand \thesubsection{\theappendix.\arabic{subsection}}
+		\renewcommand \thesecsetning{\rev.\theappendix.\arabic{secsetning}}
+		\renewcommand \thesubsetning{\rev.\thesubappendix.\arabic{subsetning}}		
+		\renewcommand \thesubsubsetning{\rev.\thesubsubappendix.\arabic{subsubsetning}}
+		\renewcommand \thekode{\rev.\theappendix.\arabic{seckode}}
+		\renewcommand \thesubkode{\rev.\thesubappendix.\arabic{subkode}}		
+		\renewcommand \thesubsubkode{\rev.\thesubsubappendix.\arabic{subsubkode}}
+	}{}
+	\refstepcounter{appendix}
+	\section*{Appendix \theappendix:\quad #1}
+}
+\newcommand{\subAppendix}[1]{\refstepcounter{subappendix}\subsection*{\thesubappendix\quad #1}}
+\newcommand{\subsubAppendix}[1]{\refstepcounter{subsubappendix}\subsubsection*{\thesubsubappendix\quad #1}}
+\newcommand\refapp[1]{Appendix: \ref{#1}}
+%---------------------------------------------------------------------------------------------------------
+
+% Definisjon/Setning boks
+
+\newcommand{\mengde}[2]{\mathbb{#1}_{\text{\ref{#2}}}}
+\newcommand{\hypermengde}[2]{\boldsymbol{\mathrm{#1}}_{\text{\ref{#2}}}}
+\newcommand{\funk}[2]{\mathcal{#1}_{\text{\ref{#2}}}}
+\newcommand{\refS}[2]{$\mathcal{#1}$:\ref{#2}}
+\newcommand{\refT}[1]{$\lbrace\ref{#1}\rbrace$}
+\newcommand{\refpos}[1]{$\mathcal{P}$:\ref{#1}}
+\newcommand{\mathpos}[1]{\mathcal{P}_{\text{\ref{#1}}}}
+\newcommand{\refspes}[1]{$\mathcal{S}$:\ref{#1}}
+\newcommand{\mathspes}[1]{\mathcal{S}_{\text{\ref{#1}}}}
+
+\newcounter{setning}[part]
+\renewcommand \thesetning{\ifx \rev \undefined \arabic{setning} \else \rev.\arabic{setning} \fi }
+\newcounter{secsetning}[section]
+\renewcommand \thesecsetning{\ifx \rev \undefined \thesection.\arabic{secsetning} \else \rev.\thesection.\arabic{secsetning} \fi }
+\newcounter{subsetning}[subsection]
+\renewcommand \thesubsetning{\ifx \rev \undefined \thesubsection.\arabic{subsetning} \else \rev.\thesubsection.\arabic{subsetning} \fi }
+\newcounter{subsubsetning}[subsubsection]
+\renewcommand \thesubsubsetning{\ifx \rev \undefined \thesubsubsection.\arabic{subsubsetning} \else \rev.\thesubsubsection.\arabic{subsubsetning} \fi }
+\newcounter{partsetning}[part]
+\renewcommand \thepartsetning{\ifx \rev \undefined \thepart.\arabic{partsetning} \else \rev.\thepart.\arabic{partsetning} \fi }
+\newcounter{partsecsetning}[section]
+\renewcommand \thepartsecsetning{\ifx \rev \undefined \thepart.\thesection.\arabic{partsecsetning} \else \rev.\thepart.\thesection.\arabic{partsecsetning} \fi }
+\newcounter{partsubsetning}[subsection]
+\renewcommand \thepartsubsetning{\ifx \rev \undefined \thepart.\thesubsection.\arabic{partsubsetning} \else \rev.\thepart.\thesubsection.\arabic{partsubsetning} \fi }
+\newcounter{partsubsubsetning}[subsubsection]
+\renewcommand \thepartsubsubsetning{\ifx \rev \undefined \thepart.\thesubsubsection.\arabic{partsubsubsetning} \else \rev.\thepart.\thesubsubsection.\arabic{partsubsubsetning} \fi }
+
+\newsavebox{\nr}
+\newsavebox{\fcolbox}
+\newenvironment{Setning}[3]
+{%
+	\sbox\nr{\scriptsize\emph{#2}}
+    \vspace{0.25cm}%
+	\setlength{\fboxrule}{0.3mm}%
+	\setlength{\fboxsep}{3mm}%
+	%
+	\scriptsize #3 \normalsize 
+	\begin{lrbox}{\fcolbox}%
+	\begin{minipage}{\textwidth-0.7cm}%
+%	%
+	\ifthenelse{\value{part} = 0} %
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%
+			\refstepcounter{setning}%
+			\textbf{\thesetning~#1~~}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{secsetning}%
+				\textbf{\thesecsetning~#1~~}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{subsetning}%
+					\textbf{\thesubsetning~#1~~}%
+				}%
+				{%
+					\refstepcounter{subsubsetning}%
+					\textbf{\thesubsubsetning~#1~~}%
+					
+				}%
+			}%
+		}%
+	}%
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%						
+			\refstepcounter{partsetning}%
+			\textbf{\thepartsetning~#1~~}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{partsecsetning}%
+				\textbf{\thepartsecsetning~#1~~}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{partsubsetning}%
+					\textbf{\thepartsubsetning~#1~~}%
+				}%
+				{%
+					\refstepcounter{partsubsubsetning}%
+					\textbf{\thepartsubsubsetning~#1~~}%
+				}%
+			}%
+		}%
+	}%
+}%
+{%
+	\vspace{-0.9cm}
+	\begin{flushright}%
+		\usebox{\nr}%
+	\end{flushright}%	
+	\vspace{-0.5cm}%
+	\end{minipage}%
+	\end{lrbox}\fbox{\usebox{\fcolbox}}%
+    
+	%\end{mbox}
+	\vspace{0.3cm}%
+}%
+
+%---------------------------------------------------------------------------------------------------------
+\newcommand\Setn[1] {
+	\ifthenelse{\value{part} = 0} %
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%
+			\refstepcounter{setning}%
+			\textbf{#1 \thesetning~~}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{secsetning}%
+				\textbf{#1 \thesecsetning~~}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{subsetning}%
+					\textbf{#1 \thesubsetning~~}%
+				}%
+				{%
+					\refstepcounter{subsubsetning}%
+					\textbf{#1 \thesubsubsetning~~}%
+					
+				}%
+			}%
+		}%
+	}%
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%						
+			\refstepcounter{partsetning}%
+			\textbf{#1 \thepartsetning~~}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{partsecsetning}%
+				\textbf{#1 \thepartsecsetning~~}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{partsubsetning}%
+					\textbf{#1 \thepartsubsetning~~}%
+				}%
+				{%
+					\refstepcounter{partsubsubsetning}%
+					\textbf{#1 \thepartsubsubsetning~~}%
+				}%
+			}%
+		}%
+	}%
+}%
+
+% Bevis innramming
+
+\newenvironment{Bevis}[1]%
+{%
+	\sbox\nr{\scriptsize\emph{Q.E.D. #1}}	
+	\vspace{0.25cm}%
+	\textbf{Bevis #1}%
+	\par \nointerlineskip \vspace{0.1cm}%
+	\rule{\textwidth}{0.4pt}%
+	\par \nointerlineskip \vspace{0.3cm}%
+	%\begin{minipage}{\textwidth}%
+}%
+{%
+	%\end{minipage}%
+	\begin{flushright}%
+		\par \nointerlineskip
+		\rule{\textwidth}{0.4pt}%
+		\par \nointerlineskip \vspace{0.1cm}%
+		\usebox{\nr}%
+	\end{flushright}%
+	\vspace{-0.2cm}%
+}%
+
+\newenvironment{Proof}[1]%
+{%
+	\sbox\nr{\scriptsize\emph{Q.E.D. #1}}	
+	\vspace{0.25cm}%
+	\textbf{Proof #1}%
+	\par \nointerlineskip \vspace{0.1cm}%
+	\rule{\textwidth}{0.4pt}%
+	\par \nointerlineskip \vspace{0.3cm}%
+	%\begin{minipage}{\textwidth}%
+}%
+{%
+	%\end{minipage}%
+	\begin{flushright}%
+		\par \nointerlineskip
+		\rule{\textwidth}{0.4pt}%
+		\par \nointerlineskip \vspace{0.1cm}%
+		\usebox{\nr}%
+	\end{flushright}%
+	\vspace{-0.2cm}%
+}%
+
+% Eksempel innramming
+
+\newcounter{eksempel}[part]
+\renewcommand \theeksempel{\rev.\arabic{eksempel}}
+\newcounter{seceksempel}[section]
+\renewcommand \theseceksempel{\rev.\thesection.\arabic{seceksempel}}
+\newcounter{subeksempel}[subsection]
+\renewcommand \thesubeksempel{\rev.\thesubsection.\arabic{subeksempel}}
+\newcounter{subsubeksempel}[subsubsection]
+\renewcommand \thesubsubeksempel{\rev.\thesubsubsection.\arabic{subsubeksempel}}
+\newcounter{parteksempel}[part]
+\renewcommand \theparteksempel{\rev.\thepart.\arabic{parteksempel}}
+\newcounter{partseceksempel}[section]
+\renewcommand \thepartseceksempel{\rev.\thepart.\thesection.\arabic{partseceksempel}}
+\newcounter{partsubeksempel}[subsection]
+\renewcommand \thepartsubeksempel{\rev.\thepart.\thesubsection.\arabic{partsubeksempel}}
+\newcounter{partsubsubeksempel}[subsubsection]
+\renewcommand \thepartsubeksempel{\rev.\thepart.\thesubsubsection.\arabic{partsubsubeksempel}}
+
+\newenvironment{Eksempel}[1]%
+{%
+	\sbox\nr{\scriptsize\emph{Eksempel #1}}	
+	\vspace{0.25cm}%
+	\textbf{Eksempel #1}%
+	\par \nointerlineskip \vspace{0.1cm}%
+	\rule{\textwidth}{0.4pt}%
+	\par \nointerlineskip \vspace{0.3cm}%
+	%\begin{minipage}{\textwidth}%
+}%
+{%
+	%\end{minipage}%
+	\begin{flushright}%
+		\par \nointerlineskip
+		\rule{\textwidth}{0.4pt}%
+		\par \nointerlineskip \vspace{0.1cm}%
+		\usebox{\nr}%
+	\end{flushright}%
+	\vspace{-0.2cm}%
+}%
+
+\newenvironment{Example}[1]%
+{%
+	\sbox\nr{\scriptsize\emph{Example} 
+	\ifthenelse{\value{part} = 0} %
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%
+			\refstepcounter{eksempel}%
+			\textit{\theeksempel}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{seceksempel}%
+				\textit{\theseceksempel}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{subeksempel}%
+					\textit{\thesubeksempel}%
+				}%
+				{%
+					\refstepcounter{subsubeksempel}%
+					\textit{\thesubsubeksempel}%
+				}%
+			}%
+		}%
+	}%
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%						
+			\refstepcounter{parteksempel}%
+			\textit{\theparteksempel}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{partseceksempel}%
+				\textit{\thepartseceksempel}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{partsubeksempel}%
+					\textit{\thepartsubeksempel}%
+				}%
+				{%
+					\refstepcounter{partsubsubeksempel}%
+					\textit{\thepartsubsubeksempel}%
+				}%
+			}%
+		}%
+	}%	
+	}%
+		
+	\vspace{0.25cm}%
+	\ifthenelse{\value{part} = 0} %
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%
+			\textbf{Example \theeksempel :~#1}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\textbf{Example \theseceksempel :~#1}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\textbf{Example \thesubeksempel :~#1}%
+				}%
+				{%
+					\textbf{Example \thesubsubeksempel :~#1}%
+				}%
+			}%
+		}%
+	}%
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%						
+			\textbf{Example \theparteksempel :~#1}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\textbf{Example \thepartseceksempel :~#1}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\textbf{Example \thepartsubeksempel :~#1}%
+				}%
+				{%
+					\textbf{Example \thepartsubsubeksempel :~#1}%
+				}%
+			}%
+		}%
+	}%
+	\par \nointerlineskip \vspace{0.1cm}%
+	\rule{\textwidth}{0.4pt}%
+	\par \nointerlineskip \vspace{0.3cm}%
+	%\begin{minipage}{\textwidth}%
+}%
+{%
+	%\end{minipage}%
+	\begin{flushright}%
+		\par \nointerlineskip
+		\rule{\textwidth}{0.4pt}%
+		\par \nointerlineskip \vspace{0.1cm}%
+		\usebox{\nr}%
+	\end{flushright}%
+	\vspace{-0.2cm}%
+}%
+
+%---------------------------------------------------------------------------------------------------------
+
+% Oppsett av dokumentet
+
+\tolerance = 5000 % LaTeX er normalt streng når det gjelder linjebrytingen.
+\hbadness = \tolerance % Vi vil være litt mildere, særlig fordi norsk har så
+\pretolerance = 2000 % mange lange sammensatte ord.
+
+\let\OLDtableofcontents = \tableofcontents
+\def\tableofcontents
+{
+	\setlength{\cftpartnumwidth}{4em}	
+	\let\Section = \section
+	\let\section = \OLDsection
+	\OLDtableofcontents
+	\let\section = \Section
+}
+
+\let\OLDlistoftables = \listoftables
+\def\listoftables{
+	\setlength{\cfttabindent}{0em}
+	\setlength{\cfttabnumwidth}{4em} 
+	\let\Section = \section
+	\let\section = \OLDsection
+	\OLDlistoftables
+	\let\section = \Section
+}
+
+\let\OLDlistoffigures = \listoffigures
+\def\listoffigures{
+	\setlength{\cftfigindent}{0em}
+	\setlength{\cftfignumwidth}{4em} 
+	\let\Section = \section
+	\let\section = \OLDsection
+	\OLDlistoffigures
+	\let\section = \Section
+}
+
+\def\innledende_sider
+{
+    \pagestyle{empty}
+	\maketitle
+	\thispagestyle{empty}
+	\cleartooddpage 
+	\thispagestyle{empty}
+	\cleartooddpage
+	\tableofcontents
+	\cleartooddpage
+	\listoftables
+	\cleartooddpage
+	\listoffigures
+	\cleartooddpage
+    \pagestyle{plain}
+	\pagenumbering{arabic}
+}
+
+\def\innholdsfortegnelse
+{
+    \pagestyle{empty}
+	\maketitle
+	\thispagestyle{empty}
+	\cleartooddpage 
+	\thispagestyle{empty}
+	\cleartooddpage
+	\tableofcontents
+	\cleartooddpage
+    \pagestyle{plain}
+	\pagenumbering{arabic}
+}
+%---------------------------------------------------------------------------------------------------------
+
+% Journalfremside
+
+\newcommand\journalforside[7]
+{
+	\pagestyle{empty}
+	\begin{center}
+		\LARGE \textbf{#1}
+	\end{center}
+	\setlength\extrarowheight{0.5cm}
+	\begin{tabular}{| p{1.0 cm} p{0.8cm} | p{2.1cm} p{0.5cm} | p{2.4cm} p{3cm} |}
+	\multicolumn{6}{l}{\textbf{Student:}} \\
+	\hline
+	\multicolumn{1}{|l}{\textbf{Navn:}} & \multicolumn{5}{l|}{#2}\\ 
+	\hline
+	\multicolumn{1}{|l}{\textbf{Epost:}} & \multicolumn{5}{l|}{\texttt{#3}}\\ 
+	\hline
+	\textbf{Gruppe:} & {#4} & \textbf{Øvelse nr.:} & {#5} & \textbf{Utført dato:} & {#6}\\
+	\hline
+	\end{tabular}
+	
+	\setlength\extrarowheight{0.5cm}
+	\begin{tabular}{| p{7cm} | p{4.5cm} |}
+	\multicolumn{2}{l}{\textbf{Veileder/retter:}} \\
+	\hline
+	\textbf{Godkjent/rettet:} & \textbf{Dato:}   \\
+	\hline
+	\end{tabular}
+	
+	\vspace{0.5cm}
+	\setlength\extrarowheight{0cm}
+	\begin{tabular}{|p{11.92cm}|}
+	\multicolumn{1}{l}{\textbf{Om du vil:}}\\
+	\hline
+	Spesielle forhold som retter bør ta hensyn til:\\\\
+	{#7}\\
+	\hline
+	\end{tabular}
+
+	\vspace{1cm}
+	\setlength{\unitlength}{3947sp}%
+	\begin{picture}(5000,0)
+	{
+	\drawline[AHnb=0,linewidth=15,dash={100}0](-2000,0)(8000,0)
+	}
+	\end{picture}
+	\vspace{0.3cm}
+
+	\setlength\extrarowheight{0.5cm}
+	\begin{tabular}{| p{1.0 cm} p{0.8cm} | p{2.1cm} p{0.5cm} | p{2.4cm} p{3cm} |}
+	\multicolumn{6}{l}{\textbf{Student:}} \\
+	\hline
+	\multicolumn{1}{|l}{\textbf{Navn:}} & \multicolumn{5}{l|}{#2}\\ 
+	\hline
+	\multicolumn{1}{|l}{\textbf{Epost:}} & \multicolumn{5}{l|}{\texttt{#3}}\\ 
+	\hline
+	\textbf{Gruppe:} & {#4} & \textbf{Øvelse nr.:} & {#5} & \textbf{Utført dato:} & {#6}\\
+	\hline
+	\end{tabular}
+	
+	\setlength\extrarowheight{0.5cm}
+	\begin{tabular}{| p{7cm} | p{4.5cm} |}
+	\multicolumn{2}{l}{\textbf{Veileder/retter:}} \\
+	\hline
+	\textbf{Godkjent/rettet:} & \textbf{Dato:}   \\
+	\hline
+	\end{tabular}
+	
+	\vspace{0.5cm}
+	\setlength\extrarowheight{0cm}
+	\begin{tabular}{|p{11.92cm}|}
+	\multicolumn{1}{l}{\textbf{Om du vil:}}\\
+	\hline
+	Spesielle forhold som retter bør ta hensyn til:\\\\
+	{#7}\\
+	\hline
+	\end{tabular}
+	\cleartooddpage
+}
+
+%---------------------------------------------------------------------------------------------------------
+\newcounter{figur}[part]
+\newcounter{secfigur}[section]
+\renewcommand \thesecfigur{\thesection.\arabic{secfigur}}
+\newcounter{subfigur}[subsection]
+\renewcommand \thesubfigur{\thesubsection.\arabic{subfigur}}
+\newcounter{subsubfigur}[subsubsection]
+\renewcommand \thesubsubfigur{\thesubsubsection.\arabic{subsubfigur}}
+\newcounter{partfigur}[part]
+\renewcommand \thepartfigur{\thepart.\arabic{partfigur}}
+\newcounter{partsecfigur}[section]
+\renewcommand \thepartsecfigur{\thepart.\thesection.\arabic{partsecfigur}}
+\newcounter{partsubfigur}[subsection]
+\renewcommand \thepartsubfigur{\thepart.\thesubsection.\arabic{partsubfigur}}
+\newcounter{partsubsubfigur}[subsubsection]
+\renewcommand \thepartsubsubfigur{\thepart.\thesubsubsection.\arabic{partsubsubfigur}}
+
+% Sette inn bilde
+\newcommand\figur[4]
+{
+	\begin{figure}[!htp]%
+		\vspace{-0.1cm}
+		\begin{center}%
+            %\includegraphics[scale = {#1}]{#2}
+			\includegraphics[width = {#1}\textwidth]{#2}% 
+		\end{center}%
+		\ifthenelse{\value{part} = 0} %
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%
+				\refstepcounter{figur}%
+				\renewcommand\thefigure{\thefigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{secfigur}%
+					\renewcommand\thefigure{\thesecfigur}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{subfigur}%
+						\renewcommand\thefigure{\thesubfigur}%
+					}%
+					{%
+						\refstepcounter{subsubfigur}%
+						\renewcommand\thefigure{\thesubsubfigur}%
+					}%
+				}%
+			}%
+		}%
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%						
+				\refstepcounter{partfigur}%
+				\renewcommand\thefigure{\thepartfigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{partsecfigur}%
+					\renewcommand\thefigure{\thepartsecfigur}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{partsubfigur}%
+						\renewcommand\thefigure{\thepartsubfigur}%
+					}%
+					{%
+						\refstepcounter{partsubsubfigur}%
+						\renewcommand\thefigure{\thepartsubsubfigur}%
+					}%
+				}%
+			}%
+		}%	
+		\vspace{-0.7cm}	
+		\caption{\textit{#3}}%
+		\label{#4}
+		\vspace{-0.4cm}
+	\end{figure}%
+}%
+
+\newcommand\multifigur[3]
+{
+	\begin{figure}[!htp]%
+		\vspace{-0.7cm} 
+		\begin{center}%
+            #1
+		\end{center}%
+		\ifthenelse{\value{part} = 0} %
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%
+				\refstepcounter{figur}%
+				\renewcommand\thefigure{\thefigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{secfigur}%
+					\renewcommand\thefigure{\thesecfigur}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{subfigur}%
+						\renewcommand\thefigure{\thesubfigur}%
+					}%
+					{%
+						\refstepcounter{subsubfigur}%
+						\renewcommand\thefigure{\thesubsubfigur}%
+					}%
+				}%
+			}%
+		}%
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%						
+				\refstepcounter{partfigur}%
+				\renewcommand\thefigure{\thepartfigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{partsecfigur}%
+					\renewcommand\thefigure{\thepartsecfigur}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{partsubfigur}%
+						\renewcommand\thefigure{\thepartsubfigur}%
+					}%
+					{%
+						\refstepcounter{partsubsubfigur}%
+						\renewcommand\thefigure{\thepartsubsubfigur}%
+					}%
+				}%
+			}%
+		}%		
+		\vspace{-0.7cm}
+		\caption{\textit{#2}}%
+		\label{#3}
+		%\vspace{-0.4cm}
+	\end{figure}%
+}%
+
+\newcommand\subfigur[3]
+{
+	\begin{tabular}[t]{l}
+		\begin{tabular}{c} \\ \normalsize \textbf{#1} \\ \end{tabular}  \\
+	 	\includegraphics[width = {#2}\textwidth]{#3} 
+	\end{tabular}
+}
+
+\newcommand\flowchart[5]
+{
+	\begin{figure}[!htp]%
+		\vspace{-0.1cm}
+		\tiny
+		\begin{center}
+		\begin{psmatrix}[rowsep={#1},colsep={#2}] 
+			#3
+		\end{psmatrix}
+		\end{center}%
+		\ifthenelse{\value{part} = 0} %
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%
+				\refstepcounter{figur}%
+				\renewcommand\thefigure{\thefigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{secfigur}%
+					\renewcommand\thefigure{\thesecfigur}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{subfigur}%
+						\renewcommand\thefigure{\thesubfigur}%
+					}%
+					{%
+						\refstepcounter{subsubfigur}%
+						\renewcommand\thefigure{\thesubsubfigur}%
+					}%
+				}%
+			}%
+		}%
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%						
+				\refstepcounter{partfigur}%
+				\renewcommand\thefigure{\thepartfigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{partsecfigur}%
+					\renewcommand\thefigure{\thepartsecfigur}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{partsubfigur}%
+						\renewcommand\thefigure{\thepartsubfigur}%
+					}%
+					{%
+						\refstepcounter{partsubsubfigur}%
+						\renewcommand\thefigure{\thepartsubsubfigur}%
+					}%
+				}%
+			}%
+		}%	
+		\vspace{-0.7cm}	
+		\caption{\textit{#4}}%
+		\label{#5}
+		\vspace{-0.4cm}
+	\end{figure}%
+}%
+
+\newcommand\reffig[1]{\figurename\,\ref{#1}}
+%---------------------------------------------------------------------------------------------------------
+\newcolumntype{I}{!{\vrule width 1pt}}
+\newlength\savewidth
+\newcommand\whline
+{
+	\noalign{
+		\global\savewidth\arrayrulewidth
+		\global\arrayrulewidth 1pt}%
+	\hline
+	\noalign
+	{
+		\global\arrayrulewidth\savewidth
+	}%
+}%
+
+\newcounter{tabell}[part]
+\newcounter{sectabell}[section]
+\renewcommand \thesectabell{\thesection.\arabic{sectabell}}
+\newcounter{subtabell}[subsection]
+\renewcommand \thesubtabell{\thesubsection.\arabic{subtabell}}
+\newcounter{subsubtabell}[subsubsection]
+\renewcommand \thesubsubtabell{\thesubsubsection.\arabic{subsubtabell}}
+\newcounter{parttabell}[part]
+\renewcommand \theparttabell{\thepart.\arabic{parttabell}}
+\newcounter{partsectabell}[section]
+\renewcommand \thepartsectabell{\thepart.\thesection.\arabic{partsectabell}}
+\newcounter{partsubtabell}[subsection]
+\renewcommand \thepartsubtabell{\thepart.\thesubsection.\arabic{partsubtabell}}
+\newcounter{partsubsubtabell}[subsubsection]
+\renewcommand \thepartsubsubtabell{\thepart.\thesubsubsection.\arabic{partsubsubtabell}}
+								
+% Tabell
+\newcommand\tabell[6]
+{
+  	\begin{table}[!htp]%
+  		\begin{center}
+			\setlength\extrarowheight{2pt}
+			#2
+			\begin{tabular}{#1}
+				\whline
+				#3
+				\whline
+				#4
+				\whline
+			\end{tabular}
+		\end{center}
+		\ifthenelse{\value{part} = 0} %
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%
+				\refstepcounter{tabell}%
+				\renewcommand\thetable{\thetabell}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{sectabell}%
+					\renewcommand\thetable{\thesectabell}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{subtabell}%
+						\renewcommand\thetable{\thesubtabell}%
+					}%
+					{%
+						\refstepcounter{subsubtabell}%
+						\renewcommand\thetable{\thesubsubtabell}%
+					}%
+				}%
+			}%
+		}%
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%						
+				\refstepcounter{parttabell}%
+				\renewcommand\thetable{\theparttabell}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{partsectabell}%
+					\renewcommand\thetable{\thepartsectabell}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{partsubtabell}%
+						\renewcommand\thetable{\thepartsubtabell}%
+					}%
+					{%
+						\refstepcounter{partsubsubtabell}%
+						\renewcommand\thetable{\thepartsubsubtabell}%
+					}%
+				}%
+			}%
+		}%
+		\vspace{-0.5cm}
+    	\caption{\textit{#5}}
+		\label{#6}
+	\end{table}
+	%\vspace{-0.4cm}
+}
+\newcommand\multitabell[5]
+{
+  	\begin{table}[!htp]%
+	\vspace{-0.4cm}  	
+  		\begin{center}
+			\setlength\extrarowheight{2pt}
+			#2
+			\begin{tabular}{#1}
+				#3
+			\end{tabular}
+		\end{center}
+		\ifthenelse{\value{part} = 0} %
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%
+				\refstepcounter{tabell}%
+				\renewcommand\thetable{\thetabell}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{sectabell}%
+					\renewcommand\thetable{\thesectabell}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{subtabell}%
+						\renewcommand\thetable{\thesubtabell}%
+					}%
+					{%
+						\refstepcounter{subsubtabell}%
+						\renewcommand\thetable{\thesubsubtabell}%
+					}%
+				}%
+			}%
+		}%
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%						
+				\refstepcounter{parttabell}%
+				\renewcommand\thetable{\theparttabell}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{partsectabell}%
+					\renewcommand\thetable{\thepartsectabell}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{partsubtabell}%
+						\renewcommand\thetable{\thepartsubtabell}%
+					}%
+					{%
+						\refstepcounter{partsubsubtabell}%
+						\renewcommand\thetable{\thepartsubsubtabell}%
+					}%
+				}%
+			}%
+		}%
+		\vspace{-0.5cm}
+    	\caption{\textit{#4}}
+		\label{#5}
+	\end{table}
+	\vspace{-0.4cm}
+}
+\newcommand\subtabell[4]
+{
+	\begin{tabular}[t]{rl}
+	\begin{tabular}{c} \\ \normalsize \textbf{#1} \\ \end{tabular} &
+	\begin{tabular}[t]{#2}
+		\whline
+		#3
+		\whline
+		#4
+		\whline
+	\end{tabular}
+	\end{tabular}
+}
+\newcommand\reftab[1]{\tablename\,\ref{#1}}
+
+%---------------------------------------------------------------------------------------------------------
+% Kode innramming
+\newcommand\kode[1]{\verbatiminput{#1}}
+
+\newcounter{kode}[part]
+\renewcommand \thekode{\rev.\arabic{kode}}
+\newcounter{seckode}[section]
+\renewcommand \theseckode{\rev.\thesection.\arabic{seckode}}
+\newcounter{subkode}[subsection]
+\renewcommand \thesubkode{\rev.\thesubsection.\arabic{subkode}}
+\newcounter{subsubkode}[subsubsection]
+\renewcommand \thesubsubkode{\rev.\thesubsubsection.\arabic{subsubkode}}
+\newcounter{partkode}[part]
+\renewcommand \thepartkode{\rev.\thepart.\arabic{partkode}}
+\newcounter{partseckode}[section]
+\renewcommand \thepartseckode{\rev.\thepart.\thesection.\arabic{partseckode}}
+\newcounter{partsubkode}[subsection]
+\renewcommand \thepartsubkode{\rev.\thepart.\thesubsection.\arabic{partsubkode}}
+\newcounter{partsubsubkode}[subsubsection]
+\renewcommand \thepartsubsubkode{\rev.\thepart.\thesubsubsection.\arabic{partsubsubkode}}
+
+\newcommand\code[2]%
+{%
+	\sbox\nr{\scriptsize\emph{Code} 
+	\ifthenelse{\value{part} = 0} %
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%
+			\refstepcounter{kode}%
+			\textit{\thekode}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{seckode}%
+				\textit{\theseckode}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{subkode}%
+					\textit{\thesubkode}%
+				}%
+				{%
+					\refstepcounter{subsubeksempel}%
+					\textit{\thesubsubkode}%
+				}%
+			}%
+		}%
+	}%
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%						
+			\refstepcounter{partkode}%
+			\textit{\thepartkode}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{partseckode}%
+				\textit{\thepartseckode}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{partsubkode}%
+					\textit{\thepartsubkode}%
+				}%
+				{%
+					\refstepcounter{partsubsubkode}%
+					\textit{\thepartsubsubkode}%
+				}%
+			}%
+		}%
+	}%	
+	}%
+	\vspace{0.25cm}%
+	\ifthenelse{\value{part} = 0} %
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%
+			\textbf{Code \thekode :~{#2}}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\textbf{Code \theseckode :~#2}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\textbf{Code \thesubkode :~#2}%
+				}%
+				{%
+					\textbf{Code \thesubsubkode :~#2}%
+				}%
+			}%
+		}%
+	}%
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%						
+			\textbf{Code \thepartkode :~#2}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\textbf{Code \thepartseckode :~#2}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+				\textbf{Code \thepartsubkode :~#2}%
+				}%
+				{%
+					\textbf{Code \thepartsubsubkode :~#2}%
+				}%
+			}%
+		}%
+	}%
+	\par \nointerlineskip \vspace{0.1cm}%
+	\rule{\textwidth}{0.4pt}%
+	\par \nointerlineskip \vspace{0.3cm}%
+	%\begin{minipage}{\textwidth}%
+	\tiny\verbatiminput{#1}\normalsize
+	%\end{minipage}%
+	\begin{flushright}%
+		\par \nointerlineskip
+		\rule{\textwidth}{0.4pt}%
+		\par \nointerlineskip \vspace{0.1cm}%
+		\usebox{\nr}%
+	\end{flushright}%
+	\vspace{-0.2cm}%
+}%
+%---------------------------------------------------------------------------------------------------------
+% Oscilloskopbilde
+\newcommand\oscilloskop[6]
+{
+	\begin{figure}[!htp]
+		\begin{center}
+			\setlength{\unitlength}{3947sp}%
+			%
+				%\begingroup\makeatletter\ifx\SetFigFont\undefined%
+				%\gdef\SetFigFont#1#2#3#4#5{%
+	  			%\reset@font\fontsize{#1}{#2pt}%
+	  			%\fontfamily{#3}\fontseries{#4}\fontshape{#5}%
+	  			%\selectfont}%
+			%\fi\endgroup%
+			\begin{picture}(6000,2500)
+			{
+				\color[rgb]{0,0,0}
+				\scriptsize
+	
+				\put(0,0){\includegraphics[width = 0.6\textwidth]{#1}}
+				\put(3500,2000)
+				{
+				\begin{tabular}{l p{3cm}}
+					\vspace{0.5cm}
+					Signal: 		& {#2} \\
+					\vspace{0.1cm}
+			    	V/div: 		& {#3} \\
+					sec/div: 	& {#4}
+				\end{tabular}
+				} 
+			}
+			\end{picture}%
+		\end{center}
+		\caption{\textit{#5}}
+		\label{#6}
+	\end{figure}
+}{}
+%---------------------------------------------------------------------------------------------------------
+\newcommand{\tegning}[5]
+{
+	\begin{figure}[!htp]%
+		\begin{center}
+			\setlength{\unitlength}{3947sp}%
+			\begin{picture}(#1,#2)
+				\color[rgb]{0,0,0}
+				\scriptsize 
+				{#3}
+			\end{picture}
+		\end{center}%
+		\ifthenelse{\value{part} = 0} %
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%
+				\refstepcounter{figur}%
+				\renewcommand\thefigure{\thefigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{secfigur}%
+					\renewcommand\thefigure{\thesecfigur}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{subfigur}%
+						\renewcommand\thefigure{\thesubfigur}%
+					}%
+					{%
+						\refstepcounter{subsubfigur}%
+						\renewcommand\thefigure{\thesubsubfigur}%
+					}%
+				}%
+			}%
+		}%
+		{%
+			\ifthenelse{\value{section} = 0}%
+			{%						
+				\refstepcounter{partfigur}%
+				\renewcommand\thefigure{\thepartfigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsection} = 0}%
+				{%
+					\refstepcounter{partsecfigur}%
+					\renewcommand\thefigure{\thepartsecfigur}%
+				}%
+				{%
+					\ifthenelse{\value{subsubsection} = 0}%
+					{%
+						\refstepcounter{partsubfigur}%
+						\renewcommand\thefigure{\thepartsubfigur}%
+					}%
+					{%
+						\refstepcounter{partsubsubfigur}%
+						\renewcommand\thefigure{\thepartsubsubfigur}%
+					}%
+				}%
+			}%
+		}%		
+		\caption{\textit{#4}}%
+		\label{#5}
+	\end{figure}%
+}
+\newenvironment{Tegning}[3]
+{%
+	\sbox\nr{\textit{#3}}
+	\ifthenelse{\value{part} = 0} %
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%
+			\refstepcounter{figur}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{secfigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{subfigur}%
+				}%
+				{%
+					\refstepcounter{subsubfigur}%
+				}%
+			}%
+		}%
+	}%
+	{%
+		\ifthenelse{\value{section} = 0}%
+		{%						
+			\refstepcounter{partfigur}%
+		}%
+		{%
+			\ifthenelse{\value{subsection} = 0}%
+			{%
+				\refstepcounter{partsecfigur}%
+			}%
+			{%
+				\ifthenelse{\value{subsubsection} = 0}%
+				{%
+					\refstepcounter{partsubfigur}%
+				}%
+				{%
+					\refstepcounter{partsubsubfigur}%
+				}%
+			}%
+		}%
+	}%	
+	\begin{figure}[!htp]
+		\begin{center}
+			\setlength{\unitlength}{3947sp}%
+			%
+				%\begingroup\makeatletter\ifx\SetFigFont\undefined%
+				%\gdef\SetFigFont#1#2#3#4#5{%
+	  			%\reset@font\fontsize{#1}{#2pt}%
+	  			%\fontfamily{#3}\fontseries{#4}\fontshape{#5}%
+	  			%\selectfont}%
+			%\fi\endgroup%
+			\begin{picture}(#1,#2)
+				\color[rgb]{0,0,0}
+				\scriptsize
+	
+}%
+{
+			\end{picture}%
+		\end{center}
+		\begin{center}%	
+			\ifthenelse{\value{part} = 0} %
+			{%
+				\ifthenelse{\value{section} = 0}%
+				{%
+					\text{Figur \thefigur:~~}%
+				}%
+				{%
+					\ifthenelse{\value{subsection} = 0}%
+					{%
+						\text{Figur \thesecfigur:~~}%
+					}%
+					{%
+						\ifthenelse{\value{subsubsection} = 0}%
+						{%
+							\text{Figur \thesubfigur:~~}%
+						}%
+						{%
+							\text{Figur \thesubsubfigur:~~}%
+						}%
+					}%
+				}%
+			}%
+			{%
+				\ifthenelse{\value{section} = 0}%
+				{%						
+					\text{Figur \thepartfigur:~~}%
+				}%
+				{%
+					\ifthenelse{\value{subsection} = 0}%
+					{%
+						\text{Figur \thepartsecfigur:~~}%
+					}%
+					{%
+						\ifthenelse{\value{subsubsection} = 0}%
+						{%
+							\text{Figur \thepartsubfigur:~~}%
+						}%
+						{%
+							\text{Figur \thepartsubsubfigur:~~}%
+						}%
+					}%
+				}%
+			}%
+			\usebox{\nr}%
+		\end{center}%
+	\end{figure}
+}
+
+\newcommand\measureline[8]
+{
+	\drawline[AHnb=1,AHangle=30,AHLength=75,AHlength=0,ATnb=1,ATangle=30,ATLength=75,ATlength=0](#1,#2)(#3,#4)
+	\drawline[AHnb=1,AHangle=90,AHLength=50,AHlength=0,ATnb=1,ATangle=90,ATLength=50,ATlength=0](#1,#2)(#3,#4)
+	\drawline[AHnb=0,dash={50}0](#5,#6)(#1,#2)
+	\drawline[AHnb=0,dash={50}0](#7,#8)(#3,#4)
+}
+
+\newcommand\textoval[5]
+{
+  \node[Nadjust=wh](#1)(#2,#3)
+	{
+		\begin{tabular}{#4}
+			#5
+		\end{tabular}
+	}
+}
+\newcommand\textbox[5]
+{
+  \node[Nadjust=wh,Nmr=0](#1)(#2,#3)
+	{
+		\begin{tabular}{#4}
+			#5
+		\end{tabular}
+	}
+}
+%---------------------------------------------------------------------------------------------------------
+\newcommand\blankfigur[2]
+{
+  \cleartooddpage
+  \tegning{5000}{9000}{}{#1}{#2}
+  \cleartooddpage 
+}
+%---------------------------------------------------------------------------------------------------------
