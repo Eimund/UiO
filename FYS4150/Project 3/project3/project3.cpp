@@ -186,5 +186,7 @@ int main() {
     time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;
     time.close();
 
+    test;
+
 
 }
