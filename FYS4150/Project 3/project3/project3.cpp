@@ -185,8 +185,4 @@ int main() {
     SolarSystem.Run<DifferentialType::RK4>(250, 4000000);
     time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\" << endl;
     time.close();
-
-    test;
-
-
 }
