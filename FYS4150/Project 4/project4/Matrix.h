@@ -15,7 +15,8 @@
 #include <iostream>
 #include "armadillo"
 #include "lib.cpp"
-#include "PropertyLength.h"
+#include "Array.h"
+#include "Delegate.h"
 
 using namespace arma;
 using namespace std;
@@ -490,6 +491,10 @@ template <class T> class MatrixElements<Matrix<MatrixType::Tridiagonal_m1_X_m1, 
 template <class T> class MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T> {
     private: T a, other;
     protected: T b;
+    public: unsigned int n;
+    public: MatrixElements(unsigned int n) {
+        this->n = n;
+    }
     public: T& operator() (const unsigned int row, const unsigned int col) { // Matrix indexing
         a = -1;
         if(row == col)
@@ -972,11 +977,14 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_X_m1, T> :
 template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
         public MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>,
         public MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>  {
-    private: T* factor;                   // Precalculated values
-    public: PropertyLength<T> length;
+    public: T* factor;                   // Precalculated values
+    public: ArrayLength<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T> n;
     public: Matrix(unsigned int n) :
         MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>(this),
-        length(factor,n) {
+        MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>(n),
+        n(factor,n, Delegate<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, void, unsigned int, unsigned int>(this, &Matrix<MatrixType::Tridiagonal_m1_C_m1, T>::SolveInitialize)) {
+        auto func = Delegate<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, void, unsigned int, unsigned int>(this, &Matrix<MatrixType::Tridiagonal_m1_C_m1, T>::SolveInitialize);
+        func(2,7);
     }
     public: ~Matrix() {
     }
@@ -986,25 +994,26 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
     public: template<class P> void Diagonal(const int diagonal, const P value) {
         Diagonal(diagonal, value, 1);
     }
-    public: template<class P> inline void Diagonal(const int diagonal, const P value, const unsigned int n) {
-        if(diagonal == 0)
-            MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_X_m1, T>, T>::Diagonal(diagonal, value, 1);
+    public: template<class P> inline void Diagonal(const int diagonal, const P value, unsigned int n) {
+        if(diagonal == 0) {
+            n = this->n;
+            MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>::Diagonal(diagonal, value, 1);
+            this->n = n;
+        }
     }
-    public: bool Solve(T* f, unsigned int n) {    // 4n FLOPS
-        /*
-         * f are source elements b_{i}, f[0] = b_{1}
-         */
-
-        if(_n < n)
-            this->n = n;                // Makes enough precalculated values
+    public: void SolveInitialize(unsigned int i, unsigned int n) {
+    }
+    public: bool Solve(T* f, unsigned int n) {
+        if(this->n < n)
+            this->n = n;
         T* start = f;
         T* end = &f[n-1];
         T* factor = this->factor;
         while(f != end)
-            *f += (*f++)*(*factor++);   // Eq (10)
+            *f += (*f++)*(*factor++);
         while(f != start) {
-            *f *= *factor--;            // Eq (13)
-            *f += *f--;                 // Eq (12)
+            *f *= *factor--;
+            *f += *f--;
         }
         *f /= 2;
         return true;

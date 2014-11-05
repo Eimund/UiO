@@ -3,6 +3,7 @@ SOURCES += \
 
 HEADERS += \
     Matrix.h \
-    PropertyLength.h
+    PropertyLength.h \
+    Delegate.h
 
 CONFIG += C++11

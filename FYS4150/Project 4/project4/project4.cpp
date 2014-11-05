@@ -10,7 +10,14 @@
 
 #include "Matrix.h"
 
-int main() {
+#define FLOAT double
 
+int main() {
+    auto matrix = Matrix<MatrixType::Tridiagonal_m1_C_m1, FLOAT>(4);
+    matrix.Diagonal(2);
+    MatrixCout(matrix);
+    ArrayCout(matrix.factor, matrix.n);
+    ArrayCout(matrix.n);
+    //int hei = 0;
     return 0;
 }
