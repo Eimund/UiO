@@ -62,5 +62,4 @@ template<typename T, typename C, typename... L>  class TypeCast<T,C,L...> : publ
         }
     };
 };
-#define TYPECAST(X) (decltype(X)::type)X
 #endif // TYPE_H

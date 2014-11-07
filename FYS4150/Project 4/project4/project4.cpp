@@ -16,9 +16,7 @@ int main() {
     auto diffusion = HeatEquation<FLOAT, 1>(4);
     MatrixCout(diffusion);
     diffusion.n = 10;
-    diffusion.n = diffusion.m;
-    cout << diffusion.len << endl;
-    ArrayCout(TYPECAST(diffusion.n));
+    ArrayCout(&diffusion.n);
     int hei = 0;
     return 0;
 }

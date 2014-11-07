@@ -17,7 +17,8 @@
 #include "lib.cpp"
 #include "Array.h"
 #include "Delegate.h"
-#include "ReadOnly.h"
+#include "Property.h"
+//#include "ReadOnly.h"
 
 using namespace arma;
 using namespace std;
@@ -978,14 +979,10 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
         public MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>  {
     private: typedef Matrix<MatrixType::Tridiagonal_m1_C_m1, T> THIS;
     private: T* factor;                   // Precalculated values
-    public: ReadOnly<THIS, int> len;
-    public: ReadOnly<THIS, ArrayLength<THIS, T>, int> n;
-    public: ReadOnly<THIS, ArrayLength<THIS, T>, int> m;
+    public: Property<PropertyType::ReadOnly, THIS, ArrayLength<THIS, T>, int> n;
     public: Matrix(unsigned int n) :
         MatrixElements<THIS, T>(n),
-        len(6),
-        m(ReadOnly<THIS, ArrayLength<THIS, T>, int>(ArrayLength<THIS, T>(factor,n, Delegate<THIS, void, T*, unsigned int, unsigned int>(this, &THIS::SolveInitialize)))),
-        n(ReadOnly<THIS, ArrayLength<THIS, T>, int>(ArrayLength<THIS, T>(factor,n, Delegate<THIS, void, T*, unsigned int, unsigned int>(this, &THIS::SolveInitialize)))) {
+        n(Property<PropertyType::ReadOnly, THIS, ArrayLength<THIS, T>, int>(ArrayLength<THIS, T>(factor,n, Delegate<THIS, void, T*, unsigned int, unsigned int>(this, &THIS::SolveInitialize)))) {
     }
     public: ~Matrix() {
         delete [] factor;

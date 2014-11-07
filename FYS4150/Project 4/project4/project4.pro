@@ -7,7 +7,6 @@ HEADERS += \
     Delegate.h \
     HeatEquation.h \
     Property.h \
-    ReadOnly.h \
     Type.h
 
 CONFIG += C++11
