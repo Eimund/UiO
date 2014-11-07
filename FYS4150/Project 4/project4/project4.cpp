@@ -8,18 +8,17 @@
  *  c11 compiler
  */
 
-#include "Array.h"
-#include "Matrix.h"
+#include "HeatEquation.h"
 
 #define FLOAT double
 
 int main() {
-    auto matrix = Matrix<MatrixType::Tridiagonal_m1_C_m1, FLOAT>(4);
-    matrix.Diagonal(2);
-    MatrixCout(matrix);
-    matrix.n = 10;
-    ArrayCout(matrix.factor, matrix.n);
-    ArrayCout(matrix.n);
-    //int hei = 0;
+    auto diffusion = HeatEquation<FLOAT, 1>(4);
+    MatrixCout(diffusion);
+    diffusion.n = 10;
+    diffusion.n = diffusion.m;
+    cout << diffusion.len << endl;
+    ArrayCout(TYPECAST(diffusion.n));
+    int hei = 0;
     return 0;
 }

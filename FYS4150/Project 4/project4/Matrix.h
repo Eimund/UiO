@@ -17,6 +17,7 @@
 #include "lib.cpp"
 #include "Array.h"
 #include "Delegate.h"
+#include "ReadOnly.h"
 
 using namespace arma;
 using namespace std;
@@ -974,42 +975,31 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_X_m1, T> :
     }
 };
 template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
-        public MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>,
         public MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>  {
-    public: T* factor;                   // Precalculated values
-    public: ArrayLength<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T> n;
+    private: typedef Matrix<MatrixType::Tridiagonal_m1_C_m1, T> THIS;
+    private: T* factor;                   // Precalculated values
+    public: ReadOnly<THIS, int> len;
+    public: ReadOnly<THIS, ArrayLength<THIS, T>, int> n;
+    public: ReadOnly<THIS, ArrayLength<THIS, T>, int> m;
     public: Matrix(unsigned int n) :
-        MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>(this),
-        MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>(n),
-        n(ArrayLength<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>(factor,n, Delegate<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, void, T*, unsigned int, unsigned int>(this, &Matrix<MatrixType::Tridiagonal_m1_C_m1, T>::SolveInitialize))) {
+        MatrixElements<THIS, T>(n),
+        len(6),
+        m(ReadOnly<THIS, ArrayLength<THIS, T>, int>(ArrayLength<THIS, T>(factor,n, Delegate<THIS, void, T*, unsigned int, unsigned int>(this, &THIS::SolveInitialize)))),
+        n(ReadOnly<THIS, ArrayLength<THIS, T>, int>(ArrayLength<THIS, T>(factor,n, Delegate<THIS, void, T*, unsigned int, unsigned int>(this, &THIS::SolveInitialize)))) {
     }
     public: ~Matrix() {
+        delete [] factor;
     }
     public: template<class P> void Diagonal(const P value) {
-        Diagonal(0, value, 1);
+        Diagonal(0, value, 0);
     }
     public: template<class P> void Diagonal(const int diagonal, const P value) {
-        Diagonal(diagonal, value, 1);
+        Diagonal(diagonal, value, 0);
     }
-    public: template<class P> inline void Diagonal(const int diagonal, const P value, unsigned int n) {
+    public: template<class P> inline void Diagonal(const int diagonal, const P value, unsigned int) {
         if(diagonal == 0) {
-            n = this->n;
-            MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>::Diagonal(diagonal, value, 1);
-            this->n = n;
+            this->b = value;
             SolveInitialize();
-        }
-    }
-    public: void SolveInitialize() {
-        SolveInitialize(factor, 0, n);
-    }
-    private: inline void SolveInitialize(T* array, unsigned int i, unsigned int n) {
-        if(i == 0 && n > 0) {
-            array[0] = this->b;
-            i++;
-        }
-        while(array[i-1] && i < n) {
-            array[i] = this->b - (T)1/array[i-1];
-            i++;
         }
     }
     public: bool Solve(T* f, unsigned int n) {
@@ -1026,6 +1016,26 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
         }
         *f /= 2;
         return true;
+    }
+    public: void SolveInitialize() {
+        SolveInitialize(factor, 0, n);
+    }
+    private: inline void Test(T* array, unsigned int i, unsigned int n) {
+    }
+    private: inline void SolveInitialize(T* array, unsigned int i, unsigned int n) {
+        MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>:: n = n;
+        if(i == 0 && n > 0) {
+            array[0] = this->b;
+            i++;
+        }
+        while(array[i-1] && i < n) {
+            array[i] = this->b - (T)1/array[i-1];
+            i++;
+        }
+    }
+    public: inline void SolveWithInitialize(T* f, unsigned int n) {
+        SolveInitialize(factor, 0, n);
+        Solve(f, n);
     }
 };
 template<class T> class Matrix<MatrixType::Tridiagonal_m1_2_m1_6n, T> :
