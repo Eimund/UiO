@@ -1,3 +1,13 @@
+/*
+ *  FYS4150 - Computational Physics - Project 4
+ *
+ *  Written by: Eimund Smestad
+ *
+ *  07.11.2014
+ *
+ *  c11 compiler
+ */
+
 #ifndef DELEGATE_H
 #define DELEGATE_H
 
@@ -9,7 +19,7 @@ template<typename C, typename R, typename... P> class Delegate {
         this->owner = owner;
         this->func = func;
     }
-    public: R operator()(P... params) {
+    public: inline R operator()(P... params) {
         return (owner->*func)(params...);
     }
 };
@@ -22,7 +32,7 @@ template<typename C, typename R> class Delegate<C,R,void> {
         this->owner = owner;
         this->func = func;
     }
-    public: R operator()() {
+    public: inline R operator()() {
         return (owner->*func)();
     }
 };

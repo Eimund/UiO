@@ -8,6 +8,7 @@
  *  c11 compiler
  */
 
+#include "Array.h"
 #include "Matrix.h"
 
 #define FLOAT double
@@ -16,6 +17,7 @@ int main() {
     auto matrix = Matrix<MatrixType::Tridiagonal_m1_C_m1, FLOAT>(4);
     matrix.Diagonal(2);
     MatrixCout(matrix);
+    matrix.n = 10;
     ArrayCout(matrix.factor, matrix.n);
     ArrayCout(matrix.n);
     //int hei = 0;

@@ -492,8 +492,7 @@ template <class T> class MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, 
     private: T a, other;
     protected: T b;
     public: unsigned int n;
-    public: MatrixElements(unsigned int n) {
-        this->n = n;
+    public: MatrixElements(unsigned int n) : n(n) {
     }
     public: T& operator() (const unsigned int row, const unsigned int col) { // Matrix indexing
         a = -1;
@@ -982,9 +981,7 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
     public: Matrix(unsigned int n) :
         MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>(this),
         MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>(n),
-        n(factor,n, Delegate<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, void, unsigned int, unsigned int>(this, &Matrix<MatrixType::Tridiagonal_m1_C_m1, T>::SolveInitialize)) {
-        auto func = Delegate<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, void, unsigned int, unsigned int>(this, &Matrix<MatrixType::Tridiagonal_m1_C_m1, T>::SolveInitialize);
-        func(2,7);
+        n(ArrayLength<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>(factor,n, Delegate<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, void, T*, unsigned int, unsigned int>(this, &Matrix<MatrixType::Tridiagonal_m1_C_m1, T>::SolveInitialize))) {
     }
     public: ~Matrix() {
     }
@@ -999,9 +996,21 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
             n = this->n;
             MatrixDiagonal<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>::Diagonal(diagonal, value, 1);
             this->n = n;
+            SolveInitialize();
         }
     }
-    public: void SolveInitialize(unsigned int i, unsigned int n) {
+    public: void SolveInitialize() {
+        SolveInitialize(factor, 0, n);
+    }
+    private: inline void SolveInitialize(T* array, unsigned int i, unsigned int n) {
+        if(i == 0 && n > 0) {
+            array[0] = this->b;
+            i++;
+        }
+        while(array[i-1] && i < n) {
+            array[i] = this->b - (T)1/array[i-1];
+            i++;
+        }
     }
     public: bool Solve(T* f, unsigned int n) {
         if(this->n < n)
