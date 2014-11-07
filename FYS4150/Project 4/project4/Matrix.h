@@ -18,7 +18,6 @@
 #include "Array.h"
 #include "Delegate.h"
 #include "Property.h"
-//#include "ReadOnly.h"
 
 using namespace arma;
 using namespace std;
@@ -979,6 +978,8 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
         public MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>  {
     private: typedef Matrix<MatrixType::Tridiagonal_m1_C_m1, T> THIS;
     private: T* factor;                   // Precalculated values
+    public: Property<PropertyType::WriteOnly, THIS, int> len1;
+    public: Property<PropertyType::ReadOnly, THIS, int> len2;
     public: Property<PropertyType::ReadOnly, THIS, ArrayLength<THIS, T>, int> n;
     public: Matrix(unsigned int n) :
         MatrixElements<THIS, T>(n),
@@ -1016,8 +1017,6 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
     }
     public: void SolveInitialize() {
         SolveInitialize(factor, 0, n);
-    }
-    private: inline void Test(T* array, unsigned int i, unsigned int n) {
     }
     private: inline void SolveInitialize(T* array, unsigned int i, unsigned int n) {
         MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>:: n = n;
