@@ -23,7 +23,6 @@ template<typename C, typename R, typename... P> class Delegate {
         return (owner->*func)(params...);
     }
 };
-
 template<typename C, typename R> class Delegate<C,R,void> {
     public: typedef R (*Type)();
     private: C* owner;

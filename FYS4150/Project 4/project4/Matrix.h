@@ -978,12 +978,10 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
         public MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>  {
     private: typedef Matrix<MatrixType::Tridiagonal_m1_C_m1, T> THIS;
     private: T* factor;                   // Precalculated values
-    public: Property<PropertyType::WriteOnly, THIS, int> len1;
-    public: Property<PropertyType::ReadOnly, THIS, int> len2;
     public: Property<PropertyType::ReadOnly, THIS, ArrayLength<THIS, T>, int> n;
     public: Matrix(unsigned int n) :
         MatrixElements<THIS, T>(n),
-        n(Property<PropertyType::ReadOnly, THIS, ArrayLength<THIS, T>, int>(ArrayLength<THIS, T>(factor,n, Delegate<THIS, void, T*, unsigned int, unsigned int>(this, &THIS::SolveInitialize)))) {
+        n(PROPERTY(this->n, factor, n, Delegate<THIS, void, T*, unsigned int, unsigned int>(this, &THIS::SolveInitialize))) {
     }
     public: ~Matrix() {
         delete [] factor;
