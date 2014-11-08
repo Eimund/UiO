@@ -7,6 +7,7 @@ HEADERS += \
     Delegate.h \
     HeatEquation.h \
     Property.h \
-    Type.h
+    Type.h \
+    Boundary.h
 
 CONFIG += C++11

@@ -493,6 +493,7 @@ template <class T> class MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, 
     private: T a, other;
     protected: T b;
     public: unsigned int n;
+    public: MatrixElements() = default;
     public: MatrixElements(unsigned int n) : n(n) {
     }
     public: T& operator() (const unsigned int row, const unsigned int col) { // Matrix indexing
@@ -979,6 +980,7 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
     private: typedef Matrix<MatrixType::Tridiagonal_m1_C_m1, T> THIS;
     private: T* factor;                   // Precalculated values
     public: Property<PropertyType::ReadOnly, THIS, ArrayLength<THIS, T>, int> n;
+    public: Matrix() = default;
     public: Matrix(unsigned int n) :
         MatrixElements<THIS, T>(n),
         n(PROPERTY(this->n, factor, n, Delegate<THIS, void, T*, unsigned int, unsigned int>(this, &THIS::SolveInitialize))) {

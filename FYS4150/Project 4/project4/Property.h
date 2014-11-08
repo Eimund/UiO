@@ -25,11 +25,11 @@ enum class PropertyType {
 template<PropertyType A, typename C, typename T, typename... L> class Property : public TypeCast<T,L...> {
     friend class Type<C>::type;
     public: typedef T type;
-    private: Property() : TypeCast<T,L...>(Type<T>::null) {
-    }
+    private: Property() = default;
     private: Property(T value) : TypeCast<T,L...>(value) {
     }
     private: inline Property& operator=(const Property& other) {
+        this->value = other.value;
         return *this;
     }
     public: inline T operator&() {
@@ -45,14 +45,14 @@ template<PropertyType A, typename C, typename T, typename... L> class Property :
 template<typename C, typename T, typename... L> class Property<PropertyType::ReadOnly, C, T, L...> : public TypeCast<T,L...> {
     friend class Type<C>::type;
     public: typedef T type;
-    private: Property() : TypeCast<T,L...>(Type<T>::null) {
-    }
+    private: Property() = default;
     private: Property(T value) : TypeCast<T,L...>(value) {
     }
     public: inline T operator&() {
         return this->value;
     }
     private: inline Property& operator=(const Property& other) {
+        this->value = other.value;
         return *this;
     }
     private: inline void operator=(T value) {
@@ -65,11 +65,11 @@ template<typename C, typename T, typename... L> class Property<PropertyType::Rea
 template<typename C, typename T, typename... L> class Property<PropertyType::WriteOnly, C, T, L...> : protected TypeCast<T,L...> {
     friend class Type<C>::type;
     public: typedef T type;
-    private: Property() : TypeCast<T,L...>(Type<T>::null) {
-    }
+    private: Property() = default;
     private: Property(T value) : TypeCast<T,L...>(value) {
     }
     private: inline Property& operator=(const Property& other) {
+        this->value = other.value;
         return *this;
     }
     private: inline T operator&() {
@@ -83,9 +83,22 @@ template<typename C, typename T, typename... L> class Property<PropertyType::Wri
     }
 };
 
+template<typename C, typename T> class PropertyGet {
+    private: Delegate<C,T,void> get;
+    public: PropertyGet() = default;
+    public: PropertyGet(Delegate<C,T,void> get) : get(get) {
+    }
+    public: inline T operator&() {
+        return get();
+    }
+    public: inline operator T () {
+        return get();
+    }
+};
 template<typename C, typename T> class PropertySet {
     private: T value;
     private: Delegate<C,T,T> set;
+    public: PropertySet() = default;
     public: PropertySet(T value, Delegate<C,T,T> set) : value(value), set(set) {
     }
     public: T& operator = (const T& value) {
@@ -93,6 +106,19 @@ template<typename C, typename T> class PropertySet {
     }
     public: inline operator T () const {
         return this->value;
+    }
+};
+template<typename C, typename T> class PropertySetGet {
+    private: Delegate<C,T,void> get;
+    private: Delegate<C,T,T> set;
+    public: PropertySetGet() = default;
+    public: PropertySetGet(Delegate<C,T,T> set, Delegate<C,T,void> get) : set(set), get(get) {
+    }
+    public: T operator = (const T value) {
+        return set(value);
+    }
+    public: inline operator T () {
+        return get();
     }
 };
 

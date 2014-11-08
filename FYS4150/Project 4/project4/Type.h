@@ -14,7 +14,7 @@ template<typename T> struct Type {
     static const T null;
     typedef T type;
 };
-template<typename T> const T Type<T>::null = 0;
+template<typename T> const T Type<T>::null = {0};
 template<typename T> struct Type<T*> {
     static const T* null;
     typedef T type;
@@ -24,18 +24,20 @@ template<typename T> const T* Type<T*>::null = nullptr;
 template<typename T, typename... L> class TypeCast {
     public: typedef T type;
     protected: T value;
+    protected: TypeCast() = default;
     protected: TypeCast(T value) : value(value) {
     }
-    public: inline operator T () const {
+    public: inline operator T () {
         return value;
     }
     protected: template<typename O, typename P> struct Set {
     };
 };
 template<typename T, typename C> class TypeCast<T,C> : public TypeCast<T> {
+    protected: TypeCast() = default;
     protected: TypeCast(T value) : TypeCast<T>(value) {
     }
-    public: inline operator C () const {
+    public: inline operator C () {
         return this->value;
     }
     protected: template<typename O, typename P> struct Set : TypeCast<T>::template Set<O,P> {
@@ -48,9 +50,10 @@ template<typename T, typename C> class TypeCast<T,C> : public TypeCast<T> {
     };
 };
 template<typename T, typename C, typename... L>  class TypeCast<T,C,L...> : public TypeCast<T,L...> {
+    protected: TypeCast() = default;
     protected: TypeCast(T value) : TypeCast<T,L...>(value) {
     }
-    public: inline operator C () const {
+    public: inline operator C () {
         return this->value;
     }
     protected: template<typename O, typename P> struct Set : TypeCast<T,L...>:: template Set<O,P> {
