@@ -10,6 +10,7 @@
 #ifndef HEATEQUATION_H
 #define HEATEQUATION_H
 
+#include <fstream>
 #include "Array.h"
 #include "Boundary.h"
 #include "Matrix.h"
@@ -48,7 +49,7 @@ template<typename T, unsigned int D> class HeatEquation : public Boundary<T,D> {
     }
     private: template<unsigned int DIM> void Init(int n) {
         if(DIM) {
-            matrix[DIM-1] =  new Matrix<MatrixType::Tridiagonal_m1_C_m1, T>(n);
+            matrix[DIM-1] =  new Matrix<MatrixType::Tridiagonal_m1_C_m1, T>(n-2);
             delete [] u[DIM-1];
             u[DIM-1] = new T[n];
         }
@@ -76,25 +77,100 @@ template<typename T, unsigned int D> class HeatEquation : public Boundary<T,D> {
     }
     private: template<unsigned int DIM> inline int N(int n) {
         Boundary<T,D>::n[DIM] = n;
-        if(DIM)
-            matrix[DIM-1]->n = n;
+        if(DIM) {
+            matrix[DIM-1]->n = n-2;
+            delete [] u[DIM-1];
+            u[DIM-1] = new T[n];
+        }
         return n;
+    }
+    public: void Print(ofstream& file) {
+        for(int i = 1; i <= D; i++) {
+            if(i > 1)
+                file << endl;
+            for(int j = 0; j < n[i]; j++) {
+                if(j)
+                    file << '\t';
+                file << this->x[i][j];
+            }
+        }
+        for(int i = 0; i < D; i++) {
+            file << endl;
+            for(int j = 0; j < n[i+1]; j++) {
+                if(j)
+                    file << '\t';
+                file << this->u[i][j];
+            }
+        }
+    }
+    public: void Solve() {
+        T* _u[D], *_v[D];           // Preparations
+        T* u, *v;
+        T alpha;
+        int n[D+1], _n;
+        n[0] = this->n[0];
+        for(int i = 1; i <= D; i++)
+            n[i] = this->n[i]-2;
+        for(int i = 0; i < D; i++) {
+            _v[i] = new T[n[i+1]+2];
+            _v[i][0] = this->u[i][0];
+            _v[i][n[i+1]+1] = this->u[i][n[i+1]+1];
+            _u[i] = this->u[i];
+        }
+
+        if(theta) {            // Implicit
+            for(int i = 1, j, k; i < n[0]; i++) {
+                for(j = 0; j < D; j++) {
+                    u = this->u[j];
+                    v = _v[j];
+                    alpha = this->alpha[j];
+                    _n = n[j+1];
+
+                    v[1] = _1_theta*(v[2] - 2*v[1] + v[0]) + alpha*v[1] + v[0];
+                    for(k = 2; k < _n; k++)
+                        v[k] = _1_theta*(v[k+1] - 2*v[k] - v[k-1]) + alpha*v[k];
+                    v[_n] = _1_theta*(v[_n+1] - 2*v[_n] - v[_n-1]) + alpha*v[_n] + v[_n+1];
+
+                    matrix[j]->Solve(&v[1], _n);
+
+                    this->u[j] = v;
+                }
+            }
+        } else {         // Explicit
+            for(int i = 1, j, k; i < n[0]; i++) {
+                for(j = 0; j < D; j++) {
+                    u = this->u[j];
+                    v = _v[j];
+                    alpha = this->alpha[j];
+                    _n = n[j+1];
+
+                    for(k = 1; k <= _n; k++)
+                        v[k] = u[k] + alpha*(u[k+1] - 2*u[k] + u[k-1]);
+
+                    this->u[j] = v;
+                }
+            }
+
+        }
+
+        for(int i = 0; i < D; i++)  // Clean up
+            delete [] _u[i];
     }
     private: inline T Theta(T theta) {
         if(theta) {
             _1_theta = 1-(T)1/theta;
-            T dt =  this->upper[0]-this->lower[0];
+            T dt =  (upper[0]-lower[0])/n[0];
             for(int i = 0; i < D; i++) {
-                alpha[i] = (this->upper[i+1]-this->lower[i+1]);
+                alpha[i] = (upper[i+1]-lower[i+1])/n[i+1];
                 alpha[i] *= alpha[i];
                 alpha[i] /= dt* theta;
                 matrix[i]->Diagonal(2+alpha[i]);
             }
         } else {
             for(int i = 0; i < D; i++) {
-                alpha[i] = (this->upper[i+1]-this->lower[i+1]);
+                alpha[i] = (upper[i+1]-lower[i+1])/n[i+1];
                 alpha[i] *= alpha[i];
-                alpha[i] = (this->upper[0]-this->lower[0])/alpha[i];
+                alpha[i] = (upper[0]-lower[0])/(n[0]*alpha[i]);
             }
         }
         return theta;

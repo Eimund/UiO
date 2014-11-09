@@ -1,0 +1,547 @@
+\documentclass[11pt,english,a4paper]{article}
+\include{mitt_oppsett}
+\usepackage{fullpage}
+
+\renewcommand\title{FYS4150 - Computational Physics - Project 4}
+
+\renewcommand\author{Eimund Smestad}
+%\newcommand\adress{}
+\renewcommand\date{\today}
+\newcommand\email{\href{mailto:eimundsm@fys.uio.no}{eimundsm@fys.uio.no}}
+
+%\lstset{language=[Visual]C++,caption={Descriptive Caption Text},label=DescriptiveLabel}
+\lstset{language=c++}
+\lstset{basicstyle=\small}
+\lstset{backgroundcolor=\color{white}}
+\lstset{frame=single}
+\lstset{stringstyle=\ttfamily}
+\lstset{keywordstyle=\color{black}\bfseries}
+\lstset{commentstyle=\itshape\color{black}}
+\lstset{showspaces=false}
+\lstset{showstringspaces=false}
+\lstset{showtabs=false}
+\lstset{breaklines}
+
+\begin{document}
+\maketitle
+\begin{flushleft}
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Diffusion of neurotransmitters}
+
+I will study diffusion as a transport process for neurotransmitters  across synaptic cleft separating the cell membrane of two neurons, for more detail see \cite{project4}. The diffusion equation is the partial differential equation 
+
+\begin{align*}
+\frac{\partial u\p{\textbf{x},t}}{\partial t} = \nabla \cdot\p{D\p{\textbf{x},t}\boldsymbol{\nabla} u\p{\textbf{x},t}}\,,
+\end{align*}
+
+where $u$ is the concentration of particular neurotransmitters at location $\textbf{x}$ and time $t$ with the diffusion coefficient $D$. In this study I consider the diffusion coefficient as constant, which simplify the diffusion equation to the heat equation
+
+\begin{align*}
+\frac{\partial u\p{\textbf{x},t}}{\partial t} = D\nabla^2 u\p{\textbf{x},t}\,.
+\end{align*}
+
+It is further assumed that the neurotransmitter concentration $u$ is only dependent on the distance $x$ in direction between the presynaptic to the postsynaptic across the synaptic cleft. Hence we have the differential equation
+
+\begin{align}
+\frac{\partial u\p{x,t}}{\partial t} = D\frac{\partial^2 u\p{x,t}}{\partial x^2}\,.
+\label{eq_1}
+\end{align}
+
+The boundary and initial condition that I'm going to study is 
+
+\begin{align}
+\forall t \in\mathbb{R}_{0}: u\p{0,t} = u_0\,, \quad \forall  t\in\mathbb{R} : u\p{d, t} = 0 \quad \text{and} \quad \forall x\in\mathbb{R}_{0+}^{d-} \forall t \in \mathbb{R}^{0}:u\p{x,t}=0\,,
+\label{eq_2}
+\end{align}
+
+where $u_0$ are kept constant at the presynaptic, $d$ is the distance between the presynaptic and the postsynaptic. Note that the notation $\forall x\in\mathbb{R}_{a+}^{b-} \Leftrightarrow a < x < b$, where as $\forall x\in\mathbb{R}_{a}^{b} \Leftrightarrow a \leq x \leq b$. Note also that these boundary conditions implies that the neurotransmitters are immediately absorbed at the postsynaptic, and for $t<0$ there are no neurotransmitters between the pre- and postsynaptic. \linebreak
+
+To solve the differential equation \eqref{eq_1} with the boundary condition \eqref{eq_2} we start by separating the concentration $u\p{x,t}$ into two functions $u_1\p{x}$ and $u_2\p{x,t}$ in the time and space of the signal transmission of the neurotransmitters
+
+\begin{align}
+\forall x \in \mathbb{R}_0^d \forall t \in \mathbb{R}_{0}: u\p{x,t} = u_1\p{x} + u_2\p{x,t} \,,
+\label{eq_3}
+\end{align}
+
+such that $u_2$ satisfies the Dirichlet boundary condition $u_2\p{0,t}=u_2\p{d,t}=0$, which forces $u_2\p{x,t}$ to be separated into two functions $u_3\p{x}$ and $u_4\p{t}$ as follows
+
+\begin{align}
+u_2\p{0,t} = u_2\p{d,t} = 0 \quad \Rightarrow \quad u_2\p{x,t} = u_3\p{x}u_4\p{t} \qquad \text{when $d\neq 0$ and $u_3\p{0}=u_3\p{d}=0$.}
+\label{eq_4}
+\end{align}
+
+Now putting \eqref{eq_2} and \eqref{eq_3} into \eqref{eq_1} yields
+
+\begin{align*}
+u_3\p{x}\frac{\partial u_4\p{t}}{\partial t} = D\p{u_4\p{t}\frac{\partial^2 u_3\p{x}}{\partial x^2} + \frac{\partial^2 u_1\p{x}}{\partial x^2}} \,.
+\end{align*}
+
+We wish that $\frac{\partial^2 u_1\p{x}}{\partial x^2} =0$ because then we can separate this partial differential equation by variables, which puts the requirement $u_1\p{x} = a_0 + a_1 x$. Since the separation of $u\p{x,t}$ into $u_1\p{x}$ and $u_2\p{x,t}$ in \eqref{eq_3} can be done arbitrarily without changing the solution of $u\p{x,t}$, means that the requirement $u_1\p{x} = a_0 + a_1 x$ is allowed. However we also need to investigate that $u_1\p{x} = a_0 + a_1 x$ satisfies the boundary condition in \eqref{eq_2};
+
+\begin{align*}
+u\p{0,t} &= u_1\p{0} + u_2\p{0,t} = u_1\p{0} = u_0
+\\
+u\p{d,t} &= u_1\p{d} + u_2\p{d,t} = u_1\p{d} = 0\,,
+\end{align*}
+
+where the Dirichlet boundary condition in \eqref{eq_4} are used. And we see that the boundary condition can satisfy the requirement $u_1\p{x} = a_0 + a_1 x$ when
+
+\begin{align}
+u_1\p{x} = u_0\p{1-\frac{x}{d}}\,.
+\label{eq_5}
+\end{align} 
+
+The differential equation in \eqref{eq_1} can now be written as
+
+\begin{align*}
+\frac{1}{Du_4\p{t}} \frac{\partial u_4\p{t}}{\partial t} = \frac{1}{u_3\p{x}}\frac{\partial^2 u_3\p{x}}{\partial x^2} = -\lambda^2 \,,
+\end{align*}
+
+where $\lambda$ is a constant, because $t$ and $x$ can vary independently. These two equations have the following solution
+
+\begin{align*}
+u_3\p{x} &= A\sin\p{\lambda x + \varphi} \qquad \text{and}
+\\
+u_4\p{t} &= C\e^{-D\lambda^2 t}\,.
+\end{align*}
+
+Applying the boundary conditions for $u_3$ in \eqref{eq_4} that $u_3\p{0}=u_4\p{d}=0$ gives
+
+\begin{align*}
+\lambda = \frac{n\pi}{d} \qquad \text{for } n \in \mathbb{N}/\kr{0}\,,
+\end{align*}
+
+where I let $\mathbb{N}=\mathbb{N}_{-\infty}^{\infty}$ represent all positive and negative integers. Hence
+
+\begin{align*}
+u_2\p{x,t} = u_3\p{x}u_4\p{t} = \sum_{n=1} A_n \sin\p{n\pi x} \exp\p{-D\p{\frac{n \pi}{d}}^2 t}\,,
+\end{align*}
+
+where the negative values of $n$ is absorbed into the coefficient $A_n$. Applying the initial condition from \eqref{eq_2}
+
+\begin{align}
+u\p{x,0} = u_0\p{1-\frac{x}{d}} + \sum_{n=1} A_n \sin\p{n\pi \frac{x}{d}} = 0 \qquad \text{for } x\in\mathbb{R}_0^d\,.
+\label{eq_6}
+\end{align}
+
+We need to determine the coefficients $A_n$, and the trick is to do something with the equation above such that we isolate the $A_n$ coefficients. To achieve this we use the fact that $\sin\p{n\pi\frac{x}{d}}$ is orthogonal with $\sin\p{m\pi\frac{x}{d}}$ under integration 
+
+\begin{align*}
+&\int \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = -\frac{d}{m\pi}\cos\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}} + \frac{n}{m}\int \cos\p{m\pi\frac{x}{d}}\cos\p{n\pi\frac{x}{d}}\,\mathrm{d}x
+\\
+&\quad = -\frac{d}{m\pi}\cos\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}} + \frac{n}{m}\p{\frac{d}{\pi m} \sin\p{m\pi\frac{x}{d}} \cos\p{n\pi\frac{x}{d}} + \frac{n}{m}\int \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x} \,,
+\end{align*}
+
+where I have used integration by parts $\int u\dot{v} = uv - \int \dot{u}v$. Solving this equation with regard to the integral we get
+
+\begin{align*}
+\int \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = \frac{d}{\pi\p{n^2 - m^2}} \p{n \sin\p{m\pi\frac{x}{d}}\cos\p{n\pi\frac{x}{d}} - m \cos\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}} \,.
+\end{align*}
+
+We want to make the result of this integral zero for $n\neq m$, which is the result if $x=\frac{k d}{2}$ and $x=\frac{\ell d}{2}$ where $k,\ell\in\mathbb{N}$ (for zero,negative and positive integers), because then $\sin\cos$ parts above becomes zero. This means that we need to integrate from $x=\frac{k d}{2}$ and $x=\frac{\ell d}{2}$. However the result above is not defined for $n=m$ because we get $\frac{0}{0}$. So we redo the integration for $n=m$;
+
+\begin{align*}
+&\int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x 
+= -\kl{ \frac{d}{\pi n}\cos\p{n\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}}_{\frac{k d}{2}}^{\frac{\ell d}{2}} + \int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \cos^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x
+= \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \cos^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x
+\\ 
+&\quad = \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \p{1-\sin^2\p{n\pi\frac{x}{d}}}\,\mathrm{d}x 
+= \kl{x}_{\frac{k d}{2}}^{\frac{\ell d}{2}} - \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x 
+= \frac{d}{2}\p{\ell-k} - \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x 
+= \frac{d}{4}\p{\ell-k} \,,
+\end{align*}
+
+where I solve the equation with regard to in $\int\frac{d}{2}\p{\ell-k} \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x$ in the last step. I have also used integration by parts $\int u\dot{v} = uv - \int \dot{u}v$ and the Pythagoras trigonometric relation $\sin^2 x+ \cos^2 x = 1$. So the solution of the following integral is
+
+\begin{align*}
+\int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = \frac{d}{4}\p{\ell-k}\delta_{mn}\,,
+\end{align*}
+
+where $\delta_{mn}$ is the Kronecker delta, and hence I have showed the orthogonality of the above integral. Applying this to \eqref{eq_6};
+
+\begin{align*}
+\sum_{n=1}\int_{\frac{k d}{2}}^{\frac{\ell d}{2}} A_n\sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}u_0\sin\p{m\pi\frac{x}{d}}\p{\frac{x}{d}-1}\,\mathrm{d}x\,,
+\end{align*}
+
+we can isolate $A_n$ at $n=m$ because of the Kronecker delta $\delta_{nm}$;
+
+\begin{align*}
+A_n & = \frac{4}{d\p{\ell-k}} \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}u_0\sin\p{n\pi\frac{x}{d}}\p{\frac{x}{d}-1}\,\mathrm{d}x 
+= \frac{4 u_0}{n\p{\ell-k}\pi} \p{-\kl{\p{\frac{x}{d}-1}\cos\p{n\pi\frac{x}{d}}}_{\frac{k d}{2}}^{\frac{\ell d}{2}} + \frac{1}{d}\int_{\frac{k d}{2}}^{\frac{\ell d}{2}}\cos\p{n\pi\frac{x}{d}}\,\mathrm{d}x }
+\\
+&= \frac{4 u_0}{n\p{\ell-k}\pi} \p{-\kl{\p{\frac{x}{d}-1}\cos\p{n\pi\frac{x}{d}}}_{\frac{k d}{2}}^{\frac{\ell d}{2}} + \frac{1}{n\pi} \kl{\sin\p{n\pi\frac{x}{d}}}_{\frac{k d}{2}}^{\frac{\ell d}{2}} } 
+\\
+&= \frac{4 u_0}{n\p{\ell-k}\pi}\p{\p{\frac{k}{2}-1}\cos\p{\frac{k n\pi}{2}} - \p{\frac{\ell}{2}-1}\cos\p{\frac{\ell n \pi}{2}} + \frac{1}{n\pi}\p{\sin\p{\frac{\ell n \pi}{2}}-\sin\p{\frac{k n \pi}{2}}}}
+\\
+&= \frac{4 u_0}{n\p{\ell-k}\pi}\begin{cases} \frac{k-\ell}{2} & \text{when $k n$ and $\ell n$ is even,} \\ \frac{k}{2}-1 + \frac{1}{n\pi} & \text{when $k n$ is even and $\ell n$ is odd,} \\ 1-\frac{\ell}{2} + \frac{1}{n\pi} & \text{when $k n$ is odd and $\ell n$ is even,} \\ 0 & \text{when $k n$ and $\ell n$ is odd.}\end{cases}
+\end{align*}
+
+Since $x\in\mathbb{R}_0^d$ in \eqref{eq_6} leads to $k,\ell\in\kr{0,2}$ (because of $\frac{kd}{2}$ and $\frac{\ell d}{2}$ in the integration interval) and $k\neq \ell$ for $A_n$ to apply to the whole interval of $x$, which means that $kn$ and $\ell n$ is even; hence there are only one possibility of the solution above
+
+\begin{align}
+A_n = -\frac{2 u_0}{n\pi} \qquad \text{for } x\in\mathbb{R}_0^d\,.
+\label{eq_7}
+\end{align}
+
+Therefore the analytical solution for the concentration of neurotransmitters in \eqref{eq_3} is given by
+
+\begin{align}
+\forall x \in \mathbb{R}_0^d \forall t \in \mathbb{R}_{0}: u\p{x,t} = u_0\p{1-\frac{x}{d} - \sum_{n=1} \frac{2}{n\pi}\sin\p{n\pi x}\exp\p{-D\p{\frac{n\pi}{d}}^2 t}}\,.
+\label{eq_8}
+\end{align}
+
+\section{Numerical methods}
+
+\subsection{The $\theta$-rule}
+
+The Taylor expansion is given by
+
+\begin{align}
+u\p{x} = \sum_{n=0} \frac{\T{u}{(n)}\p{x_0}}{n!}\p{x-x_0}^n
+\label{eq_9}
+\end{align}
+
+where $\T{u}{(n)} = \frac{\mathrm{d}^n u}{\mathrm{d}t^n}$ and $x_0$ is a initial value where we step from to $x$ . If we now use the first order approximation
+
+\begin{align*}
+u\p{x} \approx u\p{x_0} + \T{u}{(1)}\p{x_0}\p{x-x_0} \,.
+\end{align*}
+
+The first order differential equation $\T{u}{(1)}\p{x} = f\p{x}$ is determined when we have the initial condition $u\p{x_0}$, however $\T{u}{(1)}\p{x_0}$ is not an initial condition, and it depends on how we calculate it numerically from the initial condition. Now note that $\T{u}{(1)}\p{x_0}$ is the same for different values of $x$ in the approximation above and lets say that we calculate it as given from the approximation above;
+
+\begin{align}
+\T{u}{(1)}\p{x_0} \approx \frac{u\p{x}-u\p{x_0}}{x-x_0}\,.
+\label{eq_10}
+\end{align}
+
+So now use this in another point $x_{\theta} = \theta x + \p{1-\theta}x_0$ which we also approximate to the first order, and if we use the expression above for $\T{u}{(1)}\p{x_0}$ we get
+
+\begin{align}
+u\p{x_\theta} &\approx u\p{x_0} + \T{u}{(1)}\p{x_0}\p{x_{\theta}-x_0} = u\p{x_0} + \theta\,\T{u}{(1)}\p{x_0}\p{x-x_0} 
+\nonumber\\
+&\approx u\p{x_0} + \frac{u\p{x}-u\p{x_0}}{x-x_0}\theta\p{x-x_0} = \theta u\p{x} + \p{1-\theta}u\p{x_0} \,,
+\label{eq_11}
+\end{align}
+
+this is known as the $\theta$-rule. The $\theta$-rule can be used to approximate the solution of the following first order differential equation
+
+\begin{align}
+\T{u}{(1)}\p{x} = f\p{u\p{x}} \,,
+\label{eq_12}
+\end{align}
+
+where we use \eqref{eq_10} to approximate the expression $\T{u}{(1)}\p{x}$ and given an even better or worse approximation to the solution $u\p{x}$ by approximating $f\p{x}\approx f\p{x_{\theta}}$;
+
+\begin{align*}
+\frac{u\p{x}-u\p{x_0}}{x-x_0} \approx f\p{u\p{x_{\theta}}} = f\p{\theta u\p{x} + \p{1-\theta}u\p{x_0}}\,,
+\end{align*}
+
+which discretize to
+
+\begin{align}
+\frac{u_{i+1}-u_i}{x_{i+1}-x_i} = f\p{\theta u_{i+1} + \p{1-\theta}u_i} \qquad \text{where } i\in\mathbb{N}_0 \text{ and $u_0$ is an initial contidion.} 
+\label{eq_13}
+\end{align}
+
+We can find the the next step in the numerical solution to \eqref{eq_12} by solving this difference equation with regard to $u_{i+1}$. Note the above discretization is known as Forward Euler scheme (Explicit) when $\theta = 0$, Backward Euler scheme (Implicit) when $\theta = 1$ and Crank-Nicolson scheme when $\theta = \frac{1}{2}$. \linebreak
+
+The truncation error of the Forward and Backward Euler scheme can be found by an alternative derivation, where expand the Taylor series in \eqref{eq_9} around the point $x_0\pm\Delta x$ accordingly;
+
+\begin{align}
+u\p{x_0\pm\Delta x} = \sum_{n=0} \frac{\T{u}{(n)}\p{x_0}}{n!}\p{\pm\Delta x}^n\,,
+\label{eq_14}
+\end{align}
+
+and solve it with regard to $\T{u}{(1)}\p{x_0}$
+
+\begin{align*}
+\T{u}{(1)}\p{x_0} = \frac{u\p{x_0\pm\Delta x}-u\p{x_0}}{\Delta x} + \mathcal{O}\p{\Delta x} \,,
+\end{align*}
+
+which means that we have a local truncation error of $\mathcal{O}\p{\Delta x}$ with the Forward and Backward Euler scheme. However the Crank-Nicolson scheme can be found by subtraction the Taylor expansion above for the two points
+
+\begin{align*}
+u\p{x_0+\Delta x} - u\p{x_0-\Delta x} = 2\sum_{n=1} \frac{\T{u}{\vspace{0.1cm}(2n-1)}\p{x_0}}{\p{2n-1}!}\Delta x^{2n-1}\,,
+\end{align*}
+
+and solve it with regard to $\T{u}{(1)}\p{x_0}$
+
+\begin{align*}
+\T{u}{(1)}\p{x_0} = \frac{u\p{x_0+\Delta x} - u\p{x_0-\Delta x}}{2\Delta x} + \mathcal{O}\p{\Delta x^2}\,,
+\end{align*}
+
+which means that we have a local truncation error of $\mathcal{O}\p{\Delta x^2}$. With the $\theta$-rule we can get even better or worse truncation error, because we can change the $\theta$ value to change the approximation.
+
+\subsection{Second order derivative}
+
+We approximated the first order derivative in \eqref{eq_10}, but we need to approximate the second order derivative to be able to solve the diffusion in \eqref{eq_1}.
+
+Now adding the two expansions in \eqref{eq_14}
+
+\begin{align*}
+u\p{x_0+\Delta x} + u\p{x_0-\Delta x} = 2\sum_{n=0} \frac{\T{u}{(2n)}\p{x_0}}{(2!)}\Delta x^{2n} = 2 u\p{x_0} + \T{u}{(2)}\p{x_0}\Delta x^2 + 2\sum_{n=2} \frac{\T{u}{(2n)}\p{x_0}}{(2!)}\Delta x^{2n}\,,
+\end{align*}
+
+and solve it with
+
+\begin{align*}
+\T{u}{(2)}\p{x_0} &= \frac{u\p{x_0+\Delta x} - 2 u\p{x_0} + u\p{x_0-\Delta x}}{\Delta x^2} - 2\sum_{n=2} \frac{\T{u}{(2n)}\p{x_0}}{(2!)}\Delta x^{2(n-1)}
+\\ &=  \frac{u\p{x_0+\Delta x} - 2 u\p{x_0} + u\p{x_0-\Delta x}}{\Delta x^2} + \mathcal{O}\p{\Delta x^2}\,,
+\end{align*}
+
+So the second order derivative can be approximated with
+
+\begin{align}
+\T{u}{(2)}\p{x_0} \approx   \frac{u\p{x_0+\Delta x} - 2 u\p{x_0} + u\p{x_0-\Delta x}}{\Delta x^2}
+\label{eq_15}
+\end{align}
+
+with the local truncation error $\mathcal{O}\p{\Delta x^2}$.
+
+\subsection{The heat equation}
+
+We want to discretize the dimensionless heat equation from \eqref{eq_1}, where we use $D=1$, $u_0=1$ and $d=1$, 
+
+\begin{align*}
+\frac{\partial u\p{x,t}}{\partial t} = \frac{\partial^2 u\p{x,t}}{\partial x^2}\,,
+\end{align*}
+
+to numerically solve diffusion of neurotransmitters. First we do the $\theta$-rule discretization in \eqref{eq_13} 
+
+\begin{align*}
+\frac{u_{i(j+1)}-u_{ij}}{\Delta t} = \frac{\partial^2 u_{i(j+\theta)}}{\partial x^2} = \frac{\partial^2 \p{\theta u_{i(j+1)}+\p{1-\theta}u_{ij}}}{\partial x^2} = \theta \frac{\partial u_{i(j+1)}}{\partial x^2} + \p{1-\theta}\frac{\partial u_{ij}}{\partial x^2}
+\end{align*}
+
+and then implement discretization of the second order in \eqref{eq_15}
+
+\begin{align}
+\frac{u_{i(j+1)}-u_{ij}}{\Delta t} = \frac{\theta}{\Delta x^2}\p{u_{(i+1)(j+1)} - 2 u_{i(j+1)} + u_{(i-1)(j+1)}} + \frac{1-\theta}{\Delta x^2}\p{u_{(i+1)j} - 2u_{ij} +u_{(i-1)j}} \,,
+\label{eq_16}
+\end{align}
+
+where index $i$ is stepping of $x$ and $j$ is stepping of $t$. And from the discussion before we have the local truncation error $\mathcal{O}\p{\Delta t}$ and $\mathcal{O}\p{\Delta x^2}$ for the Forward and Backward Euler scheme, and $\mathcal{O}\p{\Delta t^2}$ and $\mathcal{O}\p{\Delta x^2}$ for Crank-Nicoloson scheme. \linebreak
+
+The dimensionless initial condition from \eqref{eq_4} gives us
+
+\begin{align*}
+u_{i0} = \begin{cases} 1 & \text{when $i=0$,} \\ 0 & \text{elsewhere.} \end{cases} 
+\end{align*}
+
+The Forward Euler scheme is when $\theta = 0$ which gives explicit solution of \eqref{eq_16}
+
+\begin{align}
+u_{i(j+1)} = u_{ij} + \alpha\p{u_{(i+1)j} - 2 u_{ij} + u_{(i-1)j}} \,,
+\label{eq_17}
+\end{align} 
+
+where
+
+\begin{align*}
+\alpha = \frac{\Delta t}{\Delta x^2} \qquad \text{and} \qquad n = \frac{1}{\Delta x} \,.
+\end{align*}
+
+When we step forward in time with $j$ Implicitly $\theta > 0$, we use \eqref{eq_16} to find the next time step $j+1$ which is unknown and collect the unknowns on one side of the equation;
+
+\begin{align*}
+\begin{array}{l} u_{0(j+1)} \\ -u_{(i-1)(j+1)} +\p{2+\frac{1}{\alpha \theta}}u_{i(j+1)} - u_{(i+1)(j+1)} \\ u_{n(j+1)}\end{array} = \begin{array}{ll} 1 & \text{boundary condition,} \\ \p{1-\frac{1}{\theta}}\p{u_{(i+1)j} - 2u_{ij} + u_{(i-1)j}} + \frac{u_{ij}}{\alpha\theta} & \text{when $i\in\mathbb{N}_1^{n-1}$,}\\ 0  & \text{boundary condition.}\end{array}
+\end{align*} 
+
+We can rewrite further to omit the boundary condition
+
+\begin{align}
+\begin{array}{l} \p{2+\frac{1}{\alpha \theta}}u_{1(j+1)} - u_{2(j+1)} \\  -u_{(i-1)(j+1)} +\p{2+\frac{1}{\alpha \theta}}u_{i(j+1)} - u_{(i+1)(j+1)} \\ -u_{(n-2)(j+1)} +\p{2+\frac{1}{\alpha \theta}}u_{(n-1)(j+1)} \end{array} = \begin{array}{ll} \p{1-\frac{1}{\theta}}\p{u_{2j} - 2u_{1j} + u_{0j}} + \frac{u_{1j}}{\alpha\theta} + u_{0j} & \text{when $i=1$,} \\ \p{1-\frac{1}{\theta}}\p{u_{(i+1)j} - 2u_{ij} + u_{(i-1)j}} + \frac{u_{ij}}{\alpha\theta} & \text{when $i\in\mathbb{N}_2^{n-2}$,}\\ \p{1-\frac{1}{\theta}}\p{u_{nj} - 2u_{(n-1)j} + u_{(n-2)j}} + \frac{u_{(n-1)j}}{\alpha\theta} + u_{nj} & \text{when $i=n-1$,}\end{array}
+\label{eq_18}
+\end{align}
+
+where the left side constructs a tridiagonal matrix with the elements $\p{-1,2+\frac{1}{\alpha\theta},-1}$ when we extract the unknowns to a vector. Note that the boundary conditions are added in $i=1$ and $i=n-1$  in addition to the expression for $i\in\mathbb{N}_2^{n-2}$, which we get by taking the Gaussian elimination on row $i=1$ and $i=n-1$ with regard to the row $i=0$ and $i=n$ accordingly.
+
+\subsubsection{Tridiagonal matrix}
+
+We found that heat equation in \eqref{eq_1} can be solved by solving a matrix problem on the form
+
+\begin{align*}
+\textbf{A}\textbf{u} = \textbf{v}
+\end{align*} 
+
+where $\textbf{u}$ is the unknowns that we want to find, $\textbf{v}$ are given values and $\textbf{A}$ is a tridiagonal matrix on the form $\p{-1,a,-1}$ which we represent with the elements
+
+\begin{align*}
+a_{ij} = \begin{cases} a & \text{when $i=j$.} \\ -1 &\text{when $j\in\kr{i-1,i+1}$ and $i,j\in\mathbb{N}_1^{n-1}$,} \\ 0 & \text{otherwise.}\end{cases}
+\end{align*}
+
+We then use Gaussian elimination to reduce the tridiagonal matrix $\textbf{A}$ to a upper triangular matrix $\check{\textbf{A}}$ in the following way
+
+\begin{align*}
+\check{\textbf{A}}\textbf{u} = \check{\textbf{v}}\,.
+\end{align*} 
+
+To find the upper tridiagonal matrix we need to eliminate the elements $a_{i(i-1)}$ so $\check{a}_{i(i-1)} = 0$, which means that we need to multiply the values (without changing them) in row $i-1$ with 
+
+\begin{align*}
+\frac{a_{i(i-1)}}{\check{a}_{(i-1)(i-1)}} = -\frac{1}{\check{a}_{(i-1)(i-1)}} 
+\end{align*}
+
+and subtract them with the values in row $i$, which leads obviously to
+
+\begin{align*}
+\check{a}_{i(i-1)} = a_{i(i-1)} - \frac{a_{i(i-1)}}{\check{a}_{(i-1)(i-1)}} \check{a}_{(i-1)(i-1)} = 0\,.
+\end{align*}
+
+We can also show that off-tridiagonal elements in the upper tridiagonal remains zero under this Gaussian elimination
+
+\begin{align*}
+\check{a}_{ij} = a_{ij} - \frac{a_{i(i-1)}}{\check{a}_{(i-1)(i-1)}} \check{a}_{(i-1)j} = a_{ij} = 0 \quad \text{when $i\in\mathbb{N}_2^{n-3}$ and $j\in\mathbb{N}_{i+2}^{n-1}$, because $\check{a}_{1j}=a_{1j} = 0$.}
+\end{align*}
+
+and similarly that the off-tridiagonal elements in the lower tridiagonal also remains zero
+
+\begin{align*}
+\check{a}_{ij} = a_{ij} - \frac{a_{i(i-1)}}{\check{a}_{(i-1)(i-1)}} \check{a}_{(i-1)j} = a_{ij} = 0 \quad \text{when $i\in\mathbb{N}_3^{n-1}$ and $j\in\mathbb{N}_{1}^{i-2}$, because $\check{a}_{i(i-1)}=a_{i(i-1)} = 0$.}
+\end{align*}
+
+We can also show that elements $a_{i(i+1)}=-1$ also remains unchanged under this Gaussian elimination
+
+\begin{align*}
+\check{a}_{i(i+1)} = a_{i(i+1)} - \frac{a_{i(i-1)}}{\check{a}_{(i-1)(i-1)}} \check{a}_{(i-1)(i+1)} = a_{i(i+1)} = -1 \,.
+\end{align*}
+
+This results in that the diagonal elements are then given by
+
+\begin{align}
+\check{a}_{ii} = a_{ii} - \frac{a_{i(i-1)}}{\check{a}_{(i-1)(i-1)}} \check{a}_{(i-1)i} = a_{ii} - \frac{1}{\check{a}_{(i-1)(i-1)}} \quad \text{when }\check{a}_{11} = a_{11} = a\,.
+\label{eq_19}
+\end{align} 
+
+We have now calculated all the elements in the upper triangular matrix $\check{\textbf{A}}$, and we can summarize the the elements as
+
+\begin{align*}
+\check{a}_{ij} &= \begin{cases} a_{11} & \text{when $i=j=1$} \\ a_{ii} - \frac{1}{\check{a}_{(i-1)(i-1)}} & \text{when $i=j$ and  $i\in\mathbb{N}_2^{n-1}$} \\ -1 & \text{when $j=i+1$ and $i,j\in\mathbb{N}_1^{n-1}$} \\ 0 & \text{otherwise\,.}\end{cases}
+\end{align*}
+
+We also need to do the Gaussian elimination on the vector $\textbf{v}$ as well, which leads to
+
+\begin{align}
+\check{v}_i &= \begin{cases} v_1 & \text{when $i=1$} \\ v_i + \frac{\check{v}_{i-1}}{\check{a}_{(i-1)(i-1)}} & \text{when $i\in\mathbb{N}_2^{n-1}$}\,. \end{cases}
+\label{eq_20}
+\end{align}
+
+We now want to eliminate the upper off-diagonal elements $\check{\textbf{A}}$ with Gaussian elimination so we get at diagonal matrix $\hat{\textbf{A}}$ in the following way
+
+\begin{align*}
+\hat{\textbf{A}}\textbf{u} = \hat{\textbf{v}}.
+\end{align*}
+
+To find the diagonal matrix we need to eliminate the elements $\check{a}_{i(i+1)}$ so $\hat{a}_{i(i+1)}=0$, which means that we need to multiply the values (without changing them) in row $i+1$ with
+
+\begin{align*}
+\frac{\check{a}_{i(i+1)}}{\hat{a}_{(i+1)(i+1)}} = - \frac{1}{\hat{a}_{(i+1)(i+1)}}
+\end{align*} 
+
+and subtract them with the values in row $i$, which leads obviously to
+
+\begin{align*}
+\hat{a}_{i(i+1)} = \check{a}_{i(i+1)} - \frac{\check{a}_{i(i+1)}}{\hat{a}_{(i+1)(i+1)}}\hat{a}_{(i+1)(i+1)} = 0\,.
+\end{align*}
+
+We can also show that off-tridiagonal elements in the upper tridiagonal remains zero under this Gaussian elimination
+
+\begin{align*}
+\hat{a}_{ij} = \check{a}_{ij} - \frac{\check{a}_{i(i+1)}}{\hat{a}_{(i+1)(i+1)}} \check{a}_{(i+1)j} = \check{a}_{ij} = 0 \quad \text{when $i\in\mathbb{N}_1^{n-3}$ and $j\in\mathbb{N}_{i+2}^{n-1}$, because $\hat{a}_{i(i+1)}=\check{a}_{i(i+1)} = 0$,}
+\end{align*}
+
+and similarly that the off-diagonal elements in the lower tridiagonal also remains zero
+
+\begin{align*}
+\hat{a}_{ij} = \check{a}_{ij} - \frac{\check{a}_{i(i+1)}}{\hat{a}_{(i+1)(i+1)}} \hat{a}_{(i+1)j} = a_{ij} = 0 \quad \text{when $i\in\mathbb{N}_2^{n-2}$ and $j\in\mathbb{N}_{1}^{i-1}$, because $\check{a}_{i(i+1)}=a_{i(i+1)} = 0$.}
+\end{align*}
+
+This results unchanged diagonal elements
+
+\begin{align*}
+\hat{a}_{ii} = \check{a}_{ii} - \frac{\check{a}_{i(i+1)}}{\hat{a}_{(i+1)(i+1)}}\check{a}_{(i+1)i} = \check{a}_{ii} = a_{ii} - \frac{1}{\check{a}_{(i-1)(i-1)}} \qquad \text{where }\check{a}_{11} = a_{11}\,.
+\end{align*}
+
+We have now calculated all the elements in the diagonal matrix $\hat{\textbf{A}}$, and we can summarize the elements as
+
+\begin{align*}
+\hat{a}_{ij} = \begin{cases} \check{a}_{ii}  & \text{when } i=j \text{ and } i\in\mathbb{N}_{1}^{n-1} \\ 0 & \text{otherwise.} \end{cases}
+\end{align*}
+
+We also need to do the Gaussian elimination on the vector $\textbf{v}$ as well, which leads to
+
+\begin{align*}
+\hat{v}_i &= \begin{cases} \check{v}_{n-1} & \text{when $i=n-1$} \\ \check{v}_i + \frac{\hat{v}_{i+1}}{\check{a}_{(i+1)(i+1)}} & \text{when $i\in\mathbb{N}_1^{n-2}$}\,. \end{cases}
+\end{align*}
+
+To find the unknowns in $\textbf{u}$ we need to make the diagonal matrix $\hat{\textbf{A}}$ to an identity matrix $\textbf{I}$ such that $\bar{\textbf{v}}$
+
+\begin{align*}
+\textbf{I}\textbf{u} = \bar{\textbf{v}}\,,
+\end{align*}
+
+which we achieve by dividing each row with the diagonal element $a_{ii}$. And the solution is given by
+
+\begin{align}
+u_i = \bar{v}_i = \frac{\hat{v}_i}{\check{a}_{ii}} \,.
+\label{eq_21}
+\end{align}
+
+But we now see that when we calculate $\check{v}_i$ actually uses the previous solution $u_{i+1}$, and we can rewrite $\check{v}_i$ to
+
+\begin{align}
+\hat{v}_i &= \begin{cases} \check{v}_{n-1} & \text{when $i=n-1$} \\ \check{v}_i + u_{i+1} & \text{when $i\in\mathbb{N}_1^{n-2}$}\,. \end{cases}
+\label{eq_22}
+\end{align}
+
+So what we need to calculate the solution in \eqref{eq_21} is first to calculate $\check{a}_{ii}$ in \eqref{eq_19}, then $\check{v}_i$ in \eqref{eq_20} followed by $\hat{v}_i$ \eqref{eq_22}. The calculation of $\check{a}_{ii}$ coefficient in \eqref{eq_19} is actually independent of the input values $v_i$, and can therefore be precalculated. Which means that we need 2N FLOPS to calculate $\check{v}_i$ in \eqref{eq_20}, 1N FLOP to calculate $u_i$ in \eqref{eq_21} and 1N FLOP to calculate $\hat{v}_i$ in \eqref{eq_22}. Hence we need 4N FLOPS to find the solution $u_i$.
+
+\section{Implementation}
+
+\section{Result}
+
+\begin{tabell}{|r|c|c|c|}{\small}{\input{build-project4-Desktop-Debug/time_header.dat}}{\input{build-project4-Desktop-Debug/time_forward_euler.dat}}{Calculation time for the Forward Euler scheme in seconds.}{tab_euler_forward}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|}{\small}{\input{build-project4-Desktop-Debug/time_header.dat}}{\input{build-project4-Desktop-Debug/time_backward_euler.dat}}{Calculation time for the Backward Euler scheme in seconds.}{tab_euler_backward}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|}{\small}{\input{build-project4-Desktop-Debug/time_header.dat}}{\input{build-project4-Desktop-Debug/time_crank_nicoloson.dat}}{Calculation time for the Crank-Nicoloson scheme in seconds.}{tab_crank_nicoloson}
+\end{tabell}
+
+\section{Attachments}
+
+The files produced in working with this project can be found at \linebreak
+
+The source files developed are
+
+
+\section{Resources}
+
+\begin{enumerate}
+\item{\href{http://qt-project.org/downloads}{QT Creator 5.3.1 with C11}}
+\item{\href{https://www.eclipse.org/downloads/}{Eclipse Standard/SDK  - Version: Luna Release (4.4.0) with PyDev for Python}}
+\item{\href{http://www.ubuntu.com/download/desktop}{Ubuntu 14.04.1 LTS}}
+\item{\href{http://shop.lenovo.com/no/en/laptops/thinkpad/w-series/w540/#tab-reseller}{ThinkPad W540 P/N: 20BG0042MN with 32 GB RAM}}
+\end{enumerate}
+
+\begin{thebibliography}{1}
+\bibitem{project4}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-4-deadline-november-10/project4\_2014.pdf}{\emph{FYS4150 - Project 4}} - \emph{Diffusion of neurotransmitters in the synaptic
+cleft}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{Diffusion}\href{http://en.wikipedia.org/wiki/Diffusion\_equation}{http://en.wikipedia.org/wiki/Diffusion\_equation}
+\bibitem{Heat}\href{http://en.wikipedia.org/wiki/Heat\_equation}{http://en.wikipedia.org/wiki/Heat\_equation}
+\bibitem{Dirichlet}\href{http://en.wikipedia.org/wiki/Dirichlet\_boundary\_condition}{http://en.wikipedia.org/wiki/Dirichlet\_boundary\_condition}
+\bibitem{IntegrationByParts}\href{http://en.wikipedia.org/wiki/Integration\_by\_parts}{http://en.wikipedia.org/wiki/Integration\_by\_parts}
+\bibitem{Taylor}\href{http://en.wikipedia.org/wiki/Taylor\_series}{http://en.wikipedia.org/wiki/Taylor\_series}
+\bibitem{Forward_Euler}\href{http://en.wikipedia.org/wiki/Euler\_method}{http://en.wikipedia.org/wiki/Euler\_method}
+\bibitem{Backward_Euler}\href{http://en.wikipedia.org/wiki/Backward\_Euler\_method}{http://en.wikipedia.org/wiki/Backward\_Euler\_method}
+\bibitem{Crank-Nicolson}\href{http://en.wikipedia.org/wiki/Crank\%E2\%80\%93Nicolson\_method}{http://en.wikipedia.org/wiki/Crank\%E2\%80\%93Nicolson\_method}
+\bibitem{Gaussian}\href{http://en.wikipedia.org/wiki/Gaussian\_elimination}{http://en.wikipedia.org/wiki/Gaussian\_elimination}
+\end{thebibliography}
+
+\end{flushleft}
+\end{document}

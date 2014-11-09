@@ -1000,7 +1000,7 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
             SolveInitialize();
         }
     }
-    public: bool Solve(T* f, unsigned int n) {
+    public: bool Solve(T* f, int n) {
         if(this->n < n)
             this->n = n;
         T* start = f;
