@@ -16,7 +16,7 @@
 
 template<typename T, unsigned int D> class Boundary {
     private: typedef Boundary<T, D> THIS;
-    public: T* x[D+1];
+    protected: T* x[D+1];
     public: Property<PropertyType::ReadOnly, THIS, PropertySet<THIS, T>, T> lower[D+1];
     public: Property<PropertyType::ReadOnly, THIS, PropertySet<THIS, T>, T> upper[D+1];
     public: Property<PropertyType::ReadOnly, THIS, ArrayLength<THIS, T>, int> n[D+1];

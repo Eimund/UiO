@@ -1003,16 +1003,16 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
     public: bool Solve(T* f, int n) {
         if(this->n < n)
             this->n = n;
-        T* start = f;
-        T* end = &f[n-1];
-        T* factor = this->factor;
-        while(f != end)
-            *f += (*f++)*(*factor++);
-        while(f != start) {
-            *f *= *factor--;
-            *f += *f--;
+
+        n -= 1;
+        int i = 0;
+        while(i < n)
+            f[i] += f[i]*factor[i++];
+        while(i) {
+            f[i] *= factor[i];
+            f[i] += f[i--];
         }
-        *f /= 2;
+        f[0] /= this->b;
         return true;
     }
     public: void SolveInitialize() {
@@ -1021,11 +1021,11 @@ template<class T> class Matrix<MatrixType::Tridiagonal_m1_C_m1, T> :
     private: inline void SolveInitialize(T* array, unsigned int i, unsigned int n) {
         MatrixElements<Matrix<MatrixType::Tridiagonal_m1_C_m1, T>, T>:: n = n;
         if(i == 0 && n > 0) {
-            array[0] = this->b;
+            array[0] = (T)1/this->b;
             i++;
         }
-        while(array[i-1] && i < n) {
-            array[i] = this->b - (T)1/array[i-1];
+        while(i < n) {
+            array[i] = (T)1/(this->b - array[i-1]);
             i++;
         }
     }

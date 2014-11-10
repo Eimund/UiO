@@ -20,7 +20,7 @@ template<typename T, unsigned int D> class HeatEquation : public Boundary<T,D> {
     private: T _1_theta;
     private: T alpha[D];
     public: T* u[D];
-    public: Matrix<MatrixType::Tridiagonal_m1_C_m1, T>* matrix[D];
+    private: Matrix<MatrixType::Tridiagonal_m1_C_m1, T>* matrix[D];
     public: Property<PropertyType::ReadOnly, THIS, PropertyGet<THIS, ArrayLength<Boundary<T,D>,T>>, ArrayLength<Boundary<T,D>,T>> X[D+1];
     public: Property<PropertyType::ReadOnly, THIS, PropertySetGet<THIS, int>, int> n[D+1];
     public: Property<PropertyType::ReadOnly, THIS, PropertySetGet<THIS, T>, T> lower[D+1];
@@ -118,7 +118,7 @@ template<typename T, unsigned int D> class HeatEquation : public Boundary<T,D> {
             _u[i] = this->u[i];
         }
 
-        if(theta) {            // Implicit
+        if(theta == 1.0) {            // Backward Euler Implicit
             for(int i = 1, j, k; i < n[0]; i++) {
                 for(j = 0; j < D; j++) {
                     u = this->u[j];
@@ -126,17 +126,37 @@ template<typename T, unsigned int D> class HeatEquation : public Boundary<T,D> {
                     alpha = this->alpha[j];
                     _n = n[j+1];
 
-                    v[1] = _1_theta*(v[2] - 2*v[1] + v[0]) + alpha*v[1] + v[0];
+                    v[1] = alpha*u[1] + u[0];
                     for(k = 2; k < _n; k++)
-                        v[k] = _1_theta*(v[k+1] - 2*v[k] - v[k-1]) + alpha*v[k];
-                    v[_n] = _1_theta*(v[_n+1] - 2*v[_n] - v[_n-1]) + alpha*v[_n] + v[_n+1];
+                        v[k] = alpha*u[k];
+                    v[_n] = alpha*u[_n] + u[_n+1];
 
                     matrix[j]->Solve(&v[1], _n);
 
+                    _v[j] = this->u[j];
                     this->u[j] = v;
                 }
             }
-        } else {         // Explicit
+        } else if(theta) {            // Theta Implicit
+            for(int i = 1, j, k; i < n[0]; i++) {
+                for(j = 0; j < D; j++) {
+                    u = this->u[j];
+                    v = _v[j];
+                    alpha = this->alpha[j];
+                    _n = n[j+1];
+
+                    v[1] = _1_theta*(u[2] - 2.0*u[1] + u[0]) + alpha*u[1] + u[0];
+                    for(k = 2; k < _n; k++)
+                        v[k] = _1_theta*(u[k+1] - 2.0*u[k] + u[k-1]) + alpha*u[k];
+                    v[_n] = _1_theta*(u[_n+1] - 2.0*u[_n] + u[_n-1]) + alpha*u[_n] + u[_n+1];
+
+                    matrix[j]->Solve(&v[1], _n);
+
+                    _v[j] = this->u[j];
+                    this->u[j] = v;
+                }
+            }
+        } else {                    // Forward Explicit
             for(int i = 1, j, k; i < n[0]; i++) {
                 for(j = 0; j < D; j++) {
                     u = this->u[j];
@@ -147,6 +167,7 @@ template<typename T, unsigned int D> class HeatEquation : public Boundary<T,D> {
                     for(k = 1; k <= _n; k++)
                         v[k] = u[k] + alpha*(u[k+1] - 2*u[k] + u[k-1]);
 
+                    _v[j] = this->u[j];
                     this->u[j] = v;
                 }
             }
@@ -154,11 +175,11 @@ template<typename T, unsigned int D> class HeatEquation : public Boundary<T,D> {
         }
 
         for(int i = 0; i < D; i++)  // Clean up
-            delete [] _u[i];
+            delete [] _v[i];
     }
     private: inline T Theta(T theta) {
         if(theta) {
-            _1_theta = 1-(T)1/theta;
+            _1_theta = 1.0/theta-1.0;
             T dt =  (upper[0]-lower[0])/n[0];
             for(int i = 0; i < D; i++) {
                 alpha[i] = (upper[i+1]-lower[i+1])/n[i+1];

@@ -347,13 +347,13 @@ where
 When we step forward in time with $j$ Implicitly $\theta > 0$, we use \eqref{eq_16} to find the next time step $j+1$ which is unknown and collect the unknowns on one side of the equation;
 
 \begin{align*}
-\begin{array}{l} u_{0(j+1)} \\ -u_{(i-1)(j+1)} +\p{2+\frac{1}{\alpha \theta}}u_{i(j+1)} - u_{(i+1)(j+1)} \\ u_{n(j+1)}\end{array} = \begin{array}{ll} 1 & \text{boundary condition,} \\ \p{1-\frac{1}{\theta}}\p{u_{(i+1)j} - 2u_{ij} + u_{(i-1)j}} + \frac{u_{ij}}{\alpha\theta} & \text{when $i\in\mathbb{N}_1^{n-1}$,}\\ 0  & \text{boundary condition.}\end{array}
+\begin{array}{l} u_{0(j+1)} \\ -u_{(i-1)(j+1)} +\p{2+\frac{1}{\alpha \theta}}u_{i(j+1)} - u_{(i+1)(j+1)} \\ u_{n(j+1)}\end{array} = \begin{array}{ll} 1 & \text{boundary condition,} \\ \p{\frac{1}{\theta}-1}\p{u_{(i+1)j} - 2u_{ij} + u_{(i-1)j}} + \frac{u_{ij}}{\alpha\theta} & \text{when $i\in\mathbb{N}_1^{n-1}$,}\\ 0  & \text{boundary condition.}\end{array}
 \end{align*} 
 
 We can rewrite further to omit the boundary condition
 
 \begin{align}
-\begin{array}{l} \p{2+\frac{1}{\alpha \theta}}u_{1(j+1)} - u_{2(j+1)} \\  -u_{(i-1)(j+1)} +\p{2+\frac{1}{\alpha \theta}}u_{i(j+1)} - u_{(i+1)(j+1)} \\ -u_{(n-2)(j+1)} +\p{2+\frac{1}{\alpha \theta}}u_{(n-1)(j+1)} \end{array} = \begin{array}{ll} \p{1-\frac{1}{\theta}}\p{u_{2j} - 2u_{1j} + u_{0j}} + \frac{u_{1j}}{\alpha\theta} + u_{0j} & \text{when $i=1$,} \\ \p{1-\frac{1}{\theta}}\p{u_{(i+1)j} - 2u_{ij} + u_{(i-1)j}} + \frac{u_{ij}}{\alpha\theta} & \text{when $i\in\mathbb{N}_2^{n-2}$,}\\ \p{1-\frac{1}{\theta}}\p{u_{nj} - 2u_{(n-1)j} + u_{(n-2)j}} + \frac{u_{(n-1)j}}{\alpha\theta} + u_{nj} & \text{when $i=n-1$,}\end{array}
+\begin{array}{l} \p{2+\frac{1}{\alpha \theta}}u_{1(j+1)} - u_{2(j+1)} \\  -u_{(i-1)(j+1)} +\p{2+\frac{1}{\alpha \theta}}u_{i(j+1)} - u_{(i+1)(j+1)} \\ -u_{(n-2)(j+1)} +\p{2+\frac{1}{\alpha \theta}}u_{(n-1)(j+1)} \end{array} = \begin{array}{ll} \p{\frac{1}{\theta}-1}\p{u_{2j} - 2u_{1j} + u_{0j}} + \frac{u_{1j}}{\alpha\theta} + u_{0j} & \text{when $i=1$,} \\ \p{\frac{1}{\theta}-1}\p{u_{(i+1)j} - 2u_{ij} + u_{(i-1)j}} + \frac{u_{ij}}{\alpha\theta} & \text{when $i\in\mathbb{N}_2^{n-2}$,}\\ \p{\frac{1}{\theta}-1}\p{u_{nj} - 2u_{(n-1)j} + u_{(n-2)j}} + \frac{u_{(n-1)j}}{\alpha\theta} + u_{nj} & \text{when $i=n-1$,}\end{array}
 \label{eq_18}
 \end{align}
 
@@ -511,6 +511,25 @@ So what we need to calculate the solution in \eqref{eq_21} is first to calculate
 
 \begin{tabell}{|r|c|c|c|}{\small}{\input{build-project4-Desktop-Debug/time_header.dat}}{\input{build-project4-Desktop-Debug/time_crank_nicoloson.dat}}{Calculation time for the Crank-Nicoloson scheme in seconds.}{tab_crank_nicoloson}
 \end{tabell}
+
+\begin{tabell}{|r|c|c|c|}{\small}{\input{build-project4-Desktop-Debug/time_header.dat}}{\input{build-project4-Desktop-Debug/time_forward_euler_error.dat}}{Order of relative error of Forward Euler scheme to the exact solution in \eqref{eq_8}, for $t=0.01$, $u_0 = 1$, $d = 1$ and $D = 1$.}{tab_euler_forward_error}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|}{\small}{\input{build-project4-Desktop-Debug/time_header.dat}}{\input{build-project4-Desktop-Debug/time_backward_euler_error.dat}}{Order of relative error of Backward Euler scheme to the exact solution in \eqref{eq_8}, for $t=0.01$, $u_0 = 1$, $d = 1$ and $D = 1$.}{tab_euler_backward_error}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|}{\small}{\input{build-project4-Desktop-Debug/time_header.dat}}{\input{build-project4-Desktop-Debug/time_crank_nicoloson_error.dat}}{Order of relative error of Crank-Nicoloson scheme to the exact solution in \eqref{eq_8}, for $t=0.01$, $u_0 = 1$, $d = 1$ and $D = 1$.}{tab_crank_nicoloson_error}
+\end{tabell}
+
+\figur{0.8}{nx10_a0.49_t0.01.eps}{Exact solution calculated \eqref{eq_8}, FE is Forward Euler, BE is Back Euler and CN is Crank Nicholoson scheme. The following values is set as $u_0 = 1$, $d = 1$ and $D = 1$.}{fig1} 
+
+\figur{0.8}{nx10_a0.1_t0.01.eps}{Exact solution calculated \eqref{eq_8}, FE is Forward Euler, BE is Back Euler and CN is Crank Nicholoson scheme. The following values is set as $u_0 = 1$, $d = 1$ and $D = 1$.}{fig2} 
+
+\figur{0.8}{nx100_a0.49_t0.01.eps}{Exact solution calculated \eqref{eq_8}, FE is Forward Euler, BE is Back Euler and CN is Crank Nicholoson scheme. The following values is set as $u_0 = 1$, $d = 1$ and $D = 1$.}{fig3} 
+
+\figur{0.8}{nx100_a0.51_t0.01.eps}{Exact solution calculated \eqref{eq_8}, FE is Forward Euler, BE is Back Euler and CN is Crank Nicholoson scheme. The following values is set as $u_0 = 1$, $d = 1$ and $D = 1$.}{fig4} 
+
+\figur{0.8}{nx10_a0.49_t1.eps}{Exact solution calculated \eqref{eq_8}, FE is Forward Euler, BE is Back Euler and CN is Crank Nicholoson scheme. The following values is set as $u_0 = 1$, $d = 1$ and $D = 1$.}{fig5} 
 
 \section{Attachments}
 
