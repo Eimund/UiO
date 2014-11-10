@@ -21,13 +21,14 @@
 \lstset{showstringspaces=false}
 \lstset{showtabs=false}
 \lstset{breaklines}
+\lstset{tabsize=2}
 
 \begin{document}
 \maketitle
 \begin{flushleft}
 
 \begin{abstract}
-
+In this report I will look at diffusion of neurotransmitter across synaptic cleft by solving the heat equation. I will compare the numerical result from the heat equation with an analytical solution of the diffusion problem. I have implemented the $\theta$ rule to solve the partial differential equation of the heat equation, and for the implicit schemes I will use a tridiagonal matrix solver of $4N$ FLOPS.
 \end{abstract}
 
 \section{Diffusion of neurotransmitters}
@@ -302,7 +303,7 @@ So the second order derivative can be approximated with
 
 with the local truncation error $\mathcal{O}\p{\Delta x^2}$.
 
-\subsection{The heat equation}
+\subsection{The heat equation} \label{heat_equation}
 
 We want to discretize the dimensionless heat equation from \eqref{eq_1}, where we use $D=1$, $u_0=1$ and $d=1$, 
 
@@ -357,7 +358,9 @@ We can rewrite further to omit the boundary condition
 \label{eq_18}
 \end{align}
 
-where the left side constructs a tridiagonal matrix with the elements $\p{-1,2+\frac{1}{\alpha\theta},-1}$ when we extract the unknowns to a vector. Note that the boundary conditions are added in $i=1$ and $i=n-1$  in addition to the expression for $i\in\mathbb{N}_2^{n-2}$, which we get by taking the Gaussian elimination on row $i=1$ and $i=n-1$ with regard to the row $i=0$ and $i=n$ accordingly.
+where the left side constructs a tridiagonal matrix with the elements $\p{-1,2+\frac{1}{\alpha\theta},-1}$ when we extract the unknowns to a vector. Note that the boundary conditions are added in $i=1$ and $i=n-1$  in addition to the expression for $i\in\mathbb{N}_2^{n-2}$, which we get by taking the Gaussian elimination on row $i=1$ and $i=n-1$ with regard to the row $i=0$ and $i=n$ accordingly. \linebreak
+
+The Explicit solver in \eqref{eq_17} requires $5N$ FLOPS to be solve for each timestep. The implicit solver requires a tridiagonal solver in addition \eqref{eq_18}, and the tridiagonal solver uses $4N$ FLOPS. For the Backward Euler scheme $\theta = 1$ so $\frac{1}{\theta}-1=0$ and we need only one FLOP to calculate \eqref{eq_18} since $\frac{1}{\alpha \theta}$ can be precalculated, and with the tridiagonal solver we then have $5N$ FLOPS. For a general $theta$-rule implicit scheme \eqref{eq_18} we need $6N$ FLOPS to calculate \eqref{eq_18} since $\frac{1}{\theta}-1$ and $\frac{1}{\alpha \theta}$ can be precalculated, and with the tridiagonal solver we then have $10N$ FLOPS.
 
 \subsubsection{Tridiagonal matrix}
 
@@ -498,8 +501,148 @@ But we now see that when we calculate $\check{v}_i$ actually uses the previous s
 \end{align}
 
 So what we need to calculate the solution in \eqref{eq_21} is first to calculate $\check{a}_{ii}$ in \eqref{eq_19}, then $\check{v}_i$ in \eqref{eq_20} followed by $\hat{v}_i$ \eqref{eq_22}. The calculation of $\check{a}_{ii}$ coefficient in \eqref{eq_19} is actually independent of the input values $v_i$, and can therefore be precalculated. Which means that we need 2N FLOPS to calculate $\check{v}_i$ in \eqref{eq_20}, 1N FLOP to calculate $u_i$ in \eqref{eq_21} and 1N FLOP to calculate $\hat{v}_i$ in \eqref{eq_22}. Hence we need 4N FLOPS to find the solution $u_i$.
+\linebreak
 
 \section{Implementation}
+
+\subsection{Property class}
+
+I made myself a \texttt{Property} class to manage public variables of a class in a better way. The purpose of the \texttt{Property} class is to protect public variables of a class, such that the address of the variable can only be changed by the owner of the variable, but still read and write to variable is allowed outside the class. This means that the \texttt{Property} class can't be overwritten outside the class either. For the  \texttt{Property} class to know how to do this it needs a owner type as a template argument in it's declaration, which is done by the template argument \texttt{C} in \texttt{
+template<PropertyType A, typename C, typename T, typename... L> class Property}, and the class \texttt{C} is a friend of the \texttt{Property} class, which enables the owner to get access to private and protected instances inside the \texttt{Property} class that no one else gets. Type of the variable is determined by the template argument \texttt{T} and the owner allowed typecast of the variable is determined by template argument \texttt{L} (which is a varadic template argument which can be of an arbitrary length). The access to the variable is controlled by the template argument \texttt{A} which is of the following type
+
+\begin{lstlisting}[title={\texttt{enum class PropertyType}}]
+enum class PropertyType {
+	ReadWrite,
+	ReadOnly,
+	WriteOnly
+};
+\end{lstlisting}
+
+A variable that is protected by a \texttt{Property} class is accessed by read and write as if it's a regular variable, which is achieved by overloading the operators for typecasting and assignment. This is made possible by making \texttt{Property} inherent from \texttt{template<typename T, typename C, typename... L> class TypeCast<T,C,L...>}, which is again inherited by itself until all the typecasts are represented. However the compiler does not know what to do when a variable protected by a \texttt{Property} class is sent to a template function, unless you specify the template arguments explicitly when calling the function. This is due to that the it ambiguous which type is should cast to when it's not specified. Another way to resolve this to use the overloaded operator for \&, which unwraps the variable from the property class by making a copy of it self. \linebreak
+
+The owner of a property variable may want to add user defined set and get function, to enable synchronization of data inside the owner class when a property variable is read or written to. This is made possible by using the classes \texttt{PropertyGet}, \texttt{PropertySet} or \texttt{PropertySetGet} as type to a \texttt{Property} class. This classes requires the use of a \texttt{Delegate} class which contains a function pointer an it's owner, which makes it easier to pass function pointers of class members, because the recipient does not need to know who owns the function pointer, it can just call it as a regular function. \linebreak
+
+In addition I made \texttt{ArrayLength} class that has the length of an array as a variable, and automatically reallocate memory and reinitialize it by the owners wishes. This class does not contain the array it self but rather a pointer to the array. Which enables the array by be declared in regular way in it's owner class, and one don't have to deal with extra overhead code to access it. But it makes life much easier when dealing with arrays that changes sizes, because one don't have to think about reallocation of memory, one just sets the size of the array. \linebreak
+
+This classes that I have described here are made to protected vital variables in a class that are made public, and ensure correct of the class use from outsiders by synchronize the variables. The implementation by the class of this protected variables is bit cumbersome, however when you have tested your class you can be a lot sure that outsiders can't case bugs inside your class. Which again makes it easier to locate bugs when you program, because you can exclude where the bugs may occur.
+
+\subsection{Heat equation solver}
+
+I made a my own class that solves the heat equation as described in section \ref{heat_equation} with  
+\texttt{template<typename T, unsigned int D> class HeatEquation}. The template argument \texttt{T} is the variable type that the calculation is done with, and the template argument \texttt{D} is a preparation to support arbitrary dimension of the heat equation. However this implementation only support \texttt{D=1} for the time being. \texttt{HeatEquation} inherits from \texttt{template<typename T, unsigned int D> class Boundary} which handles the boundary conditions. The solver of the \texttt{HeatEquation} supports arbitrarily $\theta$ values in the $\theta$-rule, which is set by \texttt{HeatEquation::Theta} prior to calling the solver.
+
+\begin{lstlisting}[title={\texttt{HeatEquation::Solve()}}]
+void Solve() {
+	T* _u[D], *_v[D]; // Preparations
+	T* u, *v;
+	T alpha;
+	int n[D+1], _n;
+	n[0] = this->n[0];
+	for(int i = 1; i <= D; i++)
+	n[i] = this->n[i]-2;
+	for(int i = 0; i < D; i++) {
+		_v[i] = new T[n[i+1]+2];
+		_v[i][0] = this->u[i][0];
+		_v[i][n[i+1]+1] = this->u[i][n[i+1]+1];
+		_u[i] = this->u[i];
+	}
+	
+	if(theta == 1.0) { // Backward Euler Implicit
+		for(int i = 1, j, k; i < n[0]; i++) {
+			for(j = 0; j < D; j++) {
+				
+				// Enable faster accessing of arrays
+				u = this->u[j];		
+				v = _v[j];
+				alpha = this->alpha[j];
+				_n = n[j+1];
+				
+				// Calculate eq_18 with theta=1
+				v[1] = alpha*u[1] + u[0];
+				for(k = 2; k < _n; k++)
+					v[k] = alpha*u[k];
+				v[_n] = alpha*u[_n] + u[_n+1];
+				
+				matrix[j]->Solve(&v[1], _n);	// Tridiagonal solver
+				
+				// Prepare for next timestep
+				_v[j] = this->u[j];
+				this->u[j] = v;
+			}
+		}
+	} else if(theta) { // Theta Implicit
+		for(int i = 1, j, k; i < n[0]; i++) {
+			for(j = 0; j < D; j++) {
+			
+				// Enable faster accessing of arrays
+				u = this->u[j];
+				v = _v[j];
+				alpha = this->alpha[j];
+				_n = n[j+1];
+				
+				// Calculate eq_18
+				v[1] = _1_theta*(u[2] - 2.0*u[1] + u[0]) + alpha*u[1] + u[0];
+				for(k = 2; k < _n; k++)
+					v[k] = _1_theta*(u[k+1] - 2.0*u[k] + u[k-1]) + alpha*u[k];
+				v[_n] = _1_theta*(u[_n+1] - 2.0*u[_n] + u[_n-1]) + alpha*u[_n] + u[_n+1];
+				
+				matrix[j]->Solve(&v[1], _n);	// Tridiagonal solver
+				
+				// Prepare for next timestep
+				_v[j] = this->u[j];
+				this->u[j] = v;
+			}
+		}
+	} else { // Forward Explicit
+		for(int i = 1, j, k; i < n[0]; i++) {
+			for(j = 0; j < D; j++) {
+			
+				// Enable faster accessing of arrays
+				u = this->u[j];
+				v = _v[j];
+				alpha = this->alpha[j];
+				_n = n[j+1];
+				
+				// Calculate eq_17				
+				for(k = 1; k <= _n; k++)
+					v[k] = u[k] + alpha*(u[k+1] - 2*u[k] + u[k-1]);
+					
+				// Prepare for next timestep				
+				_v[j] = this->u[j];
+				this->u[j] = v;
+			}
+		}
+	}
+	
+	for(int i = 0; i < D; i++) // Clean up
+		delete [] _v[i];
+}
+\end{lstlisting}
+
+Number of timesteps are set by \texttt{HeatEquation::n[0]}, and number of grid points in $x$ direction is set by \texttt{HeatEquation::n[1]}. The start and end time are set by \texttt{HeatEquation::lower[0]} and \texttt{HeatEquation::upper[0]} accordingly, and the lower and upper boundary of $x$ are set by \texttt{HeatEquation::lower[1]} and \texttt{HeatEquation::upper[1]} accordingly. You are allowed full access to the array of $u\p{x,t}$ through \texttt{HeatEquation::u}, so you can set up the initial conditions prior to calling the solver, and you can read the result afterwards. The elements of \texttt{HeatEquation::u}  are set to zero by calling \texttt{HeatEquation::Initialize}.
+
+\subsection{Tridiagonal solver}
+
+The tridiagonal solver used by the heat equation is implemented in \texttt{template<class T> class Matrix<MatrixType::Tridiagonal\_m1\_C\_m1, T>}, where the template argument \texttt{T} is the type of variable that the calculation is done by. This matrix store only a constant for the main diagonal of the matrix, since this elements are constant, and the matrix looks like $\p{-1,C,-1}$ for each row where $C$ is located on the main diagonal and we have leading and succeeding zeros on the row. Which means that this matrix does not need any memory to represent it expect a constant $C$. However to enable the $4N$-solver we need to store an array of length $N$ (the size of the tridiagonal matrix) for the precalculated values \eqref{eq_19}, which is named \texttt{Matrix<MatrixType::Tridiagonal\_m1\_C\_m1, T>::factor}.
+
+\begin{lstlisting}[title={\texttt{Matrix<MatrixType::Tridiagonal\_m1\_C\_m1, T>::Solve}}]
+bool Solve(T* f, int n) {
+	if(this->n < n)		// Checks if the matrix size has changed 
+		this->n = n;		// and if so new precalculated values are calculated
+	
+	n -= 1;
+	int i = 0;
+	while(i < n)
+		f[i] += f[i]*factor[i++];	// eq_20
+	while(i) {
+		f[i] *= factor[i];				// eq_21
+		f[i] += f[i--];						// eq_22
+	}
+	f[0] /= this->b;
+	
+	return true;
+}
+\end{lstlisting}
 
 \section{Result}
 
@@ -537,11 +680,30 @@ Order of relative error of $\varv$ to $u$ is calculated by
 
 \figur{0.8}{nx10_a0.49_t1.eps}{Exact solution calculated \eqref{eq_8}, FE is Forward Euler, BE is Back Euler and CN is Crank Nicholoson scheme. The following values is set as $u_0 = 1$, $d = 1$ and $D = 1$.}{fig5} 
 
+\section{Conclusion}
+
+We see from the results that the different solvers that I made for the heat equation gives good approximation to the analytical solution in \eqref{eq_8}. However if we look at the tables \reftab{tab_euler_forward_error}, \reftab{tab_euler_backward_error} and \reftab{tab_crank_nicoloson_error} the Crank-Nicoloson scheme is the most stable, where the solution converges the fastest. This is due that Crank-Nicoloson scheme has second order local truncation error in both time and space, whereas the the Euler schemes have only first order in time and second order in space. The Backward Euler scheme is also stable for all $\alpha$ values, as for Crank-Nicoloson. But the Forward Euler scheme is only stable for $\alpha < \frac{1}{2}$, which I have demonstrated in \reffig{fig3} and \reffig{fig4}. The different solvers converges faster to the stationary solution i \reffig{fig5} than a more dynamic solution in \reffig{fig1}. \linebreak
+
+The Forward Euler scheme is about 3.5 times faster the implicit scheme, seen in \reftab{tab_euler_forward}, \reftab{tab_euler_backward} and \reftab{tab_crank_nicoloson}. This is not in agreement with number of FLOPS needed to solve with these schemes. The Forward and Backward scheme we found to both use $5N$ FLOPS for each timestep, but still the Backward Euler scheme is 3.5 times slower than the Forward Euler scheme. This is due to the tridiagonal matrix solver. Even though the tridiagonal matrix solver is taking into account in the number of FLOPS, it seems to run slower because it accesses two different arrays at the same instances. This also explains why the Crank-Nicoloson scheme is almost as fast as the Backward Euler scheme, even though the Crank-Nicoloson scheme use twice as many FLOPS. \linebreak
+
+We can also see from \reftab{tab_euler_forward_error}, \reftab{tab_euler_backward_error} and \reftab{tab_crank_nicoloson_error} that if we want to have good approximation for small values for the concentration $u\p{x,t}$, we need to increase the number of grid points, where the number timestep does not affect this significantly. The error in these tables are dominated by the values close to zero of $u\p{x,t}$.
+
 \section{Attachments}
 
-The files produced in working with this project can be found at \linebreak
+The files produced in working with this project can be found at  \href{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%204}{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%204}\linebreak
 
 The source files developed are
+
+\begin{enumerate}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%204/project4/Array.h}{Array.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%204/project4/Boundary.h}{Boundary.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%204/project4/Delegate.h}{Delegate.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%204/project4/HeatEquation.h}{HeatEquation.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%204/project4/Matrix.h}{Matrix.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%204/project4/Property.h}{Property.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%204/project4/Type.h}{Type.h}}
+\item{\href{https://github.com/Eimund/UiO/blob/master/FYS4150/Project\%204/project4/project4.cpp}{project4.cpp}}
+\end{enumerate}
 
 
 \section{Resources}
