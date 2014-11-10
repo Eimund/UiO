@@ -128,7 +128,7 @@ int main() {
             clock_t t0 = clock();
             diffusion.Solve();
             file_fe << " & " << (double)(clock()-t0)/CLOCKS_PER_SEC;
-            file_fe_e <<  " & " << ArrayRelativeError(u, diffusion.u[0], nx[i]-1);
+            file_fe_e <<  " & " << ArrayRelativeError(u, diffusion.u[0], nx[i],1e-6);
 
             diffusion.theta = 1.0;
             diffusion.Initialize();
@@ -136,7 +136,7 @@ int main() {
             t0 = clock();
             diffusion.Solve();
             file_be << " & " << (double)(clock()-t0)/CLOCKS_PER_SEC;
-            file_be_e <<  " & " << ArrayRelativeError(u, diffusion.u[0], nx[i]-1);
+            file_be_e <<  " & " << ArrayRelativeError(u, diffusion.u[0], nx[i],1e-6);
 
             diffusion.theta = 0.5;
             diffusion.Initialize();
@@ -144,7 +144,7 @@ int main() {
             t0 = clock();
             diffusion.Solve();
             file_cn << " & " << (double)(clock()-t0)/CLOCKS_PER_SEC;
-            file_cn_e <<  " & " << ArrayRelativeError(u, diffusion.u[0], nx[i]-1);
+            file_cn_e <<  " & " << ArrayRelativeError(u, diffusion.u[0], nx[i],1e-6);
 
             delete [] u;
         }
