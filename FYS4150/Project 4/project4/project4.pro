@@ -8,6 +8,7 @@ HEADERS += \
     HeatEquation.h \
     Property.h \
     Type.h \
-    Boundary.h
+    Boundary.h \
+    Array.h
 
 CONFIG += C++11
