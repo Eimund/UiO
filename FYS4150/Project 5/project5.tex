@@ -126,29 +126,30 @@ H\p{x} = \int_{-\infty}^x \delta\p{s}\,\mathrm{d}s = \begin{cases} 1 & x \geq 0 
 
 and $\delta\p{x}$ is Dirac delta function. The deviation that the solution of $u_1$ in \eqref{eq_7} gives to the assumption in \eqref{eq_4} is given by
 
-\begin{align*}
+\begin{align}
 \sum_{j=1}^2 \frac{\partial ^2 u_1\p{\kr{x_i}_{i=1}^2}}{\partial {x_j}^2} 
 =& u_0\p{1-\frac{x_1}{d}}\frac{\partial}{\partial x_2}\left(\delta\p{x_2-w_1}-\delta\p{x_2-w_2} +\frac{1-H\p{x_2-w_1} -x_2\delta\p{x_2-w_1}}{w_1} \right.
-\\
+\nonumber\\
 &\quad + \left. \frac{H\p{x_2-w_2}+\p{x_2-w}\delta\p{x_2-w_2}}{w_2-w}\right)
-\\
+\nonumber\\
 =& u_0\p{1-\frac{x_1}{d}}\frac{\partial}{\partial x_2}\p{\frac{1-H\p{x_2-w_1}}{w_1} + \frac{H\p{x_2-w_2}}{w_2-w}}
-\\
+\nonumber\\
 =& u_0\p{1-\frac{x_1}{d}}\p{\frac{\delta\p{x_2-w_2}}{w_2-w} - \frac{\delta\p{x_2-w_1}}{w_1}} \,.
-\end{align*}
+\label{eq_8}
+\end{align}
 
 So we see that assumption in \eqref{eq_4} is valid with 0th Dirichlet boundary condition for all points expect when $x_2=w_1$ and $x_2=w_2$;
 
 \begin{align}
 \forall t\in \mathbb{R}_0\exists\kr{w_i}_{i=1}^2\subseteq \mathbb{R}_0^w \forall x_1\in \mathbb{R}_{0}^d \forall x_2\in\mathbb{R}_0^w \setminus \kr{w_i}_{i=1}^2 : \frac{\partial u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial t} = D\sum_{j=1}^2\frac{\partial^2 u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_j}^2} \,,
-\label{eq_8}
+\label{eq_9}
 \end{align}
 
-which means that the solution of $u_2$ is unique for the condition in \eqref{eq_8}, hence if we find a solution to $u_2$ this is the only solution. So we make another ansatz that $u_2\p{\textbf{x},t}$ is separable into $u_3\p{\textbf{x}}$ and $u_4\p{t}$ as follows
+which means that the solution of $u_2$ is unique for the condition in \eqref{eq_9}, hence if we find a solution to $u_2$ this is the only solution. So we make another ansatz that $u_2\p{\textbf{x},t}$ is separable into $u_3\p{\textbf{x}}$ and $u_4\p{t}$ as follows
 
 \begin{align}
 \forall t\in \mathbb{R}_0\exists\kr{w_i}_{i=1}^2\subseteq \mathbb{R}_0^w \forall x_1\in \mathbb{R}_{0}^d \forall x_2\in\mathbb{R}_0^w \setminus \kr{w_i}_{i=1}^2 : u_2\p{\kr{x_i}_{i=1}^2,t} = u_3\p{\kr{x_i}_{i=1}^2}u_4\p{t} \,,
-\label{eq_9}
+\label{eq_10}
 \end{align}
 
 which satisfies the 0th Dirichlet boundary condition of $u_2$ when $u_3$ also have the 0th Dirichlet boundary condition;
@@ -157,7 +158,7 @@ which satisfies the 0th Dirichlet boundary condition of $u_2$ when $u_3$ also ha
 u_3\p{0,x_2}=u_3\p{d,x_2}=u_3\p{x_1,0}=u_3\p{x_1,w}=0.
 \end{align*}
 
-Now putting \eqref{eq_9} into \eqref{eq_8} yields
+Now putting \eqref{eq_10} into \eqref{eq_9} yields
 
 \begin{align*}
 u_3\p{\kr{x_i}_{i=1}^2}\frac{\partial u_4\p{t}}{\partial t} = Du_4\p{t}\sum_{j=1}^2\frac{\partial^2 u_3\p{\kr{x_i}_{i=1}^2}}{\partial {x_j}^2} \,.
@@ -195,14 +196,14 @@ Hence
 &\forall t\in \mathbb{R}_0\exists\kr{w_i}_{i=1}^2\subseteq \mathbb{R}_0^w \forall x_1\in \mathbb{R}_{0}^d \forall x_2\in\mathbb{R}_0^w \setminus \kr{w_i}_{i=1}^2 : 
 \nonumber\\
 &\quad u_2\p{\kr{x_i}_{i=1}^2,t} = \sum_{n_1,n_2=1} A_{n_1 n_2} \sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}} \exp\p{-D\frac{n_1 n_2 \pi^2}{dw} t}\,,
-\label{eq_10}
+\label{eq_11}
 \end{align}
 
-where the negative values of $n_1$ and $n_2$ are absorbed into the coefficient $A_{n_1 n_2}$. Applying the initial condition from \eqref{eq_2} on the concentration in \eqref{eq_4} with \eqref{eq_10} we must satisfy the following equation
+where the negative values of $n_1$ and $n_2$ are absorbed into the coefficient $A_{n_1 n_2}$. Applying the initial condition from \eqref{eq_2} on the concentration in \eqref{eq_4} with \eqref{eq_11} we must satisfy the following equation
 
 \begin{align}
 u\p{\kr{x_i}_{i=1}^2,0} = u_1\p{\kr{x_i}_{i=1}^2}+ \sum_{n_1,n_2=1} A_{n_1 n_2} \sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}}= 0 \,.
-\label{eq_11}
+\label{eq_12}
 \end{align}
 
 We need to determine the coefficients $A_{n_1 n_2}$, and the trick is to do something with the equation above such that we isolate the $A_{n_1 n_2}$ coefficients. To achieve this we use the fact that $\sin\p{n\pi\frac{x}{d}}$ is orthogonal with $\sin\p{m\pi\frac{x}{d}}$ under integration 
@@ -238,7 +239,7 @@ where I solve the equation with regard to in $\int\frac{d}{2}\p{\ell-k} \sin^2\p
 \int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = \frac{d}{4}\p{\ell-k}\delta_{mn}\,,
 \end{align*}
 
-where $\delta_{mn}$ is the Kronecker delta, and hence I have showed the orthogonality of the above integral. Applying this to \eqref{eq_11};
+where $\delta_{mn}$ is the Kronecker delta, and hence I have showed the orthogonality of the above integral. Applying this to \eqref{eq_12};
 
 \begin{align*}
 &\int_{\frac{k_1 d}{2}}^{\frac{\ell_1 d}{2}}\int_{\frac{k_2 w}{2}}^{\frac{\ell_2 w}{2}}  \sum_{n_1,n_2=1}A_{n_1 n_2} \sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}}\sin\p{m_1\pi\frac{x_1}{d}}\sin\p{m_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2\mathrm{d}x_1 
@@ -298,16 +299,45 @@ which gives
 
 \begin{align}
 A_{n_1 n_2} = -\frac{4 u_0 w}{n_1 {n_2}^2 \pi^3}\p{\frac{\sin\p{n_2 \pi \frac{w_1}{w}}}{w_1}-\frac{\sin\p{n_2 \pi \frac{w_2}{w}}}{w_2-w}} \qquad \text{for $x_1\in\mathbb{R}_0^d$ and $x_2\in\mathbb{R}_0^w \setminus \kr{w_i}_{i=1}^2$.}
-\label{eq_12}
+\label{eq_13}
 \end{align}
 
-So what about the points $x_2\in\kr{w_i}_{i=1}^2$? We make another ansatz that \eqref{eq_7} and \eqref{eq_10} with \eqref{eq_12} in the ansatz \eqref{eq_3} is a solution to heat equation\eqref{eq_1} with the boundary condition \eqref{eq_2} for $x_2\in\kr{w_i}_{i=1}^2$ as well. Then we have the concentration
+So what about the points $x_2\in\kr{w_i}_{i=1}^2$? We make another ansatz that \eqref{eq_7} and \eqref{eq_11} with \eqref{eq_13} in the ansatz \eqref{eq_3} is a solution to heat equation \eqref{eq_1} with the boundary condition \eqref{eq_2} for $x_2\in\kr{w_i}_{i=1}^2$ as well. Then we have the concentration
+
+\begin{align}
+&u\p{x_1,w_i,t} 
+\label{eq_14}\\
+&\quad = \lim_{x_2\to w_i}u_0\p{1-\frac{x_1}{d} - \sum_{n_1,n_2=1} \frac{4 w}{n_1 {n_2}^2 \pi^3}\p{\frac{\sin\p{n_2 \pi \frac{w_1}{w}}}{w_1}-\frac{\sin\p{n_2 \pi \frac{w_2}{w}}}{w_2-w}}\sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}} \exp\p{-D\frac{n_1 n_2 \pi^2}{dw} t}}\,,
+\nonumber
+\end{align}
+
+which we see satisfies the required boundary condition $u\p{0,w_i,t} = u_0$ and $u\p{d,w_i,t}=0$. Then  $u_2\p{0,w_i,t}=u_2\p{d,w_i,t}=0$ which means that we have satisfied the 0th Dirichlet boundary condition of $u_2$ for all $x_1\in\mathbb{R}_0^d$ and $x_2\in\mathbb{R}_0^w$ and we uniqueness of the solution of $u_2$, and hence a uniqueness of to $u$ as well if indeed this $u$ is a solution to \eqref{eq_1}. What we have exploited in the expression above that $u_1$ is continues and therefore 
 
 \begin{align*}
-u\p{x_1,w_i,t} = u_0\p{1-\frac{x_1}{d} - \sum_{n_1,n_2=1} \frac{4 w}{n_1 {n_2}^2 \pi^3}\p{\frac{\sin\p{n_2 \pi \frac{w_1}{w}}}{w_1}-\frac{\sin\p{n_2 \pi \frac{w_2}{w}}}{w_2-w}}\sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{w_i}{w}} \exp\p{-D\frac{n_1 n_2 \pi^2}{dw} t}}\,,
+\forall i \in \mathbb{N}_1^2 \forall x_2\in\mathbb{R}_{w_i-}^{w_i +} : u_1\p{\kr{x_i}_{i=1}^2} = u_0\p{1-\frac{x_1}{d}} + \epsilon\,,
 \end{align*}
 
-which we see satisfies the required boundary condition $u\p{0,w_i,t} = u_0$ and $u\p{d,w_i,t}=0$.
+and we can therefore make $\epsilon$ as small as we want by making the $w_i-$ and $w_i+$ go closer and closer together. Therefore we can use \eqref{eq_14} as approximation to the actual solution in \eqref{eq_1} with \eqref{eq_2} for $x_2\in\kr{w_i}_{i=1}^2$, where we can approximate as close to the actual solution as we want. If we put this approximation into the heat equation \eqref{eq_1}, then we see that
+
+\begin{align*}
+\forall i \in \mathbb{N}_1^2 \forall x_2\in\mathbb{R}_{w_i-}^{w_i +} :\sum_{j=1}^2 \frac{\partial^2 u_1\p{\kr{x_i}_{i=1}^2}}{\partial {x_j}^2} = 0 \,,
+\end{align*}
+
+and using this approximation into \eqref{eq_8} gives us
+
+\begin{align*}
+\sum_{j=1}^2 \frac{\partial^2 u_1\p{\kr{x_i}_{i=1}^2}}{\partial {x_j}^2} = 0
+\end{align*}
+
+for our entire domain of $x_1$ and $x_2$. I have now verified all the ansatzes that I made, and therefore the unique analytical solution to the heat equation \eqref{eq_1} with the boundary condition \eqref{eq_2} is given by
+
+\begin{align}
+&\forall t\in \mathbb{R}_0 \forall x_1 \in \mathbb{R}_0^d \forall x_2 \in \mathbb{R}_0^w : u\p{\kr{x_i}_{i=1}^2,t} 
+\\&\quad = u_0\p{1-\frac{x_1}{d}}\p{H\p{x_2-w_1}-H\p{x_2-w_2} + \p{1-H\p{x_2-w_1}}\frac{x_2}{w_1} + H\p{x_2-w_2}\frac{x_2-w}{w_2-w}} 
+\nonumber\\
+&\qquad -\sum_{n_1,n_2=1} \frac{4 w u_0}{n_1 {n_2}^2 \pi^3}\p{\frac{\sin\p{n_2 \pi \frac{w_1}{w}}}{w_1}-\frac{\sin\p{n_2 \pi \frac{w_2}{w}}}{w_2-w}}\sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}} \exp\p{-D\frac{n_1 n_2 \pi^2}{dw} t}\,.
+\nonumber
+\end{align}
 
 
 \section{Attachments}
