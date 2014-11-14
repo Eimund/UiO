@@ -1,0 +1,341 @@
+\documentclass[11pt,english,a4paper]{article}
+\include{mitt_oppsett}
+\usepackage{fullpage}
+
+\renewcommand\title{FYS4150 - Computational Physics - Project 5}
+
+\renewcommand\author{Candidate number: 68}
+%\newcommand\adress{}
+\renewcommand\date{\today}
+\newcommand\email{\href{mailto:eimundsm@fys.uio.no}{eimundsm@fys.uio.no}}
+
+%\lstset{language=[Visual]C++,caption={Descriptive Caption Text},label=DescriptiveLabel}
+\lstset{language=c++}
+\lstset{basicstyle=\small}
+\lstset{backgroundcolor=\color{white}}
+\lstset{frame=single}
+\lstset{stringstyle=\ttfamily}
+\lstset{keywordstyle=\color{black}\bfseries}
+\lstset{commentstyle=\itshape\color{black}}
+\lstset{showspaces=false}
+\lstset{showstringspaces=false}
+\lstset{showtabs=false}
+\lstset{breaklines}
+\lstset{tabsize=2}
+
+\begin{document}
+\maketitle
+\begin{flushleft}
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Diffusion of neurotransmitters}
+
+I will study diffusion as a transport process for neurotransmitters  across synaptic cleft separating the cell membrane of two neurons, for more detail see \cite{project4}. The diffusion equation is the partial differential equation 
+
+\begin{align*}
+\frac{\partial u\p{\textbf{x},t}}{\partial t} = \nabla \cdot\p{D\p{\textbf{x},t}\boldsymbol{\nabla} u\p{\textbf{x},t}}\,,
+\end{align*}
+
+where $u$ is the concentration of particular neurotransmitters at location $\textbf{x}$ and time $t$ with the diffusion coefficient $D$. In this study I consider the diffusion coefficient as constant, which simplify the diffusion equation to the heat equation
+
+\begin{align*}
+\frac{\partial u\p{\textbf{x},t}}{\partial t} = D\nabla^2 u\p{\textbf{x},t}\,.
+\end{align*}
+
+I will look at the concentration of neurotransmitter $u$ in two dimensions with $x_1$ parallel with the direction between the presynaptic to the postsynaptic across the synaptic cleft, and $x_2$ is parallel with both presynaptic to the postsynaptic. Hence we have the differential equation
+
+\begin{align}
+\frac{\partial u\p{\kr{x_i}_{i=1}^2,t}}{\partial t} = D\sum_{j=1}^2\frac{\partial^2 u\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_j}^2}\,,
+\label{eq_1}
+\end{align}
+
+where $\kr{x_i}_{i=1}^2 = \p{x_1, x_2} = \textbf{x}$. The boundary and initial condition that I'm going to study is 
+
+\begin{align}
+&\exists \kr{d, w} \subseteq \mathbb{R}_{0+}\exists\kr{w_i}_{i=1}^2 \subseteq \mathbb{R}_{0+}^{w-}\left(\forall t \in\mathbb{R}_{0}:\forall x_2 \in \mathbb{R}_{w_1}^{w_2} : u\p{0,x_2,t} = u_0  \right.
+\nonumber\\
+& \quad \wedge \forall  t \in\mathbb{R} \left(\forall x_2\in\mathbb{R}_{0+}^{w-} : u\p{d, x_2, t} = 0 
+\wedge \forall x_1\in\mathbb{R}_{0}^d : \left(u\p{x_1,0, t} = 0 \wedge u\p{x_1,w, t} = 0\right) \right)
+\nonumber\\
+& \quad \left.\wedge
+\forall x_1\in\mathbb{R}_{0+}^{d-}\forall x_2\in\mathbb{R}_{0+}^{w-} :u\p{\kr{x_i}_{i=1}^2,0}=0 \wedge \forall x_2 \in \mathbb{R}_0^w \setminus \mathbb{R}_{w_1}^{w_2} : u\p{0,x_2,0} = 0 \right)
+\label{eq_2}
+\end{align}
+
+where $d$ is the distance between the presynaptic and the postsynaptic, and $w$ is the width of the presynaptic and postsynaptic. Note that the notation $\forall x\in\mathbb{R}_{a+}^{b-} \Leftrightarrow a < x < b$, where as $\forall x\in\mathbb{R}_{a}^{b} \Leftrightarrow a \leq x \leq b$. Note also that these boundary conditions implies that the neurotransmitters are transmitted from presynaptic at $x_1=0$ and $w_1 \leq x_2\leq w_2$ with constant concentration $u_0$; the neurotransmitters are  immediately absorbed at the postsynaptic $x_1=d$; there are no neurotransmitters at boundary width $x_2=0$ and $x_2 = w$ of the synaptic cleft; and we have the initial condition at $t=0$ where there are no neurotransmitters between the pre- and postsynaptic as well on the side of the synaptic vesicles $x_1=0$, $0\leq x_2 < w_1$ and $w_2 < x_2 \leq w$. \linebreak
+
+\figur{0.8}{thompsonB2000-p39.eps}{Left: Schematic drawing of the process of vesicle release from the axon terminal and release of transmitter molecules into the synaptic cleft. (From Thompson: \anf{The Brain}, Worth Publ., 2000). Right: Molecular structure of the two important neurotransmitters glutamate and GABA.}{fig1} 
+
+To solve the differential equation \eqref{eq_1} with the boundary and initial condition \eqref{eq_2} we make an ansatz that the solution is unique, which is the case for a deterministic system. We recognize the heat equation as part of the class of partial differential equation spanned by the Poisson's equation for each time instance. The Uniqueness theorem for the Poisson's equation $\nabla^2 u = f$ \cite{Uniqueness} says that the Poisson's equation has a unique solution with the Dirichlet boundary condition, where Dirichlet boundary condition is here defined as a boundary that specifies the values the solution must have at the boundary.  \linebreak
+
+Unfortunately the boundary condition in \eqref{eq_2} is not a Dirichlet boundary, since the boundary is not specified on the side of the synaptic vesicles $x_1=0$, $0\leq x_2 < w_1$ and $w_2 < x_2 \leq w$. However the Uniqueness theorem does not exclude other boundary conditions to result in a unique solution, so we make another ansatz to separate the concentration $u\p{\textbf{x},t}$ into two functions $u_1\p{\textbf{x}}$ and $u_2\p{\textbf{x},t}$;
+
+\begin{align}
+\forall x_1 \in \mathbb{R}_0^d \forall x_2 \in \mathbb{R}_0^w \forall t \in \mathbb{R}_{0}: u\p{\kr{x_i}_{i=1}^2,t} = u_1\p{\kr{x_i}_{i=1}^2} + u_2\p{\kr{x_i}_{i=1}^2,t} \,,
+\label{eq_3}
+\end{align}
+
+such that $u_1$ is unique and assume  that $u_2$ satisfies
+
+\begin{align}
+\frac{\partial u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial t} = D\sum_{j=1}^2\frac{\partial^2 u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_j}^2}
+\label{eq_4}
+\end{align}
+
+with the Dirichlet boundary condition. For $u_2$ to be determined by the heat equation as well, $u_1$ must be on the form
+
+\begin{align}
+u_1\p{\kr{x_i}_{i=1}^2} = a_0 + \sum_{i=1}^2\sum_{j=i}^2\prod_{k=i}^j a_{jk} x_k \,.
+\label{eq_5}
+\end{align}
+
+Now lets try to impose the 0th Dirichlet boundary condition on $u_2$
+
+\begin{align}
+\forall t \in \mathbb{R} \forall x_1 \in \mathbb{R}_0^d x_2 \in \mathbb{R}_0^w : u_2\p{0,x_2,t}=u_2\p{d,x_2,t}=u_2\p{x_1,0,t}=u_2\p{x_1,w,t}=0\,.
+\label{eq_6}
+\end{align}
+
+When put into \eqref{eq_3} and using the boundary condition \eqref{eq_2} we have the following equations that $u_1$ must satisfied
+
+\begin{align*}
+u\p{0,x_2,t} = u_1\p{0,x_2} + u_2\p{0,x_2,t} = u_1\p{0,x_2} &= u_0 \quad \text{when } x_2\in\mathbb{R}_{w_1}^{w_2} 
+\\
+u\p{d,x_2,t} = u_1\p{d,x_2} + u_2\p{d,x_2,t} = u_1\p{d,x_2} &= 0
+\\
+u\p{x_1,0,t} = u_1\p{x_1,0} + u_2\p{x_1,0,t} = u_1\p{x_1,0} &= 0
+\\
+u\p{x_1,w,t} = u_1\p{x_1,w} + u_2\p{x_1,w,t} = u_1\p{x_1,w} &= 0
+\end{align*}
+
+and we can a very close fitting to \eqref{eq_5} 
+
+\begin{align}
+u_1\p{\kr{x_i}_{i=1}^2} = u_0\p{1-\frac{x_1}{d}}\p{H\p{x_2-w_1}-H\p{x_2-w_2} + \p{1-H\p{x_2-w_1}}\frac{x_2}{w_1} + H\p{x_2-w_2}\frac{x_2-w}{w_2-w}} \,,
+\label{eq_7}
+\end{align}
+
+where $H\p{x}$ is the Heaviside step function
+
+\begin{align*}
+H\p{x} = \int_{-\infty}^x \delta\p{s}\,\mathrm{d}s = \begin{cases} 1 & x \geq 0 \\ 0 & x < 0 \end{cases}
+\end{align*}
+
+and $\delta\p{x}$ is Dirac delta function. The deviation that the solution of $u_1$ in \eqref{eq_7} gives to the assumption in \eqref{eq_4} is given by
+
+\begin{align*}
+\sum_{j=1}^2 \frac{\partial ^2 u_1\p{\kr{x_i}_{i=1}^2}}{\partial {x_j}^2} 
+=& u_0\p{1-\frac{x_1}{d}}\frac{\partial}{\partial x_2}\left(\delta\p{x_2-w_1}-\delta\p{x_2-w_2} +\frac{1-H\p{x_2-w_1} -x_2\delta\p{x_2-w_1}}{w_1} \right.
+\\
+&\quad + \left. \frac{H\p{x_2-w_2}+\p{x_2-w}\delta\p{x_2-w_2}}{w_2-w}\right)
+\\
+=& u_0\p{1-\frac{x_1}{d}}\frac{\partial}{\partial x_2}\p{\frac{1-H\p{x_2-w_1}}{w_1} + \frac{H\p{x_2-w_2}}{w_2-w}}
+\\
+=& u_0\p{1-\frac{x_1}{d}}\p{\frac{\delta\p{x_2-w_2}}{w_2-w} - \frac{\delta\p{x_2-w_1}}{w_1}} \,.
+\end{align*}
+
+So we see that assumption in \eqref{eq_4} is valid with 0th Dirichlet boundary condition for all points expect when $x_2=w_1$ and $x_2=w_2$;
+
+\begin{align}
+\forall t\in \mathbb{R}_0\exists\kr{w_i}_{i=1}^2\subseteq \mathbb{R}_0^w \forall x_1\in \mathbb{R}_{0}^d \forall x_2\in\mathbb{R}_0^w \setminus \kr{w_i}_{i=1}^2 : \frac{\partial u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial t} = D\sum_{j=1}^2\frac{\partial^2 u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_j}^2} \,,
+\label{eq_8}
+\end{align}
+
+which means that the solution of $u_2$ is unique for the condition in \eqref{eq_8}, hence if we find a solution to $u_2$ this is the only solution. So we make another ansatz that $u_2\p{\textbf{x},t}$ is separable into $u_3\p{\textbf{x}}$ and $u_4\p{t}$ as follows
+
+\begin{align}
+\forall t\in \mathbb{R}_0\exists\kr{w_i}_{i=1}^2\subseteq \mathbb{R}_0^w \forall x_1\in \mathbb{R}_{0}^d \forall x_2\in\mathbb{R}_0^w \setminus \kr{w_i}_{i=1}^2 : u_2\p{\kr{x_i}_{i=1}^2,t} = u_3\p{\kr{x_i}_{i=1}^2}u_4\p{t} \,,
+\label{eq_9}
+\end{align}
+
+which satisfies the 0th Dirichlet boundary condition of $u_2$ when $u_3$ also have the 0th Dirichlet boundary condition;
+
+\begin{align*}
+u_3\p{0,x_2}=u_3\p{d,x_2}=u_3\p{x_1,0}=u_3\p{x_1,w}=0.
+\end{align*}
+
+Now putting \eqref{eq_9} into \eqref{eq_8} yields
+
+\begin{align*}
+u_3\p{\kr{x_i}_{i=1}^2}\frac{\partial u_4\p{t}}{\partial t} = Du_4\p{t}\sum_{j=1}^2\frac{\partial^2 u_3\p{\kr{x_i}_{i=1}^2}}{\partial {x_j}^2} \,.
+\end{align*}
+
+and separating the variables
+
+\begin{align*}
+\frac{1}{Du_4\p{t}} \frac{\partial u_4\p{t}}{\partial t} = \frac{1}{u_3\p{\kr{x_i}_{i=1}^2}}\sum_{j=1}^2\frac{\partial^2 u_3\p{\kr{x_i}_{i=1}^2}}{\partial {x_j}^2} = -\lambda^2 \,,
+\end{align*}
+
+where $\lambda$ is a constant, because $t$ and $x$ can vary independently. These two equations have the following solution
+
+\begin{align*}
+u_3\p{\kr{x_i}_{i=1}^2} &= \sum_{i=1}^2\sum_{j=i}^2 \prod_{k=i}^j A_{ijk} \sin\p{\lambda_{ijk} x_k + \varphi_{ijk}} \qquad \text{and}
+\\
+u_4\p{t} &= C\e^{-D\lambda^2 t}\,.
+\end{align*}
+
+The boundary condition $u_3\p{0,x_2}=u_3\p{x_1,0}=0$ gives $A_{111} = A_{222} = \varphi_{121}=\varphi_{122}=0$ , and $u_3\p{d,x_2}=u_3\p{x_1,w}=0$ gives 
+
+\begin{align*}
+\lambda_{121} = \frac{n_1\pi}{d}  \qquad \text{and} \qquad \lambda_{122} = \frac{n_2\pi}{w} \qquad \text{for } \kr{n_i}_{i=1}^2 \in \mathbb{N}/\kr{0}\,,
+\end{align*}
+
+where I let $\mathbb{N}=\mathbb{N}_{-\infty}^{\infty}$ represent all positive and negative integers, which much satisfies
+
+\begin{align*}
+\lambda^2 = \lambda_{121}\lambda_{122}\,.
+\end{align*}
+
+Hence
+
+\begin{align}
+&\forall t\in \mathbb{R}_0\exists\kr{w_i}_{i=1}^2\subseteq \mathbb{R}_0^w \forall x_1\in \mathbb{R}_{0}^d \forall x_2\in\mathbb{R}_0^w \setminus \kr{w_i}_{i=1}^2 : 
+\nonumber\\
+&\quad u_2\p{\kr{x_i}_{i=1}^2,t} = \sum_{n_1,n_2=1} A_{n_1 n_2} \sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}} \exp\p{-D\frac{n_1 n_2 \pi^2}{dw} t}\,,
+\label{eq_10}
+\end{align}
+
+where the negative values of $n_1$ and $n_2$ are absorbed into the coefficient $A_{n_1 n_2}$. Applying the initial condition from \eqref{eq_2} on the concentration in \eqref{eq_4} with \eqref{eq_10} we must satisfy the following equation
+
+\begin{align}
+u\p{\kr{x_i}_{i=1}^2,0} = u_1\p{\kr{x_i}_{i=1}^2}+ \sum_{n_1,n_2=1} A_{n_1 n_2} \sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}}= 0 \,.
+\label{eq_11}
+\end{align}
+
+We need to determine the coefficients $A_{n_1 n_2}$, and the trick is to do something with the equation above such that we isolate the $A_{n_1 n_2}$ coefficients. To achieve this we use the fact that $\sin\p{n\pi\frac{x}{d}}$ is orthogonal with $\sin\p{m\pi\frac{x}{d}}$ under integration 
+
+\begin{align*}
+&\int \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = -\frac{d}{m\pi}\cos\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}} + \frac{n}{m}\int \cos\p{m\pi\frac{x}{d}}\cos\p{n\pi\frac{x}{d}}\,\mathrm{d}x
+\\
+&\quad = -\frac{d}{m\pi}\cos\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}} + \frac{n}{m}\p{\frac{d}{\pi m} \sin\p{m\pi\frac{x}{d}} \cos\p{n\pi\frac{x}{d}} + \frac{n}{m}\int \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x} \,,
+\end{align*}
+
+where I have used integration by parts $\int u\dot{v} = uv - \int \dot{u}v$. Solving this equation with regard to the integral we get
+
+\begin{align*}
+\int \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = \frac{d}{\pi\p{n^2 - m^2}} \p{n \sin\p{m\pi\frac{x}{d}}\cos\p{n\pi\frac{x}{d}} - m \cos\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}} \,.
+\end{align*}
+
+We want to make the result of this integral zero for $n\neq m$, which is the result if $x=\frac{k d}{2}$ and $x=\frac{\ell d}{2}$ where $k,\ell\in\mathbb{N}$ (for zero,negative and positive integers), because then $\sin\cos$ parts above becomes zero. This means that we need to integrate from $x=\frac{k d}{2}$ and $x=\frac{\ell d}{2}$. However the result above is not defined for $n=m$ because we get $\frac{0}{0}$. So we redo the integration for $n=m$;
+
+\begin{align*}
+&\int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x 
+= -\kl{ \frac{d}{\pi n}\cos\p{n\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}}_{\frac{k d}{2}}^{\frac{\ell d}{2}} + \int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \cos^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x
+= \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \cos^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x
+\\ 
+&\quad = \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \p{1-\sin^2\p{n\pi\frac{x}{d}}}\,\mathrm{d}x 
+= \kl{x}_{\frac{k d}{2}}^{\frac{\ell d}{2}} - \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x 
+= \frac{d}{2}\p{\ell-k} - \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x 
+= \frac{d}{4}\p{\ell-k} \,,
+\end{align*}
+
+where I solve the equation with regard to in $\int\frac{d}{2}\p{\ell-k} \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x$ in the last step. I have also used integration by parts $\int u\dot{v} = uv - \int \dot{u}v$ and the Pythagoras trigonometric relation $\sin^2 x+ \cos^2 x = 1$. So the solution of the following integral is
+
+\begin{align*}
+\int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = \frac{d}{4}\p{\ell-k}\delta_{mn}\,,
+\end{align*}
+
+where $\delta_{mn}$ is the Kronecker delta, and hence I have showed the orthogonality of the above integral. Applying this to \eqref{eq_11};
+
+\begin{align*}
+&\int_{\frac{k_1 d}{2}}^{\frac{\ell_1 d}{2}}\int_{\frac{k_2 w}{2}}^{\frac{\ell_2 w}{2}}  \sum_{n_1,n_2=1}A_{n_1 n_2} \sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}}\sin\p{m_1\pi\frac{x_1}{d}}\sin\p{m_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2\mathrm{d}x_1 
+\\
+& \quad = - \int_{\frac{k_1 d}{2}}^{\frac{\ell_1 d}{2}}\int_{\frac{k_2 w}{2}}^{\frac{\ell_2 w}{2}} u_1\p{\kr{x_i}_{i=1}^2}\sin\p{m_1\pi\frac{x_1}{d}}\sin\p{m_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2\mathrm{d}x_1\,,
+\end{align*}
+
+we can isolate $A_{n_1 n_2}$ at $n_i=m_i$ because of the Kronecker deltas $\delta_{n_i m_i}$;
+
+\begin{align*}
+A_{n_1 n_2} &=  - \frac{16}{dw\prod_{i=1}^2\p{\ell_i-k_i}}\int_{\frac{k_1 d}{2}}^{\frac{\ell_1 d}{2}}\int_{\frac{k_2 w}{2}}^{\frac{\ell_2 w}{2}} u_1\p{\kr{x_i}_{i=1}^2}\sin\p{n_1\pi\frac{x_1}{d}}\sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2\mathrm{d}x_1 \,.
+\end{align*}
+
+Since $x_1\in\mathbb{R}_0^d$ and $x_2\in\mathbb{R}_0^w\setminus \kr{w_i}_{i=1}^2$ leads to $k_i,\ell_i \in \kr{0,2}$ and $k_i\neq \ell_i$ for $A_{n_1 n_2}$ to apply to the whole interval of $x_1$ and $x_2$, which is independent of each other.
+
+\begin{align*}
+A_{n_1 n_2} =&  -\frac{4}{dw}\int_{0}^{d}\sin\p{n_1\pi\frac{x_1}{d}}\left(\int_{0}^{w_1} u_1\p{\kr{x_i}_{i=1}^2}\sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2 \right.
+\\
+&\quad \left.+ \int_{w_1}^{w_2} u_1\p{\kr{x_i}_{i=1}^2}\sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2
++ \int_{w_2}^{w} u_1\p{\kr{x_i}_{i=1}^2}\sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2\right)\mathrm{d}x_1 
+\\
+=& -\frac{4 u_0}{dw}\int_{0}^{d}\p{1-\frac{x_1}{d}}\sin\p{n_1\pi\frac{x_1}{d}}\left(\int_0^{w_1}\frac{x_2}{w_1} \sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2 + \int_{w_1}^{w_2}\sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2 \right.
+\\
+&\qquad \left. + \int_{w_2}^{w}\frac{x_2-w}{w_2-w}\sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2 \right)\mathrm{d}x_1 \,,
+\end{align*}
+
+where I have used \eqref{eq_7} for $u_1$. To solve the integral above we make use of integration by parts $\int u\dot{v} = uv - \int \dot{u}v$, and we start by
+
+\begin{align*}
+&\int_0^{w_1}\frac{x_2}{w_1} \sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2 = \frac{w}{n_2\pi w_1}\p{-\kl{x_2\cos\p{n_2 \pi \frac{x_2}{w}}}_0^{w_1} + \int_0^{w_1}\cos\p{n_2 \pi \frac{x_2}{w}}\,\mathrm{d}x_2}
+\\
+&\quad= \frac{w}{n_2\pi w_1}\p{-w_1\cos\p{n_2 \pi \frac{w_1}{w}} + \frac{w}{n_2\pi}\kl{\sin\p{n_2 \pi \frac{x_2}{w}}}_0^{w_1}}
+= \frac{w}{n_2\pi w_1}\p{\frac{w}{n_2\pi}\sin\p{n_2 \pi \frac{w_1}{w}} - w_1\cos\p{n_2 \pi \frac{w_1}{w}}} \,,
+\end{align*}
+
+\begin{align*}
+\int_{w_1}^{w_2}\sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2 = -\frac{w}{n_2 \pi}\kl{\cos\p{n_2\pi\frac{x_2}{w}}}_{w_1}^{w_2} = \frac{w}{n_2 \pi}\p{\cos\p{n_2\pi\frac{w_1}{w}} - \cos\p{n_2\pi\frac{w_2}{w}}}\,,
+\end{align*}
+
+\begin{align*}
+&\int_{w_2}^{w}\frac{x_2-w}{w_2-w}\sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2 = \frac{w}{n_2 \pi\p{w_2-w}}\p{-\kl{\p{x_2-w}\cos\p{n_2\pi\frac{x_2}{w}}}_{w_2}^w + \int_{w_2}^w \cos\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2}
+\\
+&\quad = \frac{w}{n_2 \pi\p{w_2-w}}\p{\p{w_2-w}\cos\p{n_2\pi\frac{w_2}{w}} + \frac{w}{n_2 \pi}\kl{ \sin\p{n_2\pi\frac{x_2}{w}}}_{w_2}^w}
+\\
+&\quad = \frac{w}{n_2 \pi\p{w_2-w}}\p{\p{w_2-w}\cos\p{n_2\pi\frac{w_2}{w}} - \frac{w}{n_2 \pi} \sin\p{n_2\pi\frac{w_2}{w}}}
+\end{align*}
+
+and
+
+\begin{align*}
+&\int_{0}^{d}\p{1-\frac{x_1}{d}}\sin\p{n_1\pi\frac{x_1}{d}}\,\mathrm{d}x_1 = \frac{d}{n_1\pi}\p{-\kl{\p{1-\frac{x_1}{d}}\cos\p{n_1\pi\frac{x_1}{d}}}_0^d - \frac{1}{d}\int_{0}^{d}\cos\p{n_1\pi\frac{x_1}{d}}\,\mathrm{d}x_1}
+\\
+&\quad = \frac{d}{n_1\pi}\p{1 - \frac{1}{n_1 \pi}\kl{\sin\p{n_1\pi\frac{x_1}{d}}}_0^d} = \frac{d}{n_1 \pi}\,,
+\end{align*}
+
+which gives
+
+\begin{align}
+A_{n_1 n_2} = -\frac{4 u_0 w}{n_1 {n_2}^2 \pi^3}\p{\frac{\sin\p{n_2 \pi \frac{w_1}{w}}}{w_1}-\frac{\sin\p{n_2 \pi \frac{w_2}{w}}}{w_2-w}} \qquad \text{for $x_1\in\mathbb{R}_0^d$ and $x_2\in\mathbb{R}_0^w \setminus \kr{w_i}_{i=1}^2$.}
+\label{eq_12}
+\end{align}
+
+So what about the points $x_2\in\kr{w_i}_{i=1}^2$? We make another ansatz that \eqref{eq_7} and \eqref{eq_10} with \eqref{eq_12} in the ansatz \eqref{eq_3} is a solution to heat equation\eqref{eq_1} with the boundary condition \eqref{eq_2} for $x_2\in\kr{w_i}_{i=1}^2$ as well. Then we have the concentration
+
+\begin{align*}
+u\p{x_1,w_i,t} = u_0\p{1-\frac{x_1}{d} - \sum_{n_1,n_2=1} \frac{4 w}{n_1 {n_2}^2 \pi^3}\p{\frac{\sin\p{n_2 \pi \frac{w_1}{w}}}{w_1}-\frac{\sin\p{n_2 \pi \frac{w_2}{w}}}{w_2-w}}\sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{w_i}{w}} \exp\p{-D\frac{n_1 n_2 \pi^2}{dw} t}}\,,
+\end{align*}
+
+which we see satisfies the required boundary condition $u\p{0,w_i,t} = u_0$ and $u\p{d,w_i,t}=0$.
+
+
+\section{Attachments}
+
+The source files developed are
+
+
+\section{Resources}
+
+\begin{enumerate}
+\item{\href{http://qt-project.org/downloads}{QT Creator 5.3.1 with C11}}
+\item{\href{https://www.eclipse.org/downloads/}{Eclipse Standard/SDK  - Version: Luna Release (4.4.0) with PyDev for Python}}
+\item{\href{http://www.ubuntu.com/download/desktop}{Ubuntu 14.04.1 LTS}}
+\item{\href{http://shop.lenovo.com/no/en/laptops/thinkpad/w-series/w540/#tab-reseller}{ThinkPad W540 P/N: 20BG0042MN with 32 GB RAM}}
+\end{enumerate}
+
+\begin{thebibliography}{1}
+\bibitem{project4}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-5-deadline-december-1/project5_diffusion.pdf}{\emph{FYS4150 - Project 5}} - \emph{Diffusion in two dimensions}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{Diffusion}\href{http://en.wikipedia.org/wiki/Diffusion\_equation}{http://en.wikipedia.org/wiki/Diffusion\_equation}
+\bibitem{Heat}\href{http://en.wikipedia.org/wiki/Heat\_equation}{http://en.wikipedia.org/wiki/Heat\_equation}
+\bibitem{Dirichlet}\href{http://en.wikipedia.org/wiki/Dirichlet\_boundary\_condition}{http://en.wikipedia.org/wiki/Dirichlet\_boundary\_condition}
+\bibitem{Poisson_eq}\href{http://en.wikipedia.org/wiki/Poisson\%27s\_equation}{http://en.wikipedia.org/wiki/Poisson\%27s\_equation}
+\bibitem{Uniqueness}\href{http://en.wikipedia.org/wiki/Uniqueness\_theorem\_for\_Poisson\%27s\_equation}{http://en.wikipedia.org/wiki/Uniqueness\_theorem\_for\_Poisson\%27s\_equation}
+\bibitem{Ansatz}\href{http://en.wikipedia.org/wiki/Ansatz}{http://en.wikipedia.org/wiki/Ansatz}
+\bibitem{Heaviside}\href{http://en.wikipedia.org/wiki/Heaviside\_step\_function}{http://en.wikipedia.org/wiki/Heaviside\_step\_function}
+\bibitem{Dirac}\href{http://en.wikipedia.org/wiki/Dirac\_delta\_function}{http://en.wikipedia.org/wiki/Dirac\_delta\_function}
+\end{thebibliography}
+
+\end{flushleft}
+\end{document}
