@@ -85,6 +85,6 @@ template<class T> T ArrayRelativeError(T* u, T* v, unsigned int n, T cutoff) {
         }
     }
     return log10(error);
-} //
+}
 
 #endif // ARRAY_H
