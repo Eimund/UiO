@@ -36,7 +36,7 @@ int main() {
     int n[2] = {100,100};
     int ne[2] = {20,20};
     FLOAT d[2] = {1,10};
-    FLOAT w[2] = {5, 6};
+    FLOAT w[2] = {1, 9};
     x[0] = ArrayRange<FLOAT>(0,d[0],n[0]);
     x[1] = ArrayRange<FLOAT>(0,d[1],n[1]);
 
