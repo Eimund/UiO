@@ -71,231 +71,55 @@ where $d$ is the distance between the presynaptic and the postsynaptic, and $w$ 
 
 To solve the differential equation \eqref{eq_1} with the boundary and initial condition \eqref{eq_2} we make an ansatz that the solution is unique, which is the case for a deterministic system. We recognize the heat equation as part of the class of partial differential equation spanned by the Poisson's equation for each time instance. The Uniqueness theorem for the Poisson's equation $\nabla^2 u = f$ \cite{Uniqueness} says that the Poisson's equation has a unique solution with the Dirichlet boundary condition, where Dirichlet boundary condition is here defined as a boundary that specifies the values the solution must have at the boundary.  \linebreak
 
-Unfortunately the boundary condition in \eqref{eq_2} is not a Dirichlet boundary, since the boundary is not specified on the side of the synaptic vesicles $x_1=0$, $0\leq x_2 < w_1$ and $w_2 < x_2 \leq w$. However the Uniqueness theorem does not exclude other boundary conditions to result in a unique solution, so we make another ansatz to separate the concentration $u\p{\kr{x_i}_{i=1}^2,t}$ into two functions $u_1\p{x_2,t}$ and $u_2\p{\kr{x_i}_{i=1}^2,t}$ as follows
+Unfortunately the boundary condition in \eqref{eq_2} is not a Dirichlet boundary, since the boundary is not specified on the side of the synaptic vesicles $x_1=0$, $0\leq x_2 < w_1$ and $w_2 < x_2 \leq w$, and closer investigation will show that the boundary condition in \eqref{eq_2} does not provide a unique solution. So we need to add further condition to make the solution unique, and I make an assumption that the total concentration $u$ in an infinitesimal area has uniform concentration per length $u_1$ and $u_2$ in each direction $x_1$ and $x_2$ accordingly. Hence $u=u_1 u_2$ at every point and therefore we can write
 
 \begin{align}
-\forall x_1 \in \mathbb{R}_0^d \forall x_2 \in \mathbb{R}_0^w \forall t \in \mathbb{R}_{0}: u\p{\kr{x_i}_{i=1}^2,t} = u_1\p{x_2,t} u_2\p{\kr{x_i}_{i=1}^2,t} \,.
+\forall x_1 \in \mathbb{R}_0^d \forall x_2 \in \mathbb{R}_0^w \forall t \in \mathbb{R}_{0}: u\p{\kr{x_i}_{i=1}^2,t} = u_1\p{x_1,t} u_2\p{x_2,t} \,.
 \label{eq_3}
 \end{align}
 
 Putting this into the heat equation \eqref{eq_1} we get
 
 \begin{align*}
-u_2\p{\kr{x_i}_{i=1}^2,t}\frac{\partial u_1\p{x_2,t}}{\partial t} + u_1\p{x_2,t}\frac{\partial u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial t} = D\p{u_1\p{x_2,t}\sum_{j=1}^2\frac{\partial^2 u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_j}^2} + u_2\p{\kr{x_i}_{i=1}^2,t}\frac{\partial^2 u_1\p{x_2,t}}{\partial {x_2}^2}} \,,
+u_2\p{x_2,t}\frac{\partial u_1\p{x_1,t}}{\partial t} + u_1\p{x_1,t}\frac{\partial u_2\p{x_2,t}}{\partial t} = D\p{u_2\p{x_2,t}\frac{\partial^2 u_1\p{x_1,t}}{\partial {x_1}^2} + u_1\p{x_1,t}\frac{\partial^2 u_2\p{x_2,t}}{\partial {x_2}^2}} \,,
 \end{align*}
 
-which can be written as a heat equation in one dimension
+which can be written as two heat equations
 
 \begin{align}
-\frac{\partial u_1\p{x_2,t}}{\partial t}  = D \frac{\partial^2 u_1\p{x_2,t}}{\partial {x_2}^2}
+\forall i \in \mathbb{N}_1^2 : \frac{\partial u_i\p{x_i,t}}{\partial t}  = D \frac{\partial^2 u_i\p{x_i,t}}{\partial {x_i}^2} \,.
 \label{eq_4}
 \end{align}
 
-with the boundary condition that must satisfy $u\p{0,x_2,t}$ and initial condition that must satisfy $u\p{0,x_2,0}$
+I make another assumption that the the boundary at $u\p{0,x_2,t}$ determined by $u_2\p{x_2,t}$ alone, and by satisfying initial condition $u\p{0,x_2,0}$ for $u_2$
 
 \begin{align}
-\forall t \in \mathbb{R}_0 \p{: u_1\p{0,t} = u_1\p{w,t} = 0 \wedge \forall x_2\in\mathbb{R}_{w_1}^{w_2}: u_1\p{x_2,t} = u_0} \wedge \forall x_2 \in\mathbb{R}_{0}^{w} \setminus \mathbb{R}_{w_1}^{w_2}: u_1\p{x_2,0} = 0\,;
+\forall t \in \mathbb{R}_0 \p{: u_2\p{0,t} = u_2\p{w,t} = 0 \wedge \forall x_2\in\mathbb{R}_{w_1}^{w_2}: u_2\p{x_2,t} = u_0} \wedge \forall x_2 \in\mathbb{R}_{0}^{w} \setminus \mathbb{R}_{w_1}^{w_2}: u_2\p{x_2,0} = 0
 \label{eq_5}
 \end{align}
 
-and a heat equation in two dimensions
+we have now determined the values on all the boundaries have therefore Dirichlet boundary condition, and therefore a unique solution of $u$. We found the analytical solution to the heat equation in \eqref{eq_4} for $i=2$ with similar boundary and initial condition, and I will therefore not show the derivation here, but just state the solutions
 
 \begin{align}
-\frac{\partial u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial t} = D\sum_{j=1}^2\frac{\partial^2 u_2\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_j}^2} \
+u_2\p{x_2,t} = u_0 \begin{cases} \frac{x_2}{w_1} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\p{1-\frac{x_2}{w_1}}}\exp\p{-D\p{\frac{n\pi}{w_1}}^2 t} &: x_2\in\mathbb{R}_0^{w_1-}\\ 1 &: x_2 \in\mathbb{R}_{w_1}^{w_2} \\  \frac{w-x_2}{w-w_2} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{x_2-w_2}{w-w_2}}\exp\p{-D\p{\frac{n\pi}{w-w_2}}^2 t} & : x_2\in\mathbb{R}_{w_2+}^w \,.\end{cases}
 \label{eq_6}
 \end{align}
 
-with the boundary condition that must satisfy $u_1\p{x_2,t}$, $u\p{0,x_2,t}$, $u\p{d,x_2,t}$, $u\p{x_1,0,t}$ and $u\p{x_1,w,t}$,  and initial condition that must satisfy $u\p{x_1,x_2,0}$
+Since I have established that the boundary at $u\p{0,x_2,t}$ determined by $u_2\p{x_2,t}$ alone, means that $u_1$ has the following boundary and initial condition
 
 \begin{align}
-\forall t \in \mathbb{R}_0 \p{\forall x_2 \in \mathbb{R}_{0+}^{w-}: u_2\p{0,x_2,t} = 1 \wedge u_2\p{d,x_2,t}=0 \wedge \forall x_1\in \mathbb{R}_0^d: u_2\p{x_1,0,t} = u_2\p{x_1,w,t}= 0} \,.
+\forall t \in \mathbb{R}_0\p{: u_1\p{0,t} = 1 \wedge u_1\p{d,t} = 0} \wedge  \forall x_1 \in \mathbb{R}_{0+}^{d-} : u_1\p{x_1,0}=0 \,.  
 \label{eq_7}
 \end{align}
 
-The boundary condition in both \eqref{eq_5} and \eqref{eq_7} have specified values on all their boundaries, which means that we have the Dirichlet boundary condition on both \eqref{eq_4} and \eqref{eq_6}, and through the the Uniqueness theorem for the Poisson's equation we have shown that $u_1$ and $u_2$ have a unique solution, which again means that $u$ has a unique solution. \linebreak
-
-The analytical solution to one dimensional heat equation \eqref{eq_4} we found in project 4, and it's derivation is the same as the following steps for two dimensional case, only simpler. Therefore I will skip it's derivation here and give the solution directly
+And using the analytical solution from project 4 to heat equation \eqref{eq_4} for $i=1$ with boundary and initial condition in \eqref{eq_7}, we have 
 
 \begin{align}
-u_1\p{x_2,t} = u_0 \begin{cases} \frac{x_2}{w_1} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\p{1-\frac{x_2}{w_1}}}\exp\p{-D\p{\frac{n\pi}{d}}^2 t} &: x_2\in\mathbb{R}_0^{w_1-}\\ 1 &: x_2 \in\mathbb{R}_{w_1}^{w_2} \\  \frac{x_2-w}{w_1-w} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{w_1-x_2}{w_1-w}}\exp\p{-D\p{\frac{n\pi}{d}}^2 t} & : x_2\in\mathbb{R}_{w_2+}^w \,,\end{cases}
+u_1\p{x_1,t} = 1-\frac{x_1}{d} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{x_1}{d}}\exp\p{-D\p{\frac{n\pi}{d}}^2 t} \,.
 \label{eq_8}
 \end{align}
 
-which is the result of boundary and initial condition in \eqref{eq_5}. To solve the heat equation in \eqref{eq_6} with the boundary and initial condition in \eqref{eq_7} I make another ansatz that we can separate $u_2\p{\kr{x_i}_{i=1}^2,t}$ into two functions $u_3\p{x_1}$ and $u_4\p{\kr{x_i}_{i=1}^2,t}$ as follows
-
-\begin{align}
-u_2\p{\kr{x_i}_{i=1}^2,t} = u_3\p{x_1} + u_4\p{\kr{x_i}_{i=1}^2,t} \,,
-\label{eq_9}
-\end{align}
-
-such that $u_4$ satisfies
-
-\begin{align}
-\frac{\partial u_4\p{\kr{x_i}_{i=1}^2,t}}{\partial t} = D\sum_{j=1}^2\frac{\partial^2 u_4\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_j}^2}
-\label{eq_10}
-\end{align}
-
-with the 0th Dirichlet boundary condition (all boundary values are zero). For $u_4$ to be determined by the heat equation as well, $u_3$ must be on the form
-
-\begin{align}
-u_3\p{x_1} = a_0 + a_1 x_1 \,,
-\label{eq_11}
-\end{align}
-
-because then $u_3$ vanishes from \eqref{eq_6} when we have put \eqref{eq_9} into it. Now lets try to impose the 0th Dirichlet boundary condition on $u_4$
-
-\begin{align}
-u_4\p{0,x_2,t}=u_4\p{d,x_2,t}=u_4\p{x_1,0,t}=u_4\p{x_1,w,t}=0\,.
-\label{eq_12}
-\end{align}
-
-When put into \eqref{eq_9} and using the boundary condition \eqref{eq_7} we have the following equations that $u_1$ must satisfied
-
-\begin{align*}
-u_2\p{0,x_2,t} = u_3\p{0} + u_4\p{0,x_2,t} = u_3\p{0} &= 1
-\\
-u_2\p{d,x_2,t} = u_3\p{d} + u_4\p{d,x_2,t} = u_3\p{d} &= 0\,,
-\end{align*}
-
-which means that \eqref{eq_11} is given by 
-
-\begin{align}
-u_3\p{x_1} = 1 - \frac{x_1}{d} \,.
-\label{eq_13}
-\end{align}
-
-Since the heat equation for $u_4$ in \eqref{eq_10} satisfies the 0th Dirichlet boundary condition we can do the final ansatz to find the solution by separating $u_4\p{\kr{x_i}_{i=1}^2,t}$ is separable into $u_5\p{\kr{x_i}_{i=1}^2}$ and $u_6\p{t}$ as follows
-
-\begin{align}
-u_4\p{\kr{x_i}_{i=1}^2,t} = u_5\p{\kr{x_i}_{i=1}^2}u_6\p{t} \,,
-\label{eq_14}
-\end{align}
-
-where the 0th Dirichlet boundary condition for $u_4$ impose the following condition onto of $u_5$
-
-\begin{align*}
-u_5\p{0,x_2}=u_5\p{d,x_2}=u_5\p{x_1,0}=u_5\p{x_1,w}=0.
-\end{align*}
-
-Now putting \eqref{eq_14} into \eqref{eq_10} yields
-
-\begin{align*}
-u_5\p{\kr{x_i}_{i=1}^2}\frac{\partial u_6\p{t}}{\partial t} = D u_6\p{t}\sum_{j=1}^2\frac{\partial^2 u_5\p{\kr{x_i}_{i=1}^2}}{\partial {x_j}^2} \,.
-\end{align*}
-
-and separating the variables
-
-\begin{align}
-\frac{1}{Du_6\p{t}} \frac{\partial u_6\p{t}}{\partial t} = \frac{1}{u_5\p{\kr{x_i}_{i=1}^2}}\sum_{j=1}^2\frac{\partial^2 u_5\p{\kr{x_i}_{i=1}^2}}{\partial {x_j}^2} = -\lambda^2 \,,
-\label{eq_15}
-\end{align}
-
-where $\lambda$ is a constant, because $t$ and $x_i$ can vary independently. These two equations have the following solutions
-
-\begin{align*}
-u_5\p{\kr{x_i}_{i=1}^2} &= \sum_{i=1}^2\sum_{j=i}^2 \prod_{k=i}^j A_{ijk} \sin\p{\lambda_{ijk} x_k + \varphi_{ijk}} \qquad \text{and}
-\\
-u_6\p{t} &= C\e^{-D\lambda^2 t}\,.
-\end{align*}
-
-The boundary condition $u_5\p{0,x_2}=u_5\p{x_1,0}=0$ gives $A_{111} = A_{222} = \varphi_{121}=\varphi_{122}=0$ , and $u_5\p{d,x_2}=u_5\p{x_1,w}=0$ gives 
-
-\begin{align*}
-\lambda_{121} = \frac{n_1\pi}{d}  \qquad \text{and} \qquad \lambda_{122} = \frac{n_2\pi}{w} \qquad \text{for } \kr{n_i}_{i=1}^2 \in \mathbb{N}/\kr{0}\,,
-\end{align*}
-
-where I let $\mathbb{N}=\mathbb{N}_{-\infty}^{\infty}$ represent all positive and negative integers including zero. These $\lambda$'s must satisfy
-
-\begin{align*}
-\lambda^2 = {\lambda_{121}}^2 + {\lambda_{122}}^2
-\end{align*}
-
-for \eqref{eq_15} to hold. Hence
-
-\begin{align}
-&\quad u_4\p{\kr{x_i}_{i=1}^2,t} = \sum_{n_1,n_2=1} A_{n_1 n_2} \sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}} \exp\p{-D\pi^2\p{\p{\frac{n_1}{d}}^2 + \p{\frac{n_2}{w}}^2} t}\,,
-\label{eq_16}
-\end{align}
-
-where the negative values of $n_1$ and $n_2$ are absorbed into the coefficient $A_{n_1 n_2}$. Applying the initial condition from \eqref{eq_7} on the concentration in \eqref{eq_9} with \eqref{eq_13} and \eqref{eq_16} we must satisfy the following equation
-
-\begin{align}
-u_2\p{\kr{x_i}_{i=1}^2,0} = 1-\frac{x_1}{d}+ \sum_{n_1,n_2=1} A_{n_1 n_2} \sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}}= 0 \,.
-\label{eq_17}
-\end{align}
-
-We need to determine the coefficients $A_{n_1 n_2}$, and the trick is to do something with the equation above such that we isolate the $A_{n_1 n_2}$ coefficients. To achieve this we use the fact that $\sin\p{n\pi\frac{x}{d}}$ is orthogonal with $\sin\p{m\pi\frac{x}{d}}$ under integration 
-
-\begin{align*}
-&\int \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = -\frac{d}{m\pi}\cos\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}} + \frac{n}{m}\int \cos\p{m\pi\frac{x}{d}}\cos\p{n\pi\frac{x}{d}}\,\mathrm{d}x
-\\
-&\quad = -\frac{d}{m\pi}\cos\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}} + \frac{n}{m}\p{\frac{d}{\pi m} \sin\p{m\pi\frac{x}{d}} \cos\p{n\pi\frac{x}{d}} + \frac{n}{m}\int \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x} \,,
-\end{align*}
-
-where I have used integration by parts $\int u\dot{v} = uv - \int \dot{u}v$. Solving this equation with regard to the integral we get
-
-\begin{align*}
-\int \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = \frac{d}{\pi\p{n^2 - m^2}} \p{n \sin\p{m\pi\frac{x}{d}}\cos\p{n\pi\frac{x}{d}} - m \cos\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}} \,.
-\end{align*}
-
-We want to make the result of this integral zero for $n\neq m$, which is the result if $x=\frac{k d}{2}$ and $x=\frac{\ell d}{2}$ where $k,\ell\in\mathbb{N}$ (for zero,negative and positive integers), because then $\sin \p{}\cos \p{}$ parts above becomes zero. This means that we need to integrate from $x=\frac{k d}{2}$ and $x=\frac{\ell d}{2}$. However the result above is not defined for $n=m$ because we get $\frac{0}{0}$. So we redo the integration for $n=m$;
-
-\begin{align*}
-&\int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x 
-= -\kl{ \frac{d}{\pi n}\cos\p{n\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}}_{\frac{k d}{2}}^{\frac{\ell d}{2}} + \int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \cos^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x
-= \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \cos^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x
-\\ 
-&\quad = \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \p{1-\sin^2\p{n\pi\frac{x}{d}}}\,\mathrm{d}x 
-= \kl{x}_{\frac{k d}{2}}^{\frac{\ell d}{2}} - \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x 
-= \frac{d}{2}\p{\ell-k} - \int_{\frac{k d}{2}}^{\frac{\ell d}{2}}  \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x 
-= \frac{d}{4}\p{\ell-k} \,,
-\end{align*}
-
-where I solve the equation with regard to in $\int\frac{d}{2}\p{\ell-k} \sin^2\p{n\pi\frac{x}{d}}\,\mathrm{d}x$ in the last step. I have also used integration by parts $\int u\dot{v} = uv - \int \dot{u}v$ and the Pythagoras trigonometric relation $\sin^2 x+ \cos^2 x = 1$. So the solution of the following integral is
-
-\begin{align*}
-\int_{\frac{k d}{2}}^{\frac{\ell d}{2}} \sin\p{m\pi\frac{x}{d}}\sin\p{n\pi\frac{x}{d}}\,\mathrm{d}x = \frac{d}{4}\p{\ell-k}\delta_{mn}\,,
-\end{align*}
-
-where $\delta_{mn}$ is the Kronecker delta, and hence I have showed the orthogonality of the above integral. Applying this to \eqref{eq_17};
-
-\begin{align*}
-&\int_{\frac{k_1 d}{2}}^{\frac{\ell_1 d}{2}}\int_{\frac{k_2 w}{2}}^{\frac{\ell_2 w}{2}}  \sum_{n_1,n_2=1}A_{n_1 n_2} \sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}}\sin\p{m_1\pi\frac{x_1}{d}}\sin\p{m_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2\mathrm{d}x_1 
-\\
-& \quad = \int_{\frac{k_1 d}{2}}^{\frac{\ell_1 d}{2}}\int_{\frac{k_2 w}{2}}^{\frac{\ell_2 w}{2}} \p{\frac{x_1}{d}-1}\sin\p{m_1\pi\frac{x_1}{d}}\sin\p{m_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2\mathrm{d}x_1\,,
-\end{align*}
-
-we can isolate $A_{n_1 n_2}$ at $n_i=m_i$ because of the Kronecker deltas $\delta_{n_i m_i}$;
-
-\begin{align*}
-A_{n_1 n_2} &=  \frac{16}{dw\prod_{i=1}^2\p{\ell_i-k_i}}\int_{\frac{k_1 d}{2}}^{\frac{\ell_1 d}{2}}\int_{\frac{k_2 w}{2}}^{\frac{\ell_2 w}{2}} \p{\frac{x_1}{d}-1}\sin\p{n_1\pi\frac{x_1}{d}}\sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2\mathrm{d}x_1 \,.
-\end{align*}
-
-Since $x_1\in\mathbb{R}_0^d$ and $x_2\in\mathbb{R}_0^w$ leads to $k_i,\ell_i \in \kr{0,2}$ and $k_i\neq \ell_i$ for $A_{n_1 n_2}$ to apply to the whole interval of $x_1$ and $x_2$, which is independent of each other.
-
-\begin{align}
-A_{n_1 n_2} &=  \frac{4}{dw}\int_{0}^{d}\p{\frac{x_1}{d}-1}\sin\p{n_1\pi\frac{x_1}{d}}\int_{0}^{w} \sin\p{n_2\pi\frac{x_2}{w}}\,\mathrm{d}x_2\mathrm{d}x_1 
-\nonumber\\
-&= -\frac{4}{d\pi n_2}\int_{0}^{d}\p{\frac{x_1}{d}-1}\sin\p{n_1\pi\frac{x_1}{d}}\kl{ \cos\p{n_2\pi\frac{x_2}{w}}}_{0}^{w}\mathrm{d}x_1 
-= \frac{8}{d\pi n_2}\int_{0}^{d}\p{\frac{x_1}{d}-1}\sin\p{n_1\pi\frac{x_1}{d}}\,\mathrm{d}x_1 
-\nonumber\\
-&= -\frac{8}{\pi^2 n_1 n_2}\p{\kl{\p{\frac{x_1}{d}-1}\cos\p{n_1\pi\frac{x_1}{d}}}_0^d - \frac{1}{d}\int_{0}^{d}\cos\p{n_1\pi\frac{x_1}{d}}\,\mathrm{d}x_1}
-\nonumber\\
-&= -\frac{8}{\pi^2 n_1 n_2}\p{1 - \frac{1}{\pi n_1}\kl{\sin\p{n_1\pi\frac{x_1}{d}}}_0^d}
-= -\frac{8}{n_1 n_2 \pi^2} \,,
-\label{eq_18}
-\end{align}
-
-where I have used integration by parts $\int u\dot{v} = uv - \int \dot{u}v$. To summarize we now have the analytical solution by putting \eqref{eq_8}, \eqref{eq_9}, \eqref{eq_13}, \eqref{eq_14} and \eqref{eq_18} into \eqref{eq_8}
-
-\begin{align}
-&\forall x_1 \in \mathbb{R}_0^d \forall x_2 \in \mathbb{R}_0^w \forall t \in \mathbb{R}_{0}: u\p{\kr{x_i}_{i=1}^2,t} 
-\nonumber\\
-&\quad = u_0\p{1-\frac{x_1}{d}-\sum_{n_1,n_2=1} \frac{8}{n_1 n_2 \pi^2}\sin\p{n_1\pi \frac{x_1}{d}} \sin\p{n_2\pi \frac{x_2}{w}} \exp\p{-D\pi^2\p{\p{\frac{n_1}{d}}^2 + \p{\frac{n_2}{w}}^2} t}}
-\nonumber\\
-&\qquad \cdot \begin{cases} \frac{x_2}{w_1} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\p{1-\frac{x_2}{w_1}}}\exp\p{-D\p{\frac{n\pi}{d}}^2 t} &: x_2\in\mathbb{R}_0^{w_1-}\\ 1 &: x_2 \in\mathbb{R}_{w_1}^{w_2} \\  \frac{x_2-w}{w_1-w} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{w_1-x_2}{w_1-w}}\exp\p{-D\p{\frac{n\pi}{d}}^2 t} & : x_2\in\mathbb{R}_{w_2+}^w \,.\end{cases}
-\label{eq_19}
-\end{align}
+To summarize the solution to the concentration $u$ is given by \eqref{eq_3} with \eqref{eq_6} and \eqref{eq_8}. 
 
 
 \section{Attachments}
@@ -321,8 +145,6 @@ The source files developed are
 \bibitem{Poisson_eq}\href{http://en.wikipedia.org/wiki/Poisson\%27s\_equation}{http://en.wikipedia.org/wiki/Poisson\%27s\_equation}
 \bibitem{Uniqueness}\href{http://en.wikipedia.org/wiki/Uniqueness\_theorem\_for\_Poisson\%27s\_equation}{http://en.wikipedia.org/wiki/Uniqueness\_theorem\_for\_Poisson\%27s\_equation}
 \bibitem{Ansatz}\href{http://en.wikipedia.org/wiki/Ansatz}{http://en.wikipedia.org/wiki/Ansatz}
-\bibitem{Heaviside}\href{http://en.wikipedia.org/wiki/Heaviside\_step\_function}{http://en.wikipedia.org/wiki/Heaviside\_step\_function}
-\bibitem{Dirac}\href{http://en.wikipedia.org/wiki/Dirac\_delta\_function}{http://en.wikipedia.org/wiki/Dirac\_delta\_function}
 \end{thebibliography}
 
 \end{flushleft}

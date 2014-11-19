@@ -31,12 +31,12 @@ int main() {
 
     FLOAT u0 = 1;
     FLOAT D = 1;
-    FLOAT t = 0.1;
+    FLOAT t = 0.01;
     FLOAT* x[2];
     int n[2] = {100,100};
-    int ne[2] = {20,20};
+    int ne[2] = {100,100};
     FLOAT d[2] = {1,10};
-    FLOAT w[2] = {1, 9};
+    FLOAT w[2] = {7,8};
     x[0] = ArrayRange<FLOAT>(0,d[0],n[0]);
     x[1] = ArrayRange<FLOAT>(0,d[1],n[1]);
 
@@ -101,31 +101,42 @@ FLOAT* Exact(FLOAT t, int n, int ne) {
     return u;
 }
 template<typename T> T** Exact2D(T u0, T D, T t, T d[2], T w[2], T* x[2], int n[2], int ne[2]) {
-    T f;
+    T omega, a, f;
+    T t1 = - D*t/(w[0]*w[0]);
+    T t2 = - D*t/((w[1]-d[1])*(w[1]-d[1]));
+    T t3 = - D*t/(d[0]*d[0]);
     T** u = ArrayAllocate2<FLOAT>(n);
 
     for(int i = 0; i < n[0]; i++) {
         for(int j = 0; j < n[1]; j++) {
 
             if(x[1][j] < w[0]) {
-                f = x[1][j]/w[0];
-                for(int k=1; k < ne[1]; k++)
-                    f -= (T)2/(M_PI*k) * sin(k*M_PI*(1-x[1][j]/w[0])) * exp(-D*k*k*M_PI*M_PI*t/(w[0]*w[0]));
+                a = 0;
+                f = 1-x[1][j]/w[0];
+                for(int k=1; k < ne[1]; k++) {
+                    omega = M_PI* k;
+                    a -= (T)2/omega * sin(omega*f) * exp(omega*omega*t1);
+                }
+                a += 1 - f;
             }
             else if(x[1][j] > w[1]) {
-                f = (x[1][j]-d[1])/(w[1]-d[1]);
-                for(int k=1; k < ne[1]; k++)
-                    f -= (T)2/(M_PI*k) * sin(k*M_PI*(w[1]-x[1][j])/(w[1]-d[1])) * exp(-D*k*k*M_PI*M_PI*t/(w[0]*w[0]));
+                a = (x[1][j]-d[1])/(w[1]-d[1]);
+                f = (w[1]-x[1][j])/(w[1]-d[1]);
+                for(int k=1; k < ne[1]; k++) {
+                    omega = M_PI* k;
+                    a -= (T)2/omega * sin(omega*f) * exp(omega*omega*t2);
+                }
             }
             else
-                f = 1;
-            u[i][j] = (T)1 - x[0][i]/d[0];
+                a = 1;
 
-            for(int n1 = 1; n1 < ne[0]; n1++) {
-                for(int n2 = 1; n2 < ne[1]; n2++)
-                    u[i][j] -= 4*d[1]/(n1*n2*n2*M_PI*M_PI*M_PI) * (sin(n2*M_PI*w[0]/d[1])/w[0] - sin(n2*M_PI*w[1]/d[1])/(w[1]-d[1])) * sin(n1*M_PI*x[0][i]/d[0]) * sin(n2*M_PI*x[1][j]/d[1]) * exp(-D*n1*n2*M_PI*M_PI*t/(d[0]*d[1]));
+            u[i][j] = 0;
+            f = x[0][i]/d[0];
+            for(int k = 1; k < ne[0]; k++) {
+                omega = M_PI* k;
+                u[i][j] -= (T)2/omega * sin(omega*f) * exp(omega*omega*t3);
             }
-            u[i][j] *= u0*f;
+            u[i][j] = u0 * a * (1 - f + u[i][j]);
         }
     }
     return u;
