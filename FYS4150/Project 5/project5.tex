@@ -122,6 +122,160 @@ u_1\p{x_1,t} = 1-\frac{x_1}{d} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{x_1
 To summarize the solution to the concentration $u$ is given by \eqref{eq_3} with \eqref{eq_6} and \eqref{eq_8}. 
 
 
+\section{Numerical methods}
+
+\subsection{The $\theta$-rule}
+
+The Taylor expansion is given by
+
+\begin{align}
+u\p{x} = \sum_{n=0} \frac{\T{u}{(n)}\p{x_0}}{n!}\p{x-x_0}^n
+\label{eq_9}
+\end{align}
+
+where $\T{u}{(n)} = \frac{\mathrm{d}^n u}{\mathrm{d}t^n}$ and $x_0$ is a initial value where we step from to $x$ . If we now use the first order approximation
+
+\begin{align*}
+u\p{x} \approx u\p{x_0} + \T{u}{(1)}\p{x_0}\p{x-x_0} \,.
+\end{align*}
+
+The first order differential equation $\T{u}{(1)}\p{x} = f\p{x}$ is determined when we have the initial condition $u\p{x_0}$, however $\T{u}{(1)}\p{x_0}$ is not an initial condition, and it depends on how we calculate it numerically from the initial condition. Now note that $\T{u}{(1)}\p{x_0}$ is the same for different values of $x$ in the approximation above and lets say that we calculate it as given from the approximation above;
+
+\begin{align}
+\T{u}{(1)}\p{x_0} \approx \frac{u\p{x}-u\p{x_0}}{x-x_0}\,.
+\label{eq_10}
+\end{align}
+
+So now use this in another point $x_{\theta} = \theta x + \p{1-\theta}x_0$ which we also approximate to the first order, and if we use the expression above for $\T{u}{(1)}\p{x_0}$ we get
+
+\begin{align}
+u\p{x_\theta} &\approx u\p{x_0} + \T{u}{(1)}\p{x_0}\p{x_{\theta}-x_0} = u\p{x_0} + \theta\,\T{u}{(1)}\p{x_0}\p{x-x_0} 
+\nonumber\\
+&\approx u\p{x_0} + \frac{u\p{x}-u\p{x_0}}{x-x_0}\theta\p{x-x_0} = \theta u\p{x} + \p{1-\theta}u\p{x_0} \,,
+\label{eq_11}
+\end{align}
+
+this is known as the $\theta$-rule. The $\theta$-rule can be used to approximate the solution of the following first order differential equation
+
+\begin{align}
+\T{u}{(1)}\p{x} = f\p{u\p{x}} \,,
+\label{eq_12}
+\end{align}
+
+where we use \eqref{eq_10} to approximate the expression $\T{u}{(1)}\p{x}$ and given an even better or worse approximation to the solution $u\p{x}$ by approximating $f\p{x}\approx f\p{x_{\theta}}$;
+
+\begin{align*}
+\frac{u\p{x}-u\p{x_0}}{x-x_0} \approx f\p{u\p{x_{\theta}}} = f\p{\theta u\p{x} + \p{1-\theta}u\p{x_0}}\,,
+\end{align*}
+
+which discretize to
+
+\begin{align}
+\frac{u_{i+1}-u_i}{x_{i+1}-x_i} = f\p{\theta u_{i+1} + \p{1-\theta}u_i} \qquad \text{where } i\in\mathbb{N}_0 \text{ and $u_0$ is an initial contidion.} 
+\label{eq_13}
+\end{align}
+
+We can find the the next step in the numerical solution to \eqref{eq_12} by solving this difference equation with regard to $u_{i+1}$. Note the above discretization is known as Forward Euler scheme (Explicit) when $\theta = 0$, Backward Euler scheme (Implicit) when $\theta = 1$ and Crank-Nicolson scheme when $\theta = \frac{1}{2}$. \linebreak
+
+The truncation error of the Forward and Backward Euler scheme can be found by an alternative derivation, where expand the Taylor series in \eqref{eq_9} around the point $x_0\pm\Delta x$ accordingly;
+
+\begin{align}
+u\p{x_0\pm\Delta x} = \sum_{n=0} \frac{\T{u}{(n)}\p{x_0}}{n!}\p{\pm\Delta x}^n\,,
+\label{eq_14}
+\end{align}
+
+and solve it with regard to $\T{u}{(1)}\p{x_0}$
+
+\begin{align*}
+\T{u}{(1)}\p{x_0} = \frac{u\p{x_0\pm\Delta x}-u\p{x_0}}{\Delta x} + \mathcal{O}\p{\Delta x} \,,
+\end{align*}
+
+which means that we have a local truncation error of $\mathcal{O}\p{\Delta x}$ with the Forward and Backward Euler scheme. However the Crank-Nicolson scheme can be found by subtraction the Taylor expansion above for the two points
+
+\begin{align*}
+u\p{x_0+\Delta x} - u\p{x_0-\Delta x} = 2\sum_{n=1} \frac{\T{u}{\vspace{0.1cm}(2n-1)}\p{x_0}}{\p{2n-1}!}\Delta x^{2n-1}\,,
+\end{align*}
+
+and solve it with regard to $\T{u}{(1)}\p{x_0}$
+
+\begin{align*}
+\T{u}{(1)}\p{x_0} = \frac{u\p{x_0+\Delta x} - u\p{x_0-\Delta x}}{2\Delta x} + \mathcal{O}\p{\Delta x^2}\,,
+\end{align*}
+
+which means that we have a local truncation error of $\mathcal{O}\p{\Delta x^2}$. With the $\theta$-rule we can get even better or worse truncation error, because we can change the $\theta$ value to change the approximation.
+
+\subsection{Second order derivative}
+
+We approximated the first order derivative in \eqref{eq_10}, but we need to approximate the second order derivative to be able to solve the diffusion in \eqref{eq_1}. We can achieve this by adding the two expansions in \eqref{eq_14}
+
+\begin{align*}
+u\p{x_0+\Delta x} + u\p{x_0-\Delta x} = 2\sum_{n=0} \frac{\T{u}{(2n)}\p{x_0}}{(2!)}\Delta x^{2n} = 2 u\p{x_0} + \T{u}{(2)}\p{x_0}\Delta x^2 + 2\sum_{n=2} \frac{\T{u}{(2n)}\p{x_0}}{(2!)}\Delta x^{2n}\,,
+\end{align*}
+
+and solve it with
+
+\begin{align*}
+\T{u}{(2)}\p{x_0} &= \frac{u\p{x_0+\Delta x} - 2 u\p{x_0} + u\p{x_0-\Delta x}}{\Delta x^2} - 2\sum_{n=2} \frac{\T{u}{(2n)}\p{x_0}}{(2!)}\Delta x^{2(n-1)}
+\\ &=  \frac{u\p{x_0+\Delta x} - 2 u\p{x_0} + u\p{x_0-\Delta x}}{\Delta x^2} + \mathcal{O}\p{\Delta x^2}\,,
+\end{align*}
+
+So the second order derivative can be approximated with
+
+\begin{align}
+\T{u}{(2)}\p{x_0} \approx   \frac{u\p{x_0+\Delta x} - 2 u\p{x_0} + u\p{x_0-\Delta x}}{\Delta x^2}
+\label{eq_15}
+\end{align}
+
+with the local truncation error $\mathcal{O}\p{\Delta x^2}$.
+
+\subsection{The heat equation} \label{heat_equation}
+
+We want to discretize the dimensionless heat equation from \eqref{eq_1}, where we use $D=1$, $u_0=1$ and $d=1$, 
+
+\begin{align*}
+\frac{\partial u\p{\kr{x_i}_{i=1}^2,t}}{\partial t} = \sum_{\ell=1}^2\frac{\partial^2 u\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_\ell}^2}\,,
+\end{align*}
+
+to numerically solve diffusion of neurotransmitters. First we do the $\theta$-rule discretization in \eqref{eq_13} 
+
+\begin{align*}
+\frac{u_{(i+1)\kr{j_k}_{k=1}^2}-u_{i\kr{j_k}_{k=1}^2}}{\Delta t} 
+&= \sum_{\ell = 1}^2\frac{\partial^2 u_{(i+\theta)\kr{j_k}_{k=1}^2}}{\partial {x_\ell}^2} 
+= \sum_{\ell=1}^2\frac{\partial^2 \p{\theta u_{(i+1)\kr{j_k}_{k=1}^2}+\p{1-\theta}u_{i\kr{j_k}_{k=1}^2}}}{\partial {x_\ell}^2} 
+\\
+&= \sum_{\ell=1}^2\p{\theta \frac{\partial u_{(i+1)\kr{j_k}_{k=1}^2}}{\partial {x_\ell}^2} + \p{1-\theta}\frac{\partial u_{i\kr{j_k}_{k=1}^2}}{\partial {x_\ell}^2}}
+\end{align*}
+
+where index $i$ is stepping of $t$ and $j_k$ are stepping of $x_k$. Note also that the following notation expand accordingly $u_{i\kr{j_k}_{k=1}^2} = u_{ij_1 j_2}$, which becomes a more elegant notation for larger $n$ in $u_{i\kr{j_k}_{k=1}^n} = u_{ij_1j_2\ldots j_n}$. Now we implement the discretization of the second order in \eqref{eq_15}
+
+\begin{align}
+\frac{u_{(i+1)\kr{j_k}_{k=1}^2}-u_{i\kr{j_k}_{k=1}^2}}{\Delta t} =& \sum_{\ell=1}^2 \left(\frac{\theta}{\Delta {x_\ell}^2}\p{u_{(i+1)\kr{j_k+\delta_{k\ell}}_{k=1}^2} - 2 u_{(i+1)\kr{j_k}_{k=1}^2} + u_{(i+1)\kr{j_k-\delta_{k\ell}}_{k=1}^2}} \right.
+\nonumber\\
+&\quad \left. + \frac{1-\theta}{\Delta {x_\ell}^2}\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} - 2u_{i\kr{j_k}_{k=1}^2} +u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}\right) \,,
+\label{eq_16}
+\end{align}
+
+where $\delta_{k\ell}$ is the Kronecker delta, and we now clearly see the elegance of the notation $u_{i\kr{j_k}_{k=1}^n}$. \linebreak
+
+The dimensionless initial condition from \eqref{eq_4} gives us
+
+\begin{align*}
+u_{0\kr{j_k}_{k=1}^2} = \begin{cases} 1 & : j_1 = 0 \text{ and } x_{2 j_2} \in \mathbb{R}_{w_1}^{w_2} \\ 0 & :\text{elsewhere,} \end{cases} 
+\end{align*}
+
+where $x_{2 j_2} = x_{2 0}  + \frac{j_2}{\Delta x_2}$. For the explicit scheme $\theta = 0$ we get
+
+\begin{align}
+u_{(i+1)\kr{j_k}_{k=1}^2} = u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 \alpha_\ell\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} - 2u_{i\kr{j_k}_{k=1}^2} +u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}
+\label{eq_17}
+\end{align}
+
+where
+
+\begin{align*}
+\alpha_\ell = \frac{\Delta t}{\Delta {x_\ell}^2} \qquad \text{and} \qquad n_\ell = \frac{1}{\Delta x_\ell} \,.
+\end{align*}
+
 \section{Attachments}
 
 The source files developed are
@@ -145,6 +299,7 @@ The source files developed are
 \bibitem{Poisson_eq}\href{http://en.wikipedia.org/wiki/Poisson\%27s\_equation}{http://en.wikipedia.org/wiki/Poisson\%27s\_equation}
 \bibitem{Uniqueness}\href{http://en.wikipedia.org/wiki/Uniqueness\_theorem\_for\_Poisson\%27s\_equation}{http://en.wikipedia.org/wiki/Uniqueness\_theorem\_for\_Poisson\%27s\_equation}
 \bibitem{Ansatz}\href{http://en.wikipedia.org/wiki/Ansatz}{http://en.wikipedia.org/wiki/Ansatz}
+\bibitem{Kronecker}\href{http://en.wikipedia.org/wiki/Kronecker\_delta}{http://en.wikipedia.org/wiki/Kronecker\_delta}
 \end{thebibliography}
 
 \end{flushleft}
