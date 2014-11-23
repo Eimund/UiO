@@ -41,6 +41,7 @@ template<typename T> Vector<T,2> Diffusion2D_deltaX2(T d[2], unsigned int n[2]);
 template<typename T> T** Diffusion2D_Exact(T u0, T D, T t, T d[2], T w[2], T* x[2], unsigned int n[2], unsigned int ne[2]);
 template<typename T> T** Diffusion2D_Explicit(T alpha, T t, T d[2], T w[2], unsigned int n[2]);
 template<typename T> T** Diffusion2D_Initialize(unsigned int m[2], unsigned int n[2]);
+template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2], unsigned int n[2]);
 template<typename T> Vector<unsigned int,2> Diffusion2D_Source(T d, T w[2], unsigned int n);
 
 int main() {
@@ -49,7 +50,7 @@ int main() {
 
     FLOAT u0 = 1;
     FLOAT D = 1;
-    FLOAT t = 10;
+    FLOAT t = 0.1;
     FLOAT* x[2];
     Vector<unsigned int,2> n = {100,100};
     Vector<unsigned int,2> ne = {100,100};
@@ -74,6 +75,16 @@ int main() {
     ArrayToFile(file, x[1], n[1]);
     file << endl;
     u = Diffusion2D_Explicit<FLOAT>(0.1, t, d, w, n);
+    ArrayToFile2(file, u, n);
+    ArrayDeallocate2(u, n[0]);
+    file.close();
+
+    file.open("Jacobi_2D.dat");
+    ArrayToFile(file, x[0], n[0]);
+    file << endl;
+    ArrayToFile(file, x[1], n[1]);
+    file << endl;
+    u = Diffusion2D_Jacobi<FLOAT>(1, 0.1, t, d, w, n);
     ArrayToFile2(file, u, n);
     ArrayDeallocate2(u, n[0]);
     file.close();
@@ -226,8 +237,6 @@ template<typename T> T** Diffusion2D_Explicit(T alpha, T t, T d[2], T w[2], unsi
     }
     n[0]++;
     n[1]++;
-    T a1 = a.element[0];
-    T a2 = a.element[1];
     ArrayDeallocate2(v,n[0]);
 
     return u;
@@ -242,6 +251,84 @@ template<typename T> T** Diffusion2D_Initialize(unsigned int m[2], unsigned int 
     }
     for(int i = m[0]; i <= m[1]; i++)
         u[0][i] = 1;
+
+    return u;
+}
+
+template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2], unsigned int n[2]) {
+    Vector<unsigned int,2> m = Diffusion2D_Source(d[1], w, n[1]);
+    T** u = Diffusion2D_Initialize<T>(m, n);
+    T** v = Diffusion2D_Initialize<T>(m, n);
+    T** c = ArrayAllocate2<FLOAT>(n);
+    T** z;
+    Vector<T,2> dx2 = Diffusion2D_deltaX2(d, n);
+    T dt = Diffusion2D_deltaT<T>(alpha, dx2);
+    Vector<T,2> a = Diffusion2D_alpha<T>(dt, dx2);
+    unsigned int nt = t/dt;
+
+    n[0]--;
+    n[1]--;
+
+    T diff;
+    T c0 = theta * a.element[1];
+    T c1 = 1 + 2 * c0;
+    T c2 = theta * a.element[0];
+    T c3 = 1 + 2 * (c0 + c2);
+    T c4 = a.element[1] - c0;
+    T c5 = 1 - 2 * c4;
+    T c6 = a.element[0] - c2;
+    T c7 = (c5 - 2 * c6) / c3;
+    T c8 = c6 / c3;
+    T c9 = c4 / c3;
+    c5 = c5 / c1;
+    c6 = c4 / c1;
+    c1 = c0 / c1;
+    c4 = c0 / c3;
+    c3 = c2 / c3;
+
+
+    for(int i = 0, j, k; i < nt; i++) {
+
+        for(k = 1; k < m.element[0]; k++)
+            c[0][k] = c5 * u[0][k] + c6 * (u[0][k+1] + u[0][k-1]);
+        for(k = m.element[1]+1; k < n[1]; k++)
+            c[0][k] = c5 * u[0][k] + c6 * (u[0][k+1] + u[0][k-1]);
+        for(j = 1; j < n[0]; j++) {
+            for(k = 1; k < n[1]; k++)
+                c[j][k] = c7 * u[j][k] + c8 * (u[j+1][k] + u[j-1][k]) + c9 * (u[j][k+1] + u[j][k-1]);
+        }
+
+        do {
+            diff = 0;
+
+            for(k = 1; k < m.element[0]; k++) {
+                v[0][k] = c[0][k] + c1 * (u[0][k+1] + u[0][k-1]);
+                diff += abs(v[0][k] - u[0][k]);
+            }
+            for(k = m.element[1]+1; k < n[1]; k++) {
+                v[0][k] = c[0][k] + c1 * (u[0][k+1] + u[0][k-1]);
+                diff += abs(v[0][k] - u[0][k]);
+            }
+            for(j = 1; j < n[0]; j++) {
+                for(k = 1; k < n[1]; k++) {
+                    v[j][k] = c[j][k] + c3 * (u[j+1][k] + u[j-1][k]) + c4 * (u[j+1][k] + u[j-1][k]);
+                    diff += abs(v[j][k] - u[j][k]);
+                }
+            }
+
+            diff /= n[0] * n[1];
+
+            z = u;
+            u = v;
+            v = z;
+
+        } while(diff > 0.00001);
+    }
+
+    n[0]++;
+    n[1]++;
+    ArrayDeallocate2(v,n[0]);
+    ArrayDeallocate2(c,n[0]);
 
     return u;
 }

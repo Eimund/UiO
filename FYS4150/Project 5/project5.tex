@@ -1,6 +1,7 @@
 \documentclass[11pt,english,a4paper]{article}
 \include{mitt_oppsett}
 \usepackage{fullpage}
+\setcounter{MaxMatrixCols}{20}
 
 \renewcommand\title{FYS4150 - Computational Physics - Project 5}
 
@@ -175,38 +176,18 @@ which discretize to
 \label{eq_13}
 \end{align}
 
-We can find the the next step in the numerical solution to \eqref{eq_12} by solving this difference equation with regard to $u_{i+1}$. Note the above discretization is known as Forward Euler scheme (Explicit) when $\theta = 0$, Backward Euler scheme (Implicit) when $\theta = 1$ and Crank-Nicolson scheme when $\theta = \frac{1}{2}$. \linebreak
-
-The truncation error of the Forward and Backward Euler scheme can be found by an alternative derivation, where expand the Taylor series in \eqref{eq_9} around the point $x_0\pm\Delta x$ accordingly;
-
-\begin{align}
-u\p{x_0\pm\Delta x} = \sum_{n=0} \frac{\T{u}{(n)}\p{x_0}}{n!}\p{\pm\Delta x}^n\,,
-\label{eq_14}
-\end{align}
-
-and solve it with regard to $\T{u}{(1)}\p{x_0}$
-
-\begin{align*}
-\T{u}{(1)}\p{x_0} = \frac{u\p{x_0\pm\Delta x}-u\p{x_0}}{\Delta x} + \mathcal{O}\p{\Delta x} \,,
-\end{align*}
-
-which means that we have a local truncation error of $\mathcal{O}\p{\Delta x}$ with the Forward and Backward Euler scheme. However the Crank-Nicolson scheme can be found by subtraction the Taylor expansion above for the two points
-
-\begin{align*}
-u\p{x_0+\Delta x} - u\p{x_0-\Delta x} = 2\sum_{n=1} \frac{\T{u}{\vspace{0.1cm}(2n-1)}\p{x_0}}{\p{2n-1}!}\Delta x^{2n-1}\,,
-\end{align*}
-
-and solve it with regard to $\T{u}{(1)}\p{x_0}$
-
-\begin{align*}
-\T{u}{(1)}\p{x_0} = \frac{u\p{x_0+\Delta x} - u\p{x_0-\Delta x}}{2\Delta x} + \mathcal{O}\p{\Delta x^2}\,,
-\end{align*}
-
-which means that we have a local truncation error of $\mathcal{O}\p{\Delta x^2}$. With the $\theta$-rule we can get even better or worse truncation error, because we can change the $\theta$ value to change the approximation.
+We can find the the next step in the numerical solution to \eqref{eq_12} by solving this difference equation with regard to $u_{i+1}$. Note the above discretization is known as Forward Euler scheme (Explicit) when $\theta = 0$, Backward Euler scheme (Implicit) when $\theta = 1$ and Crank-Nicolson scheme when $\theta = \frac{1}{2}$.
 
 \subsection{Second order derivative}
 
-We approximated the first order derivative in \eqref{eq_10}, but we need to approximate the second order derivative to be able to solve the diffusion in \eqref{eq_1}. We can achieve this by adding the two expansions in \eqref{eq_14}
+We approximated the first order derivative in \eqref{eq_10}, but we need to approximate the second order derivative to be able to solve the diffusion in \eqref{eq_1}. I start by expanding the Taylor series in \eqref{eq_9} around the point $x_0\pm\Delta x$ accordingly;
+
+\begin{align}
+u\p{x_0\pm\Delta x} = \sum_{n=0} \frac{\T{u}{(n)}\p{x_0}}{n!}\p{\pm\Delta x}^n\,.
+\label{eq_14}
+\end{align}
+
+Now adding these two expansions
 
 \begin{align*}
 u\p{x_0+\Delta x} + u\p{x_0-\Delta x} = 2\sum_{n=0} \frac{\T{u}{(2n)}\p{x_0}}{(2!)}\Delta x^{2n} = 2 u\p{x_0} + \T{u}{(2)}\p{x_0}\Delta x^2 + 2\sum_{n=2} \frac{\T{u}{(2n)}\p{x_0}}{(2!)}\Delta x^{2n}\,,
@@ -276,6 +257,175 @@ where
 \alpha_\ell = \frac{\Delta t}{\Delta {x_\ell}^2} \qquad \text{and} \qquad n_\ell = \frac{1}{\Delta x_\ell} \,.
 \end{align*}
 
+\section{Jacobi's iterative method}
+
+When we have $\theta\neq 0$ in \eqref{eq_16} we have implicit schemes, and I rewrite \eqref{eq_16} with unknowns on the left side and knowns on the right side;
+
+\begin{align*}
+\forall k\in\mathbb{N}_1^2 \forall j_k \in \mathbb{N}_1^{n_k-2} : &\p{1+2\theta\sum_{\ell=1}^2 \alpha_\ell} u_{(i+1)\kr{j_k}_{k=1}^2} - \theta\sum_{\ell = 1}^2\alpha_\ell \p{u_{(i+1)\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{(i+1)\kr{j_k-\delta_{k\ell}}_{k=1}^2}} 
+\\
+&\quad = \p{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell} u_{i\kr{j_k}_{k=1}^2} + \p{1-\theta}\sum_{\ell=1}^2\alpha_\ell\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}} \,,
+\end{align*}
+
+where the boundary are given at the indices $j_k=0$ and $j_k= n_k-1$ where $n_k$ are the number of points i $k$ direction. Now I will transform this into a linear algebra problem $\textbf{A}_{i+1}\textbf{v}_{i+1} = \textbf{b}_i$, where elements of $\textbf{v}_{i+1}$ are
+
+\begin{align}
+v_{(i+1)j} = v_{(i+1)(j_1 n_2 + j_2)} = u_{(i+1)\kr{j_k}_{k=1}^2} \,.
+\label{eq_18}
+\end{align}
+
+The fixed boundary values with $u_0=1$ at the presynaptic $x_1=0$ and $w_1 \leq x_2 \leq w_2$ are given by the indices $j$ in the set
+
+\begin{align*}
+\mathbb{B}_1 = \mathbb{N}_{m_1}^{m_2}\,.
+\end{align*}
+
+We have non-fixed values at the boundary on the side of the synaptic vesicles at the presynaptic $x_1=0$, $0 \leq x_2 < w_1$ and $w_2 < x_2 < w$, and are given by the indices $j$ in the set
+
+\begin{align*}
+\mathbb{B}_2 = j\in\mathbb{N}_0^{n_2-1} \setminus \mathbb{B}_1 \,.
+\end{align*}
+
+The boundary values at the postsynaptic $x_1=d$ are given by the indices $j$ in the set
+
+\begin{align*}
+\mathbb{B}_3 = \mathbb{N}_{n_1 n_2 - n_2}^{n_1 n_2 - 1} \,.
+\end{align*}
+
+The left side boundary $x_2=0$ are given by the indices $j$ in the set
+
+\begin{align*}
+\mathbb{B}_4 = \kr{\ell n_2}_{\ell=1}^{n_1-2} \,.
+\end{align*}
+
+The right side boundary $x_2=w$ are given by the indices $j$ in the set
+
+\begin{align*}
+\mathbb{B}_5 = \kr{\ell n_2 - 1}_{\ell=2}^{n_1-1}\,.
+\end{align*}
+
+And the boundary as a whole are given by the indices $j$ in the set
+
+\begin{align*}
+\mathbb{B} = \bigcup_{i=1}^5 \mathbb{B}_i \,.
+\end{align*}
+
+The inner points are given by the indices $j$ in the set
+
+\begin{align*}
+\mathbb{I} = \mathbb{N}_{0}^{n_1 n_2 -1} \setminus \mathbb{B}\,.
+\end{align*}
+
+We can now write the matrix elements of $\textbf{A}_{(i+1)}$
+
+\begin{align}
+a_{(i+1)jk} = a_{jk} = \begin{cases} 
+1 &:\forall j\in\mathbb{B}\setminus\mathbb{B}_2  : j=k \,\,\,\,\quad\qquad\qquad \text{(fixed boundary)}\\
+1+ 2\theta \alpha_2 &: \forall j\in\mathbb{B}_2: j=k \,\,\quad\qquad\qquad\qquad (\text{side of vesicles}) \\ 
+1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell &: \forall j\in\mathbb{I}: j=k \qquad\qquad\qquad\qquad (\text{the inner points }u_{(i+1)j_1j_2}) \\ 
+-\theta \alpha_2 &: \forall j\in\mathbb{I}\cup\mathbb{B}_2: k\in\kr{j-1,j+1}\quad \text{(diffusion in $x_2$ direction)} \\ 
+- \theta \alpha_1 &: \forall j\in\mathbb{I} : k \in \kr{j-n_2,j+n_2} \,\,\qquad\text{(diffusion in $x_1$ direction)} \\
+ 0 & : \text{otherwise,} \end{cases}
+\label{eq_19}
+\end{align}
+
+and the elements of the vector $\textbf{b}_i$ are
+
+\begin{align}
+b_{ij} = b_{i(j_1 n_2 + j_2)} = \begin{cases}
+1 &: j\in\mathbb{B}_1 \\
+\p{1-2\p{1-\theta}\alpha_2} u_{i0j_2} + \p{1-\theta}\alpha_2\p{u_{i0(j_2+1)} + u_{i0(j_2-1)}} &: j\in\mathbb{B}_2 \\
+\p{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell} u_{i\kr{j_k}_{k=1}^2} + \p{1-\theta}\sum_{\ell=1}^2\alpha_\ell\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}} &: j\in\mathbb{I} \\
+0 &: \text{otherwise.}
+\end{cases}
+\label{eq_20}
+\end{align}
+
+Unfortunately  is the linear algebra problem $\textbf{A}\textbf{v}_{i+1} = \textbf{b}_i$ is computational expensive to solve for the matrix in \eqref{eq_19}. To lower the computational time I therefore prepare the matrix $\textbf{A}$ for Jacobi's iterative method by splitting it into a diagonal matrix $\textbf{D}$ and a remainder matrix $\textbf{R}$;
+
+\begin{align*}
+\textbf{A} = \textbf{D} + \textbf{R} \,.
+\end{align*}
+
+From \eqref{eq_19} we see that the elements of the diagonal matrix are given by
+
+\begin{align}
+d_{jk} = \begin{cases} 
+1 &:\forall j\in\mathbb{B}\setminus\mathbb{B}_2  : j=k \,\,\,\,\quad\qquad\qquad \text{(fixed boundary)}\\
+1+ 2\theta \alpha_2 &: \forall j\in\mathbb{B}_2: j=k \,\,\quad\qquad\qquad\qquad (\text{side of vesicles}) \\ 
+1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell &: \forall j\in\mathbb{I}: j=k \qquad\qquad\qquad\qquad (\text{the inner points }u_{(i+1)j_1j_2}) \\ 
+ 0 & : \text{otherwise,} \end{cases}
+\label{eq_21}
+\end{align}
+
+and the elements of the remainder matrix are given by
+
+\begin{align}
+r_{jk} = \begin{cases} 
+-\theta \alpha_2 &: \forall j\in\mathbb{I}\cup\mathbb{B}_2: k\in\kr{j-1,j+1}\quad \text{(diffusion in $x_2$ direction)} \\ 
+- \theta \alpha_1 &: \forall j\in\mathbb{I} : k \in \kr{j-n_2,j+n_2} \,\,\qquad\text{(diffusion in $x_1$ direction)} \\
+ 0 & : \text{otherwise.} \end{cases}
+\label{eq_22}
+\end{align}
+
+We can now introduce Jacobi's iterative method
+
+\begin{align*}
+\textbf{v}_{i+1}^{(\ell)} = \begin{cases}
+\textbf{v}_i &: \ell=0 \\
+\textbf{D}^{-1}\p{\textbf{b}_i-\textbf{R}\textbf{v}_{i+1}^{(\ell-1)}} &: \ell\in\mathbb{N}_1
+\end{cases}
+\end{align*}
+
+where $\ell$ is the number of iterations and $\ell=0$ are the starting point. Rewriting it on element form yields
+
+\begin{align*}
+v_{(i+1)j}^{(\ell)} = \begin{cases} v_j &: \ell = 0 \\ \frac{1}{d_{jj}}\p{b_j - \sum_{k\neq j} r_{jk} v_{(i+1)k}^{(\ell-1)}} &: j\in\mathbb{N}_1 \,.\end{cases}
+\end{align*}
+
+Using \eqref{eq_18} and \eqref{eq_22} we have the iterative solution to the heat equation in \eqref{eq_6} with the boundaries in \eqref{eq_2}
+
+\begin{align}
+u_{(i+1)\kr{j_k}_{k=1}^2}^{(\ell)} = \begin{cases}
+u_{i\kr{j_k}_{k=1}^2} &: \ell = 0 \\
+1 &: j_1=0 \wedge j_2\in\mathbb{N}_{m_1}^{m_2} \\
+c_0 + c_1\p{u_{(i+1)0(j_2+1)}^{(\ell-1)}+u_{(i+1)0(j_2-1)}^{(\ell-1)}} &: j_1=0 \wedge j_2\in\mathbb{N}_0^{n_2-1} \setminus\mathbb{N}_{m_1}^{m_2} \\
+c_2 + \sum_{o=1}^2 c_{o+2}\p{u_{(i+1)\kr{j_k+\delta_{ko}}_{k=1}^2}^{(\ell-1)}+u_{(i+1)\kr{j_k-\delta_{ko}}_{k=1}^2}^{(\ell-1)}} &: j_1\in \mathbb{N}_{1}^{n_1-2} \wedge j_2\in\mathbb{N}_1^{n_2-2} 
+\end{cases} 
+\label{eq_23}
+\end{align}
+
+\begin{align}
+c_0 &= c_5 u_{i0j_2} + c_6\p{u_{i0(j_2+1)} + u_{i0(j_2-1)}}
+\label{eq_24}\\
+c_1 &= \frac{\theta \alpha_2}{1+2\theta\alpha_2}
+\label{eq_25}\\
+c_2 &= c_7 u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 c_{\ell+7} \p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}
+\label{eq_26}\\
+c_3 &= \frac{\theta \alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_27}\\
+c_4 &= \frac{\theta \alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_28}\\
+c_5 &= \frac{1-2\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
+\label{eq_29}\\
+c_6 &= \frac{\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
+\label{eq_30}\\
+c_7 &= \frac{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_31}\\
+c_8 &= \frac{\p{1-\theta}\alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_32}\\
+c_9 &= \frac{\p{1-\theta}\alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_33}
+\end{align}
+
+The Jacobi iterative method converges when the matrix $\textbf{A}$ is diagonally dominant 
+
+\begin{align*}
+\abs{a_{ii}} > \sum_{j\neq i} \abs{a_{ij}}\,,
+\end{align*}
+
+which is the case for the matrix spanned out by \eqref{eq_19} because $1+2\theta \alpha_2 > 2\theta \alpha_2$ and $1+2\theta\sum_{\ell=1}^2 \alpha_{\ell} > 2\theta\sum_{\ell=1}^2 \alpha_\ell$.
+
 \section{Attachments}
 
 The source files developed are
@@ -300,6 +450,7 @@ The source files developed are
 \bibitem{Uniqueness}\href{http://en.wikipedia.org/wiki/Uniqueness\_theorem\_for\_Poisson\%27s\_equation}{http://en.wikipedia.org/wiki/Uniqueness\_theorem\_for\_Poisson\%27s\_equation}
 \bibitem{Ansatz}\href{http://en.wikipedia.org/wiki/Ansatz}{http://en.wikipedia.org/wiki/Ansatz}
 \bibitem{Kronecker}\href{http://en.wikipedia.org/wiki/Kronecker\_delta}{http://en.wikipedia.org/wiki/Kronecker\_delta}
+\bibitem{Jacobi}\href{http://en.wikipedia.org/wiki/Jacobi\_method}{http://en.wikipedia.org/wiki/Jacobi\_method}
 \end{thebibliography}
 
 \end{flushleft}
