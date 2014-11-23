@@ -257,7 +257,7 @@ where
 \alpha_\ell = \frac{\Delta t}{\Delta {x_\ell}^2} \qquad \text{and} \qquad n_\ell = \frac{1}{\Delta x_\ell} \,.
 \end{align*}
 
-\section{Jacobi's iterative method}
+\subsection{Jacobi's iterative method}
 
 When we have $\theta\neq 0$ in \eqref{eq_16} we have implicit schemes, and I rewrite \eqref{eq_16} with unknowns on the left side and knowns on the right side;
 
@@ -426,6 +426,67 @@ The Jacobi iterative method converges when the matrix $\textbf{A}$ is diagonally
 
 which is the case for the matrix spanned out by \eqref{eq_19} because $1+2\theta \alpha_2 > 2\theta \alpha_2$ and $1+2\theta\sum_{\ell=1}^2 \alpha_{\ell} > 2\theta\sum_{\ell=1}^2 \alpha_\ell$.
 
+\section{Markov chain}
+
+The Markov chain is given by
+
+\begin{align}
+w_{(i+1)\kr{j_k}_{k=1}^n}^+ = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} w_{i\kr{\ell_k}_{k=1}^n} \,,
+\label{eq_34}
+\end{align}
+
+where $w_{i\kr{j_k}_{k=1}^n}$ is the probability distribution function \anf{PDF} at time step $i$, and $W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}$  is the transition probability from state $\kr{\ell_k}_{k=1}^n$ to $\kr{j_k}_{k=1}^n$. And the reverse Markov chain is given by
+
+\begin{align}
+w_{(i+1)\kr{j_k}_{k=1}^n}^- = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} \,,
+\label{eq_35}
+\end{align}
+
+Diffusion can be modelled by Markov chain where the normalized concentration at time step $i+1$ should be given by the difference of transition to and from the state $\kr{j_k}_{k=1}^n$ plus the amount that stays in the state; 
+
+\begin{align*}
+u_{(i+1)\p{j_k}_{k=1}^n} = W_{\kr{j_k}_k\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} +  w_{(i+1)\kr{j_k}_{k=1}^n}^+ - w_{(i+1)\kr{j_k}_{k=1}^n}^-
+\end{align*} 
+
+We assume that one can't stay in the same state $W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} = 0$, hence all of the concentration should transition to other states at any given time step $i+1$, which means that the normalized concentration are equal to the reverse Markov chain in the next time step
+
+\begin{align*}
+u_{i\kr{j_k}_{k=1}^n} =  w_{(i+1)\kr{j_k}_{k=1}^n}^- \,.
+\end{align*}
+
+This assumption yields
+
+\begin{align*}
+u_{(i+1)\p{j_k}_{k=1}^n} = w_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{i\kr{j_k}_{k=1}^n} \,.
+\end{align*}
+
+Further we assume that the probability $p$ are equal to transition to neighbouring states, and zero to transition beyond the neighbouring states
+
+\begin{align*}
+\sum_{\ell=1}^n \p{W_{\kr{j_k}_{k=1}^n\kr{j_k + \delta_{k\ell}}_{k=1}^n} + W_{\kr{j_k}_{k=1}^n}\kr{j_k - \delta_{k\ell}}_{k=1}^n} = 2n p = 1 \,.
+\end{align*}
+
+Then the normalized concentration is then given by
+
+\begin{align*}
+u_{(i+1)\p{j_k}_{k=1}^n} = \frac{1}{2n}\sum_{\ell=1}^n\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^n} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^n}} - u_{i\kr{j_k}_{k=1}^n} \,,
+\end{align*}
+
+which can be rewritten to
+
+\begin{align}
+\frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} = \frac{\Delta x^2}{2n\Delta t}\sum_{\ell=1}^n\frac{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^n}}{\Delta x^2} \,,
+\label{eq_36}
+\end{align}
+
+which is the discretization of the heat equation in \eqref{eq_1} with diffusion constant
+
+\begin{align}
+\Delta x = \sqrt{2nD\Delta t}\,. 
+\label{eq_37}
+\end{align}
+
+
 \section{Attachments}
 
 The source files developed are
@@ -443,6 +504,11 @@ The source files developed are
 \begin{thebibliography}{1}
 \bibitem{project4}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-5-deadline-december-1/project5_diffusion.pdf}{\emph{FYS4150 - Project 5}} - \emph{Diffusion in two dimensions}, \href{http://www.uio.no}{University of Oslo}, 2014} 
 \bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{Farnell}
+Farnell and Gibson, \href{https://vpn2.uio.no/+CSCO+00756767633A2F2F6A6A6A2E667076726170727176657270672E70627A++/science/article/pii/S0021999105001087#}
+{\emph{Monte Carlo simulation of diffusion in a spatially
+nonhomogeneous medium:}} A biased random walk
+on an asymmetrical lattice, Journal of Computational Physics, volume 208, pages 253-265, 2005
 \bibitem{Diffusion}\href{http://en.wikipedia.org/wiki/Diffusion\_equation}{http://en.wikipedia.org/wiki/Diffusion\_equation}
 \bibitem{Heat}\href{http://en.wikipedia.org/wiki/Heat\_equation}{http://en.wikipedia.org/wiki/Heat\_equation}
 \bibitem{Dirichlet}\href{http://en.wikipedia.org/wiki/Dirichlet\_boundary\_condition}{http://en.wikipedia.org/wiki/Dirichlet\_boundary\_condition}
@@ -451,6 +517,7 @@ The source files developed are
 \bibitem{Ansatz}\href{http://en.wikipedia.org/wiki/Ansatz}{http://en.wikipedia.org/wiki/Ansatz}
 \bibitem{Kronecker}\href{http://en.wikipedia.org/wiki/Kronecker\_delta}{http://en.wikipedia.org/wiki/Kronecker\_delta}
 \bibitem{Jacobi}\href{http://en.wikipedia.org/wiki/Jacobi\_method}{http://en.wikipedia.org/wiki/Jacobi\_method}
+\bibitem{Markov}\href{http://en.wikipedia.org/wiki/Markov\_chain}{http://en.wikipedia.org/wiki/Markov\_chain}
 \end{thebibliography}
 
 \end{flushleft}

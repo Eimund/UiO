@@ -11,11 +11,81 @@
 
 #include <cmath>
 #include "time.h"
+#include <chrono>
 #include <fstream>
+#include <random>
 
 using namespace std;
 
 #define FLOAT double
+#define ARRAYLIST(TYPE,...) (TYPE*)(const TYPE[]){__VA_ARGS__}
+
+template<class T> struct Null {
+    static const T value;
+};
+template<class T> const T Null<T>::value = 0;
+template<class T> struct Null<T*> {
+    static const T* value;
+};
+template<class T> const T* Null<T*>::value = nullptr;
+
+template<class T> struct Array {
+    T element;
+    Array<T>* prev;
+    Array<T>* next;
+    Array() {
+        prev = this;
+        next = this;
+    }
+    ~Array() {
+        if(next != this)
+            delete next;
+    }
+    T operator[] (const int i) {
+        if(prev != this) {
+            if(i) {
+                if(i > 0)
+                    return (*next)[i-1];
+                else
+                    return (*prev)[i+1];
+            }
+            return this->element;
+        } else if(next != this)
+            return (*next)[i];
+        return (T)Null<T>::value;
+    }
+    void Add(T element) {
+        if(next == this) {
+            next = new Array<T>;
+            next->next = next;
+        }
+        else {
+            next->prev = new Array<T>;
+            next->prev->next = next;
+            next = next->prev;
+        }
+        next->prev = this;
+        next->element = element;
+    }
+    int Length() {
+        if(next != this)
+            return next->Length()+1;
+        return 0;
+    }
+    void Remove(Array<T>* element) {
+        if(next == element) {
+            if(next->next == next) {
+                delete next;
+                next = this;
+            } else {
+                next = next->next;
+                delete next->prev;
+                next->prev = this;
+            }
+        } else if(next != next->next)
+            Remove(element);
+    }
+};
 
 template<typename T, unsigned int D> struct Vector {
     T element[D];
@@ -35,6 +105,7 @@ template<typename T> void ArrayDeallocate2(T** array, unsigned int n);
 template<typename T> T* ArrayRange(T lower, T upper, unsigned int n);
 template<typename T> void ArrayToFile(ofstream& file, T* array, unsigned int n);
 template<typename T> void ArrayToFile2(ofstream& file, T** array, unsigned int n[2]);
+template<typename T> Array<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T dt, T t, T d, uniform_real_distribution<T> pdf);
 template<typename T> Vector<T,2> Diffusion2D_alpha(T alpha, T d[2], unsigned int n[2]);
 template<typename T> T Diffusion2D_deltaT(T alpha, T dx2[2]);
 template<typename T> Vector<T,2> Diffusion2D_deltaX2(T d[2], unsigned int n[2]);
@@ -89,6 +160,8 @@ int main() {
     ArrayDeallocate2(u, n[0]);
     file.close();
 
+    auto particle = Diffusion1D_MonteCarlo<FLOAT>(100, 1e-3, t, d[0], uniform_real_distribution<FLOAT>(0,1));
+
     delete [] x[0];
     delete [] x[1];
 
@@ -132,6 +205,54 @@ template<typename T> void ArrayToFile2(ofstream& file, T** array, unsigned int n
             file << endl;
         ArrayToFile(file, array[i], n[1]);
     }
+}
+
+template<typename T> Array<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T dt, T t, T d, uniform_real_distribution<T> pdf) {
+
+    Array<Vector<T,1>> particle, *p;
+    Vector<T,1> vec = {0};
+    for(int i = 0; i < N; i++)
+        particle.Add(vec);                          // Initial particles
+
+    T val;
+    unsigned int n = t / dt;
+    T dx = sqrt(2*dt);
+    default_random_engine rng;                      // Set RNG seeding value
+    rng.seed(chrono::high_resolution_clock::now().time_since_epoch().count());
+
+    for(int i = 0; i < n; i++) {                    // Loop of timesteps
+        p = &particle;
+        for(int j = 0; j < N; j++) {                // Loop of particles
+            val = pdf(rng);                         // Random number
+            p = p->next;                            // Next particle
+
+            if(val <= 0.5) {                        // Sampling rule
+
+                if(p->element.element[0] != 0) {    // Particle not at the source
+                    p->element.element[0] -= dx;    // Move particle
+                    if(p->element.element[0] < 0) { // Remove particle
+                        p = p->prev;                // into the presynaptic
+                        p->Remove(p->next);
+                        N--;
+                    }
+                }
+            } else {
+
+                if(p->element.element[0] == 0) {    // Particle at the source
+                    p->prev->Add(p->element);       // Add new particle
+                    N++;
+                }
+                p->element.element[0] += dx;        // Move particle
+                if(p->element.element[0] >= d) {    // Remove particle
+                    p = p->prev;                    // into the postsynaptic
+                    p->Remove(p->next);
+                    N--;
+                }
+            }
+        }
+    }
+
+    return particle;
 }
 
 template<typename T> Vector<T,2> Diffusion2D_alpha(T dt, T dx2[2]) {
