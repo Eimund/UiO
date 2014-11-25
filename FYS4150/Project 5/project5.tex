@@ -426,9 +426,9 @@ The Jacobi iterative method converges when the matrix $\textbf{A}$ is diagonally
 
 which is the case for the matrix spanned out by \eqref{eq_19} because $1+2\theta \alpha_2 > 2\theta \alpha_2$ and $1+2\theta\sum_{\ell=1}^2 \alpha_{\ell} > 2\theta\sum_{\ell=1}^2 \alpha_\ell$.
 
-\section{Markov chain}
+\subsection{Markov chain and Metropolis-Hastings algorithm}
 
-The Markov chain is given by
+I assume that diffusion is a memoryless physical process that approximates to a stochastic process, hence diffusion is assumed to satisfy the Markov property and therefore is a Markov process where the transition between states are described by Markov chains 
 
 \begin{align}
 w_{(i+1)\kr{j_k}_{k=1}^n}^+ = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} w_{i\kr{\ell_k}_{k=1}^n} \,,
@@ -442,25 +442,33 @@ w_{(i+1)\kr{j_k}_{k=1}^n}^- = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{\ell_k}_{k=1}^n\
 \label{eq_35}
 \end{align}
 
-Diffusion can be modelled by Markov chain where the normalized concentration at time step $i+1$ should be given by the difference of transition to and from the state $\kr{j_k}_{k=1}^n$ plus the amount that stays in the state; 
+Using the assumption that diffusion can be modelled as Markov process where the normalized concentration at time step $i+1$ should be given by the difference of transition to and from the state $\kr{j_k}_{k=1}^n$ plus the amount that stays in the state; 
 
 \begin{align*}
 u_{(i+1)\p{j_k}_{k=1}^n} = W_{\kr{j_k}_k\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} +  w_{(i+1)\kr{j_k}_{k=1}^n}^+ - w_{(i+1)\kr{j_k}_{k=1}^n}^-
 \end{align*} 
 
-We assume that one can't stay in the same state $W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} = 0$, hence all of the concentration should transition to other states at any given time step $i+1$, which means that the normalized concentration are equal to the reverse Markov chain in the next time step
-
+Note that the reverse Markov chain is all the transitions that a state $\kr{j_k}_{k=1}$ takes, including transition it self. Therefore the reverse Markov chain in time step $i+1$ describes the transition of the entire concentration at time step $i$;
 \begin{align*}
 u_{i\kr{j_k}_{k=1}^n} =  w_{(i+1)\kr{j_k}_{k=1}^n}^- \,.
 \end{align*}
 
-This assumption yields
+
+We assume that one can't stay in the same state $W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} = 0$, hence all of the concentration should transition to other states at any given time step, which yields
 
 \begin{align*}
-u_{(i+1)\p{j_k}_{k=1}^n} = w_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{i\kr{j_k}_{k=1}^n} \,.
+u_{(i+1)\kr{j_k}_{k=1}^n} = w_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{i\kr{j_k}_{k=1}^n} \,.
 \end{align*}
 
-Further we assume that the probability $p$ are equal to transition to neighbouring states, and zero to transition beyond the neighbouring states
+Further diffusion is assumed to be approximated as stochastic move in distance and direction, where distance and direction is stochastically independent. Which means that transition probability can be written as
+
+\begin{align*}
+W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} = T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} \,,
+\end{align*}
+
+where $T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving the distance between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$, and $ A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving in the direction between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$. $T$ and $A$ can be used as proposed and acceptance distribution accordingly in the Metropolis-Hastings algorithm.
+
+ probability $p$ are equal to transition to neighbouring states, and zero to transition beyond the neighbouring states
 
 \begin{align*}
 \sum_{\ell=1}^n \p{W_{\kr{j_k}_{k=1}^n\kr{j_k + \delta_{k\ell}}_{k=1}^n} + W_{\kr{j_k}_{k=1}^n}\kr{j_k - \delta_{k\ell}}_{k=1}^n} = 2n p = 1 \,.
@@ -517,7 +525,14 @@ on an asymmetrical lattice, Journal of Computational Physics, volume 208, pages 
 \bibitem{Ansatz}\href{http://en.wikipedia.org/wiki/Ansatz}{http://en.wikipedia.org/wiki/Ansatz}
 \bibitem{Kronecker}\href{http://en.wikipedia.org/wiki/Kronecker\_delta}{http://en.wikipedia.org/wiki/Kronecker\_delta}
 \bibitem{Jacobi}\href{http://en.wikipedia.org/wiki/Jacobi\_method}{http://en.wikipedia.org/wiki/Jacobi\_method}
-\bibitem{Markov}\href{http://en.wikipedia.org/wiki/Markov\_chain}{http://en.wikipedia.org/wiki/Markov\_chain}
+\bibitem{StochasticProcess}\href{http://en.wikipedia.org/wiki/Stochastic\_process}{http://en.wikipedia.org/wiki/Stochastic\_process}
+\bibitem{Stochastic}\href{http://en.wikipedia.org/wiki/Independence\_\%28probability\_theory\%29}{http://en.wikipedia.org/wiki/Independence\_\%28probability\_theory\%29}
+\bibitem{MarkovProperty}\href{http://en.wikipedia.org/wiki/Markov\_property}{http://en.wikipedia.org/wiki/Markov\_property}
+\bibitem{MarkovProcess}\href{http://en.wikipedia.org/wiki/Markov\_process}{http://en.wikipedia.org/wiki/Markov\_process}
+\bibitem{MarkovChain}\href{http://en.wikipedia.org/wiki/Markov\_chain}{http://en.wikipedia.org/wiki/Markov\_chain}
+\bibitem{Metropolis}\href{http://en.wikipedia.org/wiki/Metropolis\%E2\%80\%93Hastings\_algorithm}{http://en.wikipedia.org/wiki/Metropolis\%E2\%80\%93Hastings\_algorithm}
+\bibitem{MonteCarlo}\href{http://en.wikipedia.org/wiki/Monte\_Carlo\_algorithm}{http://en.wikipedia.org/wiki/Monte\_Carlo\_algorithm}
+\bibitem{Isotropic}\href{http://en.wikipedia.org/wiki/Isotropy}{http://en.wikipedia.org/wiki/Isotropy}
 \end{thebibliography}
 
 \end{flushleft}
