@@ -442,13 +442,15 @@ w_{(i+1)\kr{j_k}_{k=1}^n}^- = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{\ell_k}_{k=1}^n\
 \label{eq_35}
 \end{align}
 
-Using the assumption that diffusion can be modelled as Markov process where the normalized concentration at time step $i+1$ should be given by the difference of transition to and from the state $\kr{j_k}_{k=1}^n$ plus the amount that stays in the state; 
+Using the assumption that diffusion can be modelled as Markov process then we can use a Master equation to describe the normalized concentration at time step $i+1$ by the difference of transition to and from the state $\kr{j_k}_{k=1}^n$ plus the amount that stays in the state; 
 
-\begin{align*}
-u_{(i+1)\p{j_k}_{k=1}^n} = W_{\kr{j_k}_k\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} +  w_{(i+1)\kr{j_k}_{k=1}^n}^+ - w_{(i+1)\kr{j_k}_{k=1}^n}^-
-\end{align*} 
+\begin{align}
+u_{(i+1)\kr{j_k}_{k=1}^n} = W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} +  w_{(i+1)\kr{j_k}_{k=1}^n}^+ - w_{(i+1)\kr{j_k}_{k=1}^n}^-
+\label{eq_36}
+\end{align} 
 
 Note that the reverse Markov chain is all the transitions that a state $\kr{j_k}_{k=1}$ takes, including transition it self. Therefore the reverse Markov chain in time step $i+1$ describes the transition of the entire concentration at time step $i$;
+
 \begin{align*}
 u_{i\kr{j_k}_{k=1}^n} =  w_{(i+1)\kr{j_k}_{k=1}^n}^- \,.
 \end{align*}
@@ -456,44 +458,117 @@ u_{i\kr{j_k}_{k=1}^n} =  w_{(i+1)\kr{j_k}_{k=1}^n}^- \,.
 
 We assume that one can't stay in the same state $W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} = 0$, hence all of the concentration should transition to other states at any given time step, which yields
 
-\begin{align*}
+\begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^n} = w_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{i\kr{j_k}_{k=1}^n} \,.
-\end{align*}
+\label{eq_37}
+\end{align}
 
 Further diffusion is assumed to be approximated as stochastic move in distance and direction, where distance and direction is stochastically independent. Which means that transition probability can be written as
 
-\begin{align*}
+\begin{align}
 W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} = T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} \,,
-\end{align*}
+\label{eq_38}
+\end{align}
 
-where $T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving the distance between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$, and $ A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving in the direction between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$. $T$ and $A$ can be used as proposed and acceptance distribution accordingly in the Metropolis-Hastings algorithm.
+where $T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving the distance between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$, and $ A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving in the direction between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$. $T$ and $A$ can be used as proposed and acceptance distribution accordingly in the Metropolis-Hastings algorithm. \linebreak
 
- probability $p$ are equal to transition to neighbouring states, and zero to transition beyond the neighbouring states
-
-\begin{align*}
-\sum_{\ell=1}^n \p{W_{\kr{j_k}_{k=1}^n\kr{j_k + \delta_{k\ell}}_{k=1}^n} + W_{\kr{j_k}_{k=1}^n}\kr{j_k - \delta_{k\ell}}_{k=1}^n} = 2n p = 1 \,.
-\end{align*}
-
-Then the normalized concentration is then given by
+Assume that we move a distance $\ell$ from state $\kr{j_k}_{k=1}^n$, which means that the states $\kr{j_k+\delta_{km}\ell}$ are the possible destinations, which puts the following constraint on the direction probability $A$;
 
 \begin{align*}
-u_{(i+1)\p{j_k}_{k=1}^n} = \frac{1}{2n}\sum_{\ell=1}^n\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^n} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^n}} - u_{i\kr{j_k}_{k=1}^n} \,,
+\sum_{m=1}^n \p{A_{\kr{j_k+\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}+A_{\kr{j_k-\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}} = 1 \,.
+\end{align*}
+
+Now assuming isotropic diffusion, which means that
+
+\begin{align*}
+\forall m,o\in \mathbb{N}_1^n : A_{\kr{j_k\pm\delta_{km} \ell}_{k=1}^n\kr{j_k}_{k=1}^n} &= A_{\kr{j_k\pm\delta_{ko} \ell}_{k=1}^n\kr{j_k}_{k=1}^n} \\
+\forall m,o\in \mathbb{N}_1^n : T_{\kr{j_k\pm\delta_{km} \ell}_{k=1}^n\kr{j_k}_{k=1}^n} &= T_{\kr{j_k\pm\delta_{ko} \ell}_{k=1}^n\kr{j_k}_{k=1}^n}
+\end{align*}
+
+and the constraint on the direction probability then yields
+
+\begin{align}
+A = A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} = \frac{1}{2n}\,,
+\label{eq_39}
+\end{align}
+
+and the distance probability $T$ is only dependent on the distance $\ell$
+
+\begin{align*}
+p_\ell = T_{\kr{j_k\pm\delta_{km} \ell}_{k=1}^n\kr{j_k}_{k=1}^n}\,,
+\end{align*}
+
+which has the constraint
+
+\begin{align*}
+\sum_{\ell} p_\ell = 1\,.
+\end{align*}
+
+Then the normalized concentration \eqref{eq_37} is now given by
+
+\begin{align*}
+u_{(i+1)\p{j_k}_{k=1}^n} = \frac{1}{2n}\sum_\ell p_\ell\sum_{m=1}^n \p{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}} - u_{i\kr{j_k}_{k=1}^n} \,,
 \end{align*}
 
 which can be rewritten to
 
 \begin{align}
-\frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} = \frac{\Delta x^2}{2n\Delta t}\sum_{\ell=1}^n\frac{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^n}}{\Delta x^2} \,,
-\label{eq_36}
+\frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} = \sum_{\ell}\frac{p_\ell \p{\ell \Delta x}^2}{2n\Delta t}\sum_{m=1}^n\frac{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}}{\p{\ell\Delta x}^2} \,.
+\label{eq_40}
 \end{align}
 
-which is the discretization of the heat equation in \eqref{eq_1} with diffusion constant
+When we have the Kronecker delta distribution $p_\ell = \delta_{1\ell}$ this becomes the discretization of the heat equation in \eqref{eq_1} 
+
+\begin{align*}
+\frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} = \frac{\Delta x^2}{2n\Delta t}\sum_{m=1}^n\frac{u_{i\kr{j_k+\delta_{km}}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}}_{k=1}^n}}{\Delta x^2} \,,
+\end{align*}
+
+with the relation to the diffusion constant $D$ as follows
 
 \begin{align}
 \Delta x = \sqrt{2nD\Delta t}\,. 
-\label{eq_37}
+\label{eq_41}
 \end{align}
 
+For a general distribution $p_\ell$ we see from \eqref{eq_40} that the step length now is given by
+
+\begin{align}
+\Delta x_\ell = \ell \Delta x = \ell\sqrt{2nD\Delta t}\,.
+\label{eq_42}
+\end{align} 
+
+The steps above with Markov chains are designed to give a approximated time evolution. However if we are only interested in the steady state solution, we can derive a faster algorithm to reach it, which is the Metropolis-Hastings algorithm. To derive the Metropolis-Hastings algorithm we start by looking back at the Master equation in \eqref{eq_36} for equilibrium, where we realize that transition to and from the state $\kr{j_k}_{k=1}^n$ must be equal
+
+\begin{align*}
+\lim_{i\to \infty} \p{w_{(i+1)\kr{j_k}_{k=1}^n}^+ - w_{(i+1)\kr{j_k}_{k=1}^n}^-} = 0
+\end{align*}
+
+and that concentration remains the same
+
+\begin{align*}
+\lim_{i\to \infty} u_{(i+1)\kr{j_k}_{k=1}^n} = \lim_{i\to \infty} W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} = \lim_{i\to\infty} u_{i\kr{j_k}_{k=1}^n} \,.
+\end{align*}
+
+Using the equality of transition to and from the state $\kr{j_k}_{k=1}^n$ at equilibrium the Markov chains in \eqref{eq_34} and \eqref{eq_35} with independent probability distributions $T$ and $A$ in \eqref{eq_38}, we have the following equation
+
+\begin{align*}
+\sum_{\kr{\ell_k}_{k=1}^n}\p{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n} w_{i\kr{\ell_k}_{k=1}^n} - T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n}} = 0
+\end{align*}
+
+which is satisfied by the relation
+
+\begin{align*}
+\frac{A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}}{A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}} = \frac{T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}w_{i\kr{j_k}_{k=1}^n}}{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}w_{i\kr{\ell_k}_{k=1}^n}} \,,
+\end{align*}
+
+where $T$ is a distribution that we propose and $A$ is a probability to accept the proposition. We reach equilibrium fastest when the transition from states are as large as possible, which means $A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}$ should be as close to 1 as possible and still satisfy that $A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n} \leq 1$, which is the Metropolis-Hastings algorithm;
+
+\begin{align}
+A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} = \min\p{1,\frac{T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}w_{\kr{\ell_k}_{k=1}^n}}{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}w_{\kr{j_k}_{k=1}^n}}}\,.
+\label{eq_43}
+\end{align} 
+
+If we use a random generator to make a proposition to move at each time step, we get a deterministic running time with approximation in the result, which is known as Monte Carlo algorithm. 
 
 \section{Attachments}
 
@@ -530,6 +605,7 @@ on an asymmetrical lattice, Journal of Computational Physics, volume 208, pages 
 \bibitem{MarkovProperty}\href{http://en.wikipedia.org/wiki/Markov\_property}{http://en.wikipedia.org/wiki/Markov\_property}
 \bibitem{MarkovProcess}\href{http://en.wikipedia.org/wiki/Markov\_process}{http://en.wikipedia.org/wiki/Markov\_process}
 \bibitem{MarkovChain}\href{http://en.wikipedia.org/wiki/Markov\_chain}{http://en.wikipedia.org/wiki/Markov\_chain}
+\bibitem{MasterEquation}\href{http://en.wikipedia.org/wiki/Master\_equation}{http://en.wikipedia.org/wiki/Master\_equation}
 \bibitem{Metropolis}\href{http://en.wikipedia.org/wiki/Metropolis\%E2\%80\%93Hastings\_algorithm}{http://en.wikipedia.org/wiki/Metropolis\%E2\%80\%93Hastings\_algorithm}
 \bibitem{MonteCarlo}\href{http://en.wikipedia.org/wiki/Monte\_Carlo\_algorithm}{http://en.wikipedia.org/wiki/Monte\_Carlo\_algorithm}
 \bibitem{Isotropic}\href{http://en.wikipedia.org/wiki/Isotropy}{http://en.wikipedia.org/wiki/Isotropy}
