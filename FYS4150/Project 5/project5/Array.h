@@ -119,15 +119,25 @@ template<typename T, unsigned int D> struct Space {
             array[i] = Space<T,D-1>::Allocate(&n[1]);
         return array;
     }
+    static void ArrayFile(ofstream& file, typename Pointer<T,D>::Type array, unsigned int n[D]) {
+        for(int i = 0; i < n[0]; i++) {
+            if(D == 1 && i)
+                file << '\t';
+            else if(D > 1 && i)
+                file << endl;
+
+            Space<T,D-1>::ArrayFile(file, array[i], &n[1]);
+        }
+    }
     static void Deallocate(typename Pointer<T,D>::Type array, unsigned int n[D]) {
         for(int i = 0; i < n[0]; i++)
             Space<T,D-1>::Deallocate(array[i], &n[1]);
         delete [] array;
     }
-    static void DeRange(T** array) {
+    static void DeRange(T** range) {
         for(int i = 0; i < D; i++)
-            delete [] array[i];
-        delete [] array;
+            delete [] range[i];
+        delete [] range;
     }
     static T** Range(T lower[D], T upper[D], unsigned int n[D]) {
         T** array = new T*[D];
@@ -140,36 +150,38 @@ template<typename T, unsigned int D> struct Space {
         }
         return array;
     }
-    static void ToFile(ofstream& file, typename Pointer<T,D>::Type array, unsigned int n[D]) {
-        for(int i = 0; i < n[0]; i++) {
-            if(D == 1 && i)
-                file << '\t';
-            else if(D > 1 && i)
+    static void RangeFile(ofstream& file, T* range[D], unsigned int n[D]) {
+        for(int i = 0; i < D; i++) {
+            if(i)
                 file << endl;
-
-            Space<T,D-1>::ToFile(file, array[i], &n[1]);
+            Space<T,1>::ArrayFile(file, range[i], &n[i]);
         }
+    }
+    static void ToFile(ofstream& file, T* range[D], typename Pointer<T,D>::Type array, unsigned int n[D]) {
+        RangeFile(file, range, n);
+        file << endl;
+        ArrayFile(file, array, n);
     }
 };
 template<typename T> struct Space<T,0> {
     static T Allocate(unsigned int[0]) {
         return T();
     }
-    static void Deallocate(T, unsigned int[0]) {
-    }
-    static void ToFile(ofstream& file, T array, unsigned int[0]) {
+    static void ArrayFile(ofstream& file, T array, unsigned int[0]) {
         file << array;
+    }
+    static void Deallocate(T, unsigned int[0]) {
     }
 };
 template<typename T> struct Space<T*,0> {
     static T* Allocate(unsigned int[0]) {
         return new T;
     }
+    static void ArrayFile(ofstream& file, T* array, unsigned int[0]) {
+        file << *array;
+    }
     static void Deallocate(T* array, unsigned int[0]) {
         delete array;
-    }
-    static void ToFile(ofstream& file, T* array, unsigned int[0]) {
-        file << *array;
     }
 };
 

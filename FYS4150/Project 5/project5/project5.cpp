@@ -22,135 +22,6 @@ using namespace std;
 
 #define FLOAT double
 
-/*template<class T> struct Chain {
-    unsigned int N;
-    T element;
-    Chain<T>* owner;
-    Chain<T>* prev;
-    Chain<T>* next;
-    Chain() {
-        N = 0;
-        owner = this;
-        prev = this;
-        next = this;
-    }
-    ~Chain() {
-        if(N) {
-            Chain<T>* p = this;
-            for(int i = 1; i < N; i++)
-                p = p->next;
-            for(int i = 0; i < N; i++) {
-                delete p->next;
-                p = p->prev;
-            }
-        }
-    }
-    void Add(T element) {       // Add next
-        if(next == this) {
-            next = new Chain<T>;
-            next->next = next;
-        }
-        else {
-            next->prev = new Chain<T>;
-            next->prev->next = next;
-            next = next->prev;
-        }
-        owner->N++;
-        next->owner = owner;
-        next->prev = this;
-        next->element = element;
-    }
-    void Remove() {             // Remove next
-        if(next->next == next) {
-            delete next;
-            next = this;
-        } else {
-            next = next->next;
-            delete next->prev;
-            next->prev = this;
-        }
-        owner->N--;
-    }
-};
-
-template<typename T, unsigned int D> struct Pointer : Pointer<T*,D-1> {
-};
-template<typename T> struct Pointer<T,0> {
-    typedef T Type;
-};
-
-template<typename T, unsigned int D> struct Space {
-    static typename Pointer<T,D>::Type Allocate(unsigned int n[D]) {
-        typename Pointer<T,D>::Type array = new typename Pointer<T,D-1>::Type[n[0]];
-        for(int i = 0; i < n[0]; i++)
-            array[i] = Space<T,D-1>::Allocate(&n[1]);
-        return array;
-    }
-    static void Deallocate(typename Pointer<T,D>::Type array, unsigned int n[D]) {
-        for(int i = 0; i < n[0]; i++)
-            Space<T,D-1>::Deallocate(array[i], &n[1]);
-        delete [] array;
-    }
-    static void DeRange(T** array) {
-        for(int i = 0; i < D; i++)
-            delete [] array[i];
-        delete [] array;
-    }
-    static T** Range(T lower[D], T upper[D], unsigned int n[D]) {
-        T** array = new T*[D];
-        for(int i = 0; i < D; i++) {
-            T step = (upper[i]-lower[i])/(n[i]-1);
-            array[i] = new T[n[i]];
-            array[i][0] = lower[i];
-            for(int j = 1; j < n[i]; j++)
-                array[i][j] = array[i][j-1] + step;
-        }
-        return array;
-    }
-    static void ToFile(ofstream& file, typename Pointer<T,D>::Type array, unsigned int n[D]) {
-        for(int i = 0; i < n[0]; i++) {
-            if(D == 1 && i)
-                file << '\t';
-            else if(D > 1 && i)
-                file << endl;
-
-            Space<T,D-1>::ToFile(file, array[i], &n[1]);
-        }
-    }
-};
-template<typename T> struct Space<T,0> {
-    static T Allocate(unsigned int[0]) {
-        return T();
-    }
-    static void Deallocate(T, unsigned int[0]) {
-    }
-    static void ToFile(ofstream& file, T array, unsigned int[0]) {
-        file << array;
-    }
-};
-template<typename T> struct Space<T*,0> {
-    static T* Allocate(unsigned int[0]) {
-        return new T;
-    }
-    static void Deallocate(T* array, unsigned int[0]) {
-        delete array;
-    }
-    static void ToFile(ofstream& file, T* array, unsigned int[0]) {
-        file << *array;
-    }
-};
-
-template<typename T, unsigned int D> struct Vector {
-    T element[D];
-    operator T*() {
-        return element;
-    }
-    Vector & operator= (const T other[D]) {
-        for(int i = 0; i < D; i++)
-            element[i] = other[i];
-    }
-}; */
-
 template<typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T dt, T t, T d, T (*step)());
 template<typename T> Vector<T,2> Diffusion2D_alpha(T alpha, T d[2], unsigned int n[2]);
 template<typename T> T Diffusion2D_deltaT(T alpha, T dx2[2]);
@@ -176,38 +47,28 @@ int main() {
     auto x = Space<FLOAT,2>::Range(ARRAYLIST(FLOAT,0,0),d,n);
 
     file.open("Exact_2D.dat");
-    Space<FLOAT,1>::ToFile(file, x[0], n);
-    file << endl;
-    Space<FLOAT,1>::ToFile(file, x[1], &n[1]);
-    file << endl;
     auto u = Diffusion2D_Exact<FLOAT>(u0, D, t, d, w, x, n, ne);
-    Space<FLOAT,2>::ToFile(file, u, n);
+    Space<FLOAT,2>::ToFile(file, x, u, n);
     Space<FLOAT,2>::Deallocate(u, n);
     file.close();
 
     file.open("Explicit_2D.dat");
-    Space<FLOAT,1>::ToFile(file, x[0], n);
-    file << endl;
-    Space<FLOAT,1>::ToFile(file, x[1], &n[1]);
-    file << endl;
     u = Diffusion2D_Explicit<FLOAT>(0.1, t, d, w, n);
-    Space<FLOAT,2>::ToFile(file, u, n);
+    Space<FLOAT,2>::ToFile(file, x, u, n);
     Space<FLOAT,2>::Deallocate(u, n);
     file.close();
 
     file.open("Jacobi_2D.dat");
-    Space<FLOAT,1>::ToFile(file, x[0], n);
-    file << endl;
-    Space<FLOAT,1>::ToFile(file, x[1], &n[1]);
-    file << endl;
     u = Diffusion2D_Jacobi<FLOAT>(1, 0.1, t, d, w, n);
-    Space<FLOAT,2>::ToFile(file, u, n);
+    Space<FLOAT,2>::ToFile(file, x, u, n);
     Space<FLOAT,2>::Deallocate(u, n);
     file.close();
 
     auto particles = Diffusion1D_MonteCarlo<FLOAT>(10, 1e-2, t, d[0], &StepUniform);
 
     Space<FLOAT,2>::DeRange(x);
+
+    int i = 0;
 
     return 0;
 }
