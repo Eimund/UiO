@@ -3,4 +3,5 @@ SOURCES += \
 
 CONFIG += C++11
 
-HEADERS +=
+HEADERS += \
+    Array.h
