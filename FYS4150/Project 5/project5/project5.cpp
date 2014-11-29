@@ -6,7 +6,7 @@
  *
  *  14.11.2014
  *
- *  c11 compiler
+ *  c++11 compiler
  */
 
 #include <cmath>
@@ -20,41 +20,30 @@ using namespace std;
 #define FLOAT double
 #define ARRAYLIST(TYPE,...) (TYPE*)(const TYPE[]){__VA_ARGS__}
 
-template<class T> struct Null {
-    static const T value;
-};
-template<class T> const T Null<T>::value = 0;
-template<class T> struct Null<T*> {
-    static const T* value;
-};
-template<class T> const T* Null<T*>::value = nullptr;
-
 template<class T> struct Array {
+    unsigned int N;
     T element;
+    Array<T>* owner;
     Array<T>* prev;
     Array<T>* next;
     Array() {
+        N = 0;
+        owner = this;
         prev = this;
         next = this;
     }
     ~Array() {
-        if(next != this)
-            delete next;
-    }
-    T operator[] (const int i) {
-        if(prev != this) {
-            if(i) {
-                if(i > 0)
-                    return (*next)[i-1];
-                else
-                    return (*prev)[i+1];
+        if(N) {
+            Array<T>* p = this;
+            for(int i = 1; i < N; i++)
+                p = p->next;
+            for(int i = 0; i < N; i++) {
+                delete p->next;
+                p = p->prev;
             }
-            return this->element;
-        } else if(next != this)
-            return (*next)[i];
-        return (T)Null<T>::value;
+        }
     }
-    void Add(T element) {
+    void Add(T element) {       // Add next
         if(next == this) {
             next = new Array<T>;
             next->next = next;
@@ -64,33 +53,57 @@ template<class T> struct Array {
             next->prev->next = next;
             next = next->prev;
         }
+        owner->N++;
+        next->owner = owner;
         next->prev = this;
         next->element = element;
     }
-    int Length() {
-        if(next != this)
-            return next->Length()+1;
-        return 0;
+    void Remove() {             // Remove next
+        if(next->next == next) {
+            delete next;
+            next = this;
+        } else {
+            next = next->next;
+            delete next->prev;
+            next->prev = this;
+        }
+        owner->N--;
     }
-    void Remove(Array<T>* element) {
-        if(next == element) {
-            if(next->next == next) {
-                delete next;
-                next = this;
-            } else {
-                next = next->next;
-                delete next->prev;
-                next->prev = this;
-            }
-        } else if(next != next->next)
-            Remove(element);
+};
+
+template<typename T, unsigned int D> struct Pointer : Pointer<T*,D-1> {
+    static const unsigned int Dim;
+};
+template<typename T, unsigned int D> const unsigned int Pointer<T,D>::Dim = D;
+template<typename T> struct Pointer<T,0> {
+    static const unsigned int Dim;
+    typedef T Type;
+};
+template<typename T> const unsigned int Pointer<T,0>::Dim = 0;
+
+template<typename T, unsigned int D> struct Space {
+    static typename Pointer<T,D>::Type Allocate(unsigned int n[D]) {
+        typename Pointer<T,D>::Type array = new typename Pointer<T,D-1>::Type[n[0]];
+        for(int i = 0; i < n[0]; i++)
+            array[i] = Space<T,D-1>::Allocate(&n[1]);
+        return array;
+    }
+    static void Deallocate(typename Pointer<T,D>::Type array, unsigned int n[D]) {
+        for(int i = 0; i < n[0]; i++)
+            Space<T,D-1>::Deallocate(array[i], &n[1]);
+        delete [] array;
+    }
+};
+template<typename T> struct Space<T,0> {
+    static T Allocate(unsigned int n[0]) {
+        return T();
+    }
+    static void Deallocate(T array, unsigned int n[0]) {
     }
 };
 
 template<typename T, unsigned int D> struct Vector {
     T element[D];
-    ~Vector() {
-    }
     operator T*() {
         return element;
     }
@@ -100,12 +113,10 @@ template<typename T, unsigned int D> struct Vector {
     }
 };
 
-template<typename T> T** ArrayAllocate2(unsigned int n[2]);
-template<typename T> void ArrayDeallocate2(T** array, unsigned int n);
 template<typename T> T* ArrayRange(T lower, T upper, unsigned int n);
 template<typename T> void ArrayToFile(ofstream& file, T* array, unsigned int n);
 template<typename T> void ArrayToFile2(ofstream& file, T** array, unsigned int n[2]);
-template<typename T> Array<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T dt, T t, T d, uniform_real_distribution<T> pdf);
+template<typename T> Array<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T dt, T t, T d, T (*step)());
 template<typename T> Vector<T,2> Diffusion2D_alpha(T alpha, T d[2], unsigned int n[2]);
 template<typename T> T Diffusion2D_deltaT(T alpha, T dx2[2]);
 template<typename T> Vector<T,2> Diffusion2D_deltaX2(T d[2], unsigned int n[2]);
@@ -114,6 +125,7 @@ template<typename T> T** Diffusion2D_Explicit(T alpha, T t, T d[2], T w[2], unsi
 template<typename T> T** Diffusion2D_Initialize(unsigned int m[2], unsigned int n[2]);
 template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2], unsigned int n[2]);
 template<typename T> Vector<unsigned int,2> Diffusion2D_Source(T d, T w[2], unsigned int n);
+template<typename T> T StepUniform();
 
 int main() {
 
@@ -137,7 +149,7 @@ int main() {
     file << endl;
     auto u = Diffusion2D_Exact<FLOAT>(u0, D, t, d, w, x, n, ne);
     ArrayToFile2(file, u, n);
-    ArrayDeallocate2(u, n[0]);
+    Space<FLOAT,2>::Deallocate(u, n);
     file.close();
 
     file.open("Explicit_2D.dat");
@@ -147,7 +159,7 @@ int main() {
     file << endl;
     u = Diffusion2D_Explicit<FLOAT>(0.1, t, d, w, n);
     ArrayToFile2(file, u, n);
-    ArrayDeallocate2(u, n[0]);
+    Space<FLOAT,2>::Deallocate(u, n);
     file.close();
 
     file.open("Jacobi_2D.dat");
@@ -157,29 +169,16 @@ int main() {
     file << endl;
     u = Diffusion2D_Jacobi<FLOAT>(1, 0.1, t, d, w, n);
     ArrayToFile2(file, u, n);
-    ArrayDeallocate2(u, n[0]);
+    Space<FLOAT,2>::Deallocate(u, n);
     file.close();
 
-    auto particle = Diffusion1D_MonteCarlo<FLOAT>(100, 1e-3, t, d[0], uniform_real_distribution<FLOAT>(0,1));
+    auto particles = Diffusion1D_MonteCarlo<FLOAT>(10, 1e-2, t, d[0], &StepUniform);
 
     delete [] x[0];
     delete [] x[1];
 
 
     return 0;
-}
-
-template<typename T> T** ArrayAllocate2(unsigned int n[2]) {
-    T** array = new T*[n[0]];
-    for(int i = 0; i < n[0]; i++)
-        array[i] = new T[n[1]];
-    return array;
-}
-
-template<typename T> void ArrayDeallocate2(T** array, unsigned int n) {
-    for(int i = 0; i < n; i++)
-        delete [] array[i];
-    delete [] array;
 }
 
 template<typename T> T* ArrayRange(T lower, T upper, unsigned int n) {
@@ -207,52 +206,49 @@ template<typename T> void ArrayToFile2(ofstream& file, T** array, unsigned int n
     }
 }
 
-template<typename T> Array<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T dt, T t, T d, uniform_real_distribution<T> pdf) {
+template<typename T> Array<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T dt, T t, T d, T (*step)()) {
 
-    Array<Vector<T,1>> particle, *p;
+    Array<Vector<T,1>> particles, *p;
     Vector<T,1> vec = {0};
     for(int i = 0; i < N; i++)
-        particle.Add(vec);                          // Initial particles
+        particles.Add(vec);                                 // Initial particles
 
     T val;
     unsigned int n = t / dt;
     T dx = sqrt(2*dt);
-    default_random_engine rng;                      // Set RNG seeding value
+    uniform_real_distribution<T> pdf;                       // Distribution for accepting a move
+    default_random_engine rng;                              // Set RNG seeding value
     rng.seed(chrono::high_resolution_clock::now().time_since_epoch().count());
 
-    for(int i = 0; i < n; i++) {                    // Loop of timesteps
-        p = &particle;
-        for(int j = 0; j < N; j++) {                // Loop of particles
-            val = pdf(rng);                         // Random number
-            p = p->next;                            // Next particle
+    for(int i = 0; i < n; i++) {                            // Loop of timesteps
+        p = &particles;
+        for(int j = 0; j < particles.N; j++) {              // Loop of particles
+            val = pdf(rng);                                 // Random number
+            p = p->next;                                    // Next particle
 
-            if(val <= 0.5) {                        // Sampling rule
+            if(val <= 0.5) {                                // Sampling rule
 
-                if(p->element.element[0] != 0) {    // Particle not at the source
-                    p->element.element[0] -= dx;    // Move particle
-                    if(p->element.element[0] < 0) { // Remove particle
-                        p = p->prev;                // into the presynaptic
-                        p->Remove(p->next);
-                        N--;
-                    }
-                }
+                val = p->element.element[0] - dx * step();  // Calculate move
+                if(p->element.element[0] >= 0)              // Valid move
+                    p->element.element[0] = val;
+
             } else {
 
-                if(p->element.element[0] == 0) {    // Particle at the source
-                    p->prev->Add(p->element);       // Add new particle
-                    N++;
+                if(p->element.element[0] == 0) {            // Particle at the source
+                    p->prev->Add(p->element);               // Add new particle at prev
+                    j++;
                 }
-                p->element.element[0] += dx;        // Move particle
-                if(p->element.element[0] >= d) {    // Remove particle
-                    p = p->prev;                    // into the postsynaptic
-                    p->Remove(p->next);
-                    N--;
+                p->element.element[0] += dx * step();       // Move particle
+                if(p->element.element[0] >= d) {            // Remove particle
+                    p = p->prev;                            // into the postsynaptic
+                    p->Remove();
+                    j--;
                 }
             }
         }
     }
 
-    return particle;
+    return particles;
 }
 
 template<typename T> Vector<T,2> Diffusion2D_alpha(T dt, T dx2[2]) {
@@ -285,7 +281,7 @@ template<typename T> T** Diffusion2D_Exact(T u0, T D, T t, T d[2], T w[2], T* x[
     T t1 = - D*t/(w[0]*w[0]);
     T t2 = - D*t/((w[1]-d[1])*(w[1]-d[1]));
     T t3 = - D*t/(d[0]*d[0]);
-    T** u = ArrayAllocate2<FLOAT>(n);
+    auto u = Space<T,2>::Allocate(n);
 
     for(int i = 0; i < n[0]; i++) {
         for(int j = 0; j < n[1]; j++) {
@@ -358,14 +354,13 @@ template<typename T> T** Diffusion2D_Explicit(T alpha, T t, T d[2], T w[2], unsi
     }
     n[0]++;
     n[1]++;
-    ArrayDeallocate2(v,n[0]);
+    Space<T,2>::Deallocate(v, n);
 
     return u;
 }
 
 template<typename T> T** Diffusion2D_Initialize(unsigned int m[2], unsigned int n[2]) {
-    T** u = ArrayAllocate2<FLOAT>(n);
-
+    auto u = Space<T,2>::Allocate(n);
     for(int i = 0; i < n[0]; i++) {
         for(int j = 0; j < n[1]; j++)
             u[i][j] = 0;
@@ -380,7 +375,7 @@ template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2]
     Vector<unsigned int,2> m = Diffusion2D_Source(d[1], w, n[1]);
     T** u = Diffusion2D_Initialize<T>(m, n);
     T** v = Diffusion2D_Initialize<T>(m, n);
-    T** c = ArrayAllocate2<FLOAT>(n);
+    auto c = Space<T,2>::Allocate(n);
     T** z;
     Vector<T,2> dx2 = Diffusion2D_deltaX2(d, n);
     T dt = Diffusion2D_deltaT<T>(alpha, dx2);
@@ -448,8 +443,8 @@ template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2]
 
     n[0]++;
     n[1]++;
-    ArrayDeallocate2(v,n[0]);
-    ArrayDeallocate2(c,n[0]);
+    Space<T,2>::Deallocate(v, n);
+    Space<T,2>::Deallocate(c, n);
 
     return u;
 }
@@ -459,4 +454,8 @@ template<typename T> Vector<unsigned int,2> Diffusion2D_Source(T d, T w[2], unsi
     m.element[0] = w[0]/d *(n-1) + (T)0.5;
     m.element[1] = w[1]/d *(n-1) + (T)0.5;
     return m;
+}
+
+template<typename T> T StepUniform() {
+        return (T)1;
 }
