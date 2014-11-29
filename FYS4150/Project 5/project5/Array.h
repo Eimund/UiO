@@ -158,6 +158,7 @@ template<typename T, unsigned int D> struct Space {
         }
     }
     static void ToFile(ofstream& file, T* range[D], typename Pointer<T,D>::Type array, unsigned int n[D]) {
+        file << D << endl;
         RangeFile(file, range, n);
         file << endl;
         ArrayFile(file, array, n);

@@ -68,8 +68,6 @@ int main() {
 
     Space<FLOAT,2>::DeRange(x);
 
-    int i = 0;
-
     return 0;
 }
 
