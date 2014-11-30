@@ -112,6 +112,17 @@ template<typename T> struct Pointer<T,0> {
     typedef T Type;
 };
 
+template<typename T, unsigned int D> struct Vector {
+    T element[D];
+    operator T*() {
+        return element;
+    }
+    Vector & operator= (const T other[D]) {
+        for(int i = 0; i < D; i++)
+            element[i] = other[i];
+    }
+};
+
 template<typename T, unsigned int D> struct Space {
     static typename Pointer<T,D>::Type Allocate(unsigned int n[D]) {
         typename Pointer<T,D>::Type array = new typename Pointer<T,D-1>::Type[n[0]];
@@ -125,7 +136,6 @@ template<typename T, unsigned int D> struct Space {
                 file << '\t';
             else if(D > 1 && i)
                 file << endl;
-
             Space<T,D-1>::ArrayFile(file, array[i], &n[1]);
         }
     }
@@ -138,6 +148,33 @@ template<typename T, unsigned int D> struct Space {
         for(int i = 0; i < D; i++)
             delete [] range[i];
         delete [] range;
+    }
+    static typename Pointer<T,D>::Type Map(Chain<Vector<T,D>>& chain, T* range[D], unsigned int n[D]) {
+        auto space = Allocate(n);
+        auto p = chain.owner;
+        for(unsigned int i = 0; i < chain.N; i++) {
+            p = p->next;
+            Space<T,D>::Mapping(space, p->element.element, range, n);
+        }
+        return space;
+    }
+    static void Mapping(typename Pointer<T,D>::Type space, T element[D], T* range[D], unsigned int n[D]) {
+        unsigned int m = n[0]-1;
+        if(element[0] >= range[0][0] || element[0] <= range[0][m]) {
+            for(unsigned int i = 0; i < m; i++) {
+                if(element[0] < (range[0][i]+range[0][i+1])/2) {
+                    if(D > 1)
+                        Space<T,D-1>::Mapping(space[i], &element[1], &range[1], &n[1]);
+                    else
+                        space[i]++;
+                    return;
+                }
+            }
+            if(D > 1)
+                Space<T,D-1>::Mapping(space[m], &element[1], &range[1], &n[1]);
+            else
+                space[m]++;
+        }
     }
     static T** Range(T lower[D], T upper[D], unsigned int n[D]) {
         T** array = new T*[D];
@@ -166,12 +203,14 @@ template<typename T, unsigned int D> struct Space {
 };
 template<typename T> struct Space<T,0> {
     static T Allocate(unsigned int[0]) {
-        return T();
+        return T(0);
     }
     static void ArrayFile(ofstream& file, T array, unsigned int[0]) {
         file << array;
     }
     static void Deallocate(T, unsigned int[0]) {
+    }
+    static void Mapping(typename Pointer<T,0>::Type, T[0], T*[0], unsigned int[0]) {
     }
 };
 template<typename T> struct Space<T*,0> {
@@ -184,16 +223,7 @@ template<typename T> struct Space<T*,0> {
     static void Deallocate(T* array, unsigned int[0]) {
         delete array;
     }
-};
-
-template<typename T, unsigned int D> struct Vector {
-    T element[D];
-    operator T*() {
-        return element;
-    }
-    Vector & operator= (const T other[D]) {
-        for(int i = 0; i < D; i++)
-            element[i] = other[i];
+    static void Mapping(typename Pointer<T*,0>::Type, T*[0], T**[0], unsigned int[0]) {
     }
 };
 

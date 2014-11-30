@@ -44,7 +44,7 @@ int main() {
     Vector<unsigned int,2> ne = {100,100};
     Vector<FLOAT,2> d = {1,10};
     Vector<FLOAT,2> w = {7,8};
-    auto x = Space<FLOAT,2>::Range(ARRAYLIST(FLOAT,0,0),d,n);
+    auto x = Space<FLOAT,2>::Range(ARRAYLIST(FLOAT,0,0), d, n);
 
     file.open("Exact_2D.dat");
     auto u = Diffusion2D_Exact<FLOAT>(u0, D, t, d, w, x, n, ne);
@@ -64,7 +64,12 @@ int main() {
     Space<FLOAT,2>::Deallocate(u, n);
     file.close();
 
+    file.open("MonteCarlo_1D.dat");
     auto particles = Diffusion1D_MonteCarlo<FLOAT>(10, 1e-2, t, d[0], &StepUniform);
+    auto data1D = Space<FLOAT,1>::Map(particles, x, n);
+    Space<FLOAT,1>::ToFile(file, x, data1D, n);
+    Space<FLOAT,1>::Deallocate(data1D, n);
+    file.close();
 
     Space<FLOAT,2>::DeRange(x);
 
