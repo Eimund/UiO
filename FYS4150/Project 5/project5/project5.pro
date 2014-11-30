@@ -4,4 +4,7 @@ SOURCES += \
 CONFIG += C++11
 
 HEADERS += \
-    Array.h
+    Array.h \
+    Experiment.h \
+    Delegate.h \
+    Type.h

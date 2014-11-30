@@ -139,6 +139,12 @@ template<typename T, unsigned int D> struct Space {
             Space<T,D-1>::ArrayFile(file, array[i], &n[1]);
         }
     }
+    template<typename V> static typename Pointer<T,D>::Type Cast(typename Pointer<V,D>::Type space, unsigned int n[D]) {
+        typename Pointer<T,D>::Type array = new typename Pointer<T,D-1>::Type[n[0]];
+        for(int i = 0; i < n[0]; i++)
+            array[i] = Space<T,D-1>::Cast(space[i], &n[1]);
+        return array;
+    }
     static void Deallocate(typename Pointer<T,D>::Type array, unsigned int n[D]) {
         for(int i = 0; i < n[0]; i++)
             Space<T,D-1>::Deallocate(array[i], &n[1]);
@@ -149,32 +155,48 @@ template<typename T, unsigned int D> struct Space {
             delete [] range[i];
         delete [] range;
     }
-    static typename Pointer<T,D>::Type Map(Chain<Vector<T,D>>& chain, T* range[D], unsigned int n[D]) {
-        auto space = Allocate(n);
+    template<typename V> static typename Pointer<V,D>::Type Map(Chain<Vector<T,D>>& chain, T* range[D], unsigned int n[D]) {
+        auto space = Space<V,D>::Allocate(n);
         auto p = chain.owner;
         for(unsigned int i = 0; i < chain.N; i++) {
             p = p->next;
-            Space<T,D>::Mapping(space, p->element.element, range, n);
+            Space<T,D>::Mapping<V>(space, p->element.element, range, n);
         }
         return space;
     }
-    static void Mapping(typename Pointer<T,D>::Type space, T element[D], T* range[D], unsigned int n[D]) {
+    template<typename V> static void Map(typename Pointer<V,D>::Type& space, Chain<Vector<T,D>>& chain, T* range[D], unsigned int n[D]) {
+        auto p = chain.owner;
+        for(unsigned int i = 0; i < chain.N; i++) {
+            p = p->next;
+            Space<T,D>::Mapping<V>(space, p->element.element, range, n);
+        }
+    }
+    template<typename V> static void Mapping(typename Pointer<V,D>::Type space, T element[D], T* range[D], unsigned int n[D]) {
         unsigned int m = n[0]-1;
         if(element[0] >= range[0][0] || element[0] <= range[0][m]) {
             for(unsigned int i = 0; i < m; i++) {
                 if(element[0] < (range[0][i]+range[0][i+1])/2) {
-                    if(D > 1)
-                        Space<T,D-1>::Mapping(space[i], &element[1], &range[1], &n[1]);
-                    else
-                        space[i]++;
+                    Space<T,D-1>::template Mapping<V>(space[i], &element[1], &range[1], &n[1]);
                     return;
                 }
             }
-            if(D > 1)
-                Space<T,D-1>::Mapping(space[m], &element[1], &range[1], &n[1]);
-            else
-                space[m]++;
+            Space<T,D-1>::template Mapping<V>(space[m], &element[1], &range[1], &n[1]);
         }
+    }
+    static T Max(typename Pointer<T,D>::Type space, unsigned int n[D]) {
+        T val, max = 0;
+        for(unsigned int i = 0; i < n[0]; i++) {
+            val = Space<T,D-1>::Max(space[i], &n[1]);
+            if(val > max)
+                max = val;
+        }
+        return max;
+    }
+    template<typename V> static typename Pointer<T,D>::Type Normalize(typename Pointer<V,D>::Type space, unsigned int n[D], V val) {
+        typename Pointer<T,D>::Type array = new typename Pointer<T,D-1>::Type[n[0]];
+        for(int i = 0; i < n[0]; i++)
+            array[i] = Space<T,D-1>::template Normalize<V>(space[i], &n[1], val);
+        return array;
     }
     static T** Range(T lower[D], T upper[D], unsigned int n[D]) {
         T** array = new T*[D];
@@ -208,9 +230,19 @@ template<typename T> struct Space<T,0> {
     static void ArrayFile(ofstream& file, T array, unsigned int[0]) {
         file << array;
     }
+    template<typename V> static T Cast(V& space, unsigned int[0]) {
+        return static_cast<T>(space);
+    }
     static void Deallocate(T, unsigned int[0]) {
     }
-    static void Mapping(typename Pointer<T,0>::Type, T[0], T*[0], unsigned int[0]) {
+    template<typename V> static void Mapping(typename Pointer<V,0>::Type& space, T[0], T*[0], unsigned int[0]) {
+        space++;
+    }
+    static T Max(T space, unsigned int[0]) {
+        return space;
+    }
+    template<typename V> static T Normalize(V space, unsigned int[0], V val) {
+        return static_cast<T>(space) / static_cast<T>(val);
     }
 };
 template<typename T> struct Space<T*,0> {
@@ -220,10 +252,20 @@ template<typename T> struct Space<T*,0> {
     static void ArrayFile(ofstream& file, T* array, unsigned int[0]) {
         file << *array;
     }
+    template<typename V> static T* Cast(V* space, unsigned int[0]) {
+        return static_cast<T*>(space);
+    }
     static void Deallocate(T* array, unsigned int[0]) {
         delete array;
     }
-    static void Mapping(typename Pointer<T*,0>::Type, T*[0], T**[0], unsigned int[0]) {
+    template<typename V> static void Mapping(typename Pointer<V*,0>::Type space, T*[0], T**[0], unsigned int[0]) {
+        space++;
+    }
+    static T* Max(T* space, unsigned int[0]) {
+        return space;
+    }
+    template<typename V> static T* Normalize(V space, unsigned int[0], V val) {
+        return static_cast<T*>(space) / static_cast<T*>(val);
     }
 };
 

@@ -15,14 +15,31 @@
 #include <chrono>
 #include <fstream>
 #include <random>
+#include <cstdarg>
 
 #include "Array.h"
+#include "Delegate.h"
+#include "Experiment.h"
 
 using namespace std;
 
 #define FLOAT double
 
-template<typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T dt, T t, T d, T (*step)());
+template<typename T> struct Step {
+    uniform_real_distribution<T> pdf;
+    default_random_engine rng;
+    Step() : pdf(0.0,1.0) {
+        rng.seed(chrono::high_resolution_clock::now().time_since_epoch().count());
+    }
+    T Uniform() {
+        return (T)1;
+    }
+    T Gaussian() {
+        return sqrt(-log(pdf(rng)));
+    }
+};
+
+template<typename C, typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(/*unsigned int N,*/ T dt, T t, T d, Delegate<C,T> step);
 template<typename T> Vector<T,2> Diffusion2D_alpha(T alpha, T d[2], unsigned int n[2]);
 template<typename T> T Diffusion2D_deltaT(T alpha, T dx2[2]);
 template<typename T> Vector<T,2> Diffusion2D_deltaX2(T d[2], unsigned int n[2]);
@@ -32,6 +49,7 @@ template<typename T> T** Diffusion2D_Initialize(unsigned int m[2], unsigned int 
 template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2], unsigned int n[2]);
 template<typename T> Vector<unsigned int,2> Diffusion2D_Source(T d, T w[2], unsigned int n);
 template<typename T> T StepUniform();
+template<typename T> T StepGaussian();
 
 int main() {
 
@@ -64,29 +82,39 @@ int main() {
     Space<FLOAT,2>::Deallocate(u, n);
     file.close();
 
-    file.open("MonteCarlo_1D.dat");
-    auto particles = Diffusion1D_MonteCarlo<FLOAT>(10, 1e-2, t, d[0], &StepUniform);
-    auto data1D = Space<FLOAT,1>::Map(particles, x, n);
-    Space<FLOAT,1>::ToFile(file, x, data1D, n);
-    Space<FLOAT,1>::Deallocate(data1D, n);
+    file.open("MonteCarlo_1D_Uniform.dat");
+    Step<FLOAT> step;
+    Delegate<Step<FLOAT>,FLOAT> step_uniform(&step, &Step<FLOAT>::Uniform);
+    Delegate<void, Chain<Vector<FLOAT,1>>, FLOAT, FLOAT, FLOAT, decltype(step_uniform)> Diff1D_MC(&Diffusion1D_MonteCarlo<Step<FLOAT>,FLOAT>);
+    auto space = Experiment(1000u, x, n, Diff1D_MC, 1e-3, t, d[0], step_uniform);
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    file.open("MonteCarlo_1D_Gaussian.dat");
+    Delegate<Step<FLOAT>,FLOAT> step_gaussian(&step, &Step<FLOAT>::Gaussian);
+    space = Experiment(1000u, x, n, Diff1D_MC, 1e-3, t, d[0], step_gaussian);
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
     file.close();
 
     Space<FLOAT,2>::DeRange(x);
 
+    int i = 0;
+
     return 0;
 }
 
-template<typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T dt, T t, T d, T (*step)()) {
+template<typename C, typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(/*unsigned int N,*/ T dt, T t, T d, Delegate<C,T> step) {
 
     Chain<Vector<T,1>> particles, *p;
     Vector<T,1> vec = {0};
-    for(int i = 0; i < N; i++)
-        particles.Add(vec);                                 // Initial particles
+    particles.Add(vec);                                     // Initial particle
 
     T val;
     unsigned int n = t / dt;
     T dx = sqrt(2*dt);
-    uniform_real_distribution<T> pdf;                       // Distribution for accepting a move
+    uniform_real_distribution<T> pdf(0.0,1.0);              // Distribution for accepting a move
     default_random_engine rng;                              // Set RNG seeding value
     rng.seed(chrono::high_resolution_clock::now().time_since_epoch().count());
 
@@ -99,7 +127,7 @@ template<typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(unsigned int N, T
             if(val <= 0.5) {                                // Sampling rule
 
                 val = p->element.element[0] - dx * step();  // Calculate move
-                if(p->element.element[0] >= 0)              // Valid move
+                if(val > 0)                                 // Valid move
                     p->element.element[0] = val;
 
             } else {
@@ -327,5 +355,8 @@ template<typename T> Vector<unsigned int,2> Diffusion2D_Source(T d, T w[2], unsi
 }
 
 template<typename T> T StepUniform() {
-        return (T)1;
+    return (T)1;
+}
+template<typename T> T StepGaussian() {
+
 }
