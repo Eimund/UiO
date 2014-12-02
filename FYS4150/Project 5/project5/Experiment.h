@@ -29,4 +29,40 @@ template<typename V, typename T, unsigned int D, typename C, typename... P> type
     return space2;
 }
 
+template<typename V, typename T, unsigned int D, typename C, typename... P> typename Pointer<T,D>::Type Experiment2(V N, T* x[D], unsigned int n[D], Delegate<C,void,typename Pointer<T,D>::Type,T*[D],unsigned int[D],P...> experiment, P... arg) {
+
+    auto s1 = Space<T,D>::Allocate(n);
+    auto s2 = Space<T,D>::Allocate(n);
+
+    for(int i = 0; i < N; i++) {
+        experiment(s1, x, n, arg...);
+        Space<T,D>::Add(s1, s2, n);
+    }
+
+    if(N > 1)
+        Space<T,D>::Normalize(s1, n, static_cast<T>(N));
+    Space<T,D>::Deallocate(s2, n);
+    return s1;
+}
+
+template<typename T> void Metropolis(T& w1, T& w2) {
+    if(w1 > w2)
+        w2 = w1;
+    else
+        w1 = w2;
+}
+
+template<typename T> void Metropolis(T T1, T& w1, T T2, T& w2) {
+    T a1 = T1 * w1;
+    T a2 = T2 * w2;
+    if(a1 > a2) {
+        w1 = a2;
+        w2 = a2;
+    }
+    else {
+        w1 = a1;
+        w2 = a1;
+    }
+}
+
 #endif // EXPERIMENT_H

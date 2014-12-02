@@ -62,5 +62,27 @@ x, data = FromFile('build-project5-Desktop-Debug/MonteCarlo_1D_Gaussian.dat')
 fig = plt.figure(5)
 plt.plot(x[0],data)
 
+x, data = FromFile('build-project5-Desktop-Debug/MonteCarlo_2D_Gaussian.dat')
+X, Y = nu.meshgrid(x[1],x[0]) 
+fig = plt.figure(6)
+ax = fig.add_subplot(1, 1, 1, projection='3d')
+ax.plot_surface(X,Y, data, rstride=4, cstride=4)
+
+x, data = FromFile('build-project5-Desktop-Debug/Explicit_2D_2.dat')
+X, Y = nu.meshgrid(x[1],x[0]) 
+fig = plt.figure(7)
+ax = fig.add_subplot(1, 1, 1, projection='3d')
+ax.plot_surface(X,Y, data, rstride=4, cstride=4)
+
+x, data = FromFile('build-project5-Desktop-Debug/Jacobi_2D_2.dat')
+X, Y = nu.meshgrid(x[1],x[0]) 
+fig = plt.figure(8)
+ax = fig.add_subplot(1, 1, 1, projection='3d')
+ax.plot_surface(X,Y, data, rstride=4, cstride=4)
+
+x, data = FromFile('build-project5-Desktop-Debug/Metropolis_1D.dat')
+fig = plt.figure(9)
+plt.plot(x[0],data)
+
 plt.show()
          

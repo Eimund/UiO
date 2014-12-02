@@ -57,7 +57,7 @@ template<typename C, typename T> class ArrayLength {
 
 template<class T> struct Chain {
     unsigned int N;
-    T element;
+    T e;
     Chain<T>* owner;
     Chain<T>* prev;
     Chain<T>* next;
@@ -91,7 +91,7 @@ template<class T> struct Chain {
         owner->N++;
         next->owner = owner;
         next->prev = this;
-        next->element = element;
+        next->e = element;
     }
     void Remove() {             // Remove next
         if(next->next == next) {
@@ -113,17 +113,21 @@ template<typename T> struct Pointer<T,0> {
 };
 
 template<typename T, unsigned int D> struct Vector {
-    T element[D];
+    T e[D];
     operator T*() {
-        return element;
+        return e;
     }
     Vector & operator= (const T other[D]) {
         for(int i = 0; i < D; i++)
-            element[i] = other[i];
+            e[i] = other[i];
     }
 };
 
 template<typename T, unsigned int D> struct Space {
+    static void Add(typename Pointer<T,D>::Type s1, typename Pointer<T,D>::Type s2, unsigned int n[D]) {
+        for(int i = 0; i < n[0]; i++)
+            Space<T,D-1>::Add(s1[i], s2[i], &n[1]);
+    }
     static typename Pointer<T,D>::Type Allocate(unsigned int n[D]) {
         typename Pointer<T,D>::Type array = new typename Pointer<T,D-1>::Type[n[0]];
         for(int i = 0; i < n[0]; i++)
@@ -160,7 +164,7 @@ template<typename T, unsigned int D> struct Space {
         auto p = chain.owner;
         for(unsigned int i = 0; i < chain.N; i++) {
             p = p->next;
-            Space<T,D>::Mapping<V>(space, p->element.element, range, n);
+            Space<T,D>::Mapping<V>(space, p->e.e, range, n);
         }
         return space;
     }
@@ -168,7 +172,7 @@ template<typename T, unsigned int D> struct Space {
         auto p = chain.owner;
         for(unsigned int i = 0; i < chain.N; i++) {
             p = p->next;
-            Space<T,D>::Mapping<V>(space, p->element.element, range, n);
+            Space<T,D>::Mapping<V>(space, p->e.e, range, n);
         }
     }
     template<typename V> static void Mapping(typename Pointer<V,D>::Type space, T element[D], T* range[D], unsigned int n[D]) {
@@ -191,6 +195,10 @@ template<typename T, unsigned int D> struct Space {
                 max = val;
         }
         return max;
+    }
+    static void Normalize(typename Pointer<T,D>::Type space, unsigned int n[D], T val) {
+        for(int i = 0; i < n[0]; i++)
+            Space<T,D-1>::Normalize(space[i], &n[1], val);
     }
     template<typename V> static typename Pointer<T,D>::Type Normalize(typename Pointer<V,D>::Type space, unsigned int n[D], V val) {
         typename Pointer<T,D>::Type array = new typename Pointer<T,D-1>::Type[n[0]];
@@ -224,6 +232,9 @@ template<typename T, unsigned int D> struct Space {
     }
 };
 template<typename T> struct Space<T,0> {
+    static void Add(T& s1, T& s2, unsigned int[0]) {
+        s1 += s2;
+    }
     static T Allocate(unsigned int[0]) {
         return T(0);
     }
@@ -241,11 +252,17 @@ template<typename T> struct Space<T,0> {
     static T Max(T space, unsigned int[0]) {
         return space;
     }
+    static T Normalize(T& space, unsigned int[0], T val) {
+        space /= val;
+    }
     template<typename V> static T Normalize(V space, unsigned int[0], V val) {
         return static_cast<T>(space) / static_cast<T>(val);
     }
 };
 template<typename T> struct Space<T*,0> {
+    static void Add(T* s1, T* s2, unsigned int[0]) {
+        s1 += s2;
+    }
     static T* Allocate(unsigned int[0]) {
         return new T;
     }
@@ -278,6 +295,30 @@ template<typename T> void ArrayCout(T* array, unsigned int n) {
     for(unsigned int i = 0; i < n; i++)
         cout << array[i] << '\t';
     cout << endl;
+}
+template<typename T> unsigned int ArrayFind(T* x, T dx, unsigned int i, unsigned int n) {
+    T xj = x[i] + dx;
+    if(dx > 0) {
+        for(int j = i; j < n; j++) {
+            if(xj <= x[j]) {
+                if(j == 0)
+                    return 0;
+                if(abs(xj-x[j]) < abs(xj-x[j-1]))
+                    return j;
+                return j-1;
+            }
+        }
+    }
+    for(int j = i; j; j--) {
+        if(xj >= x[j]) {
+            if(j == n-1)
+                return n-1;
+            if(abs(xj-x[j]) < abs(xj-x[j+1]))
+                return j;
+            return j+1;
+        }
+    }
+    return 0;
 }
 template<typename C, typename T> void ArrayToFile(ofstream& file, ArrayLength<C,T> array) {
     for(unsigned int i = 0; i < array-1; i++)

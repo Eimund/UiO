@@ -39,14 +39,18 @@ template<typename T> struct Step {
     }
 };
 
-template<typename C, typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(/*unsigned int N,*/ T dt, T t, T d, Delegate<C,T> step);
+template<typename C, typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(T t, T dt, T d, Delegate<C,T> step);
+template<typename T> T* Diffusion1D_Metropolis(unsigned int N, unsigned int n);
 template<typename T> Vector<T,2> Diffusion2D_alpha(T alpha, T d[2], unsigned int n[2]);
 template<typename T> T Diffusion2D_deltaT(T alpha, T dx2[2]);
 template<typename T> Vector<T,2> Diffusion2D_deltaX2(T d[2], unsigned int n[2]);
 template<typename T> T** Diffusion2D_Exact(T u0, T D, T t, T d[2], T w[2], T* x[2], unsigned int n[2], unsigned int ne[2]);
 template<typename T> T** Diffusion2D_Explicit(T alpha, T t, T d[2], T w[2], unsigned int n[2]);
+template<typename T> T** Diffusion2D_Explicit2(T alpha, T t, T d[2], T w[2], unsigned int n[2]);
 template<typename T> T** Diffusion2D_Initialize(unsigned int m[2], unsigned int n[2]);
 template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2], unsigned int n[2]);
+template<typename T> T** Diffusion2D_Jacobi2(T theta, T alpha, T t,T d[2], T w[2], unsigned int n[2]);
+template<typename C, typename T> Chain<Vector<T,2>> Diffusion2D_MonteCarlo(T t, T dt, T d[2], T w[2], Delegate<C,T> step);
 template<typename T> Vector<unsigned int,2> Diffusion2D_Source(T d, T w[2], unsigned int n);
 template<typename T> T StepUniform();
 template<typename T> T StepGaussian();
@@ -58,7 +62,7 @@ int main() {
     FLOAT u0 = 1;
     FLOAT D = 1;
     FLOAT t = 0.1;
-    Vector<unsigned int,2> n = {100,100};
+    Vector<unsigned int,2> n = {10,100};
     Vector<unsigned int,2> ne = {100,100};
     Vector<FLOAT,2> d = {1,10};
     Vector<FLOAT,2> w = {7,8};
@@ -71,7 +75,7 @@ int main() {
     file.close();
 
     file.open("Explicit_2D.dat");
-    u = Diffusion2D_Explicit<FLOAT>(0.1, t, d, w, n);
+    u = Diffusion2D_Explicit2<FLOAT>(0.1, t, d, w, n);
     Space<FLOAT,2>::ToFile(file, x, u, n);
     Space<FLOAT,2>::Deallocate(u, n);
     file.close();
@@ -86,14 +90,41 @@ int main() {
     Step<FLOAT> step;
     Delegate<Step<FLOAT>,FLOAT> step_uniform(&step, &Step<FLOAT>::Uniform);
     Delegate<void, Chain<Vector<FLOAT,1>>, FLOAT, FLOAT, FLOAT, decltype(step_uniform)> Diff1D_MC(&Diffusion1D_MonteCarlo<Step<FLOAT>,FLOAT>);
-    auto space = Experiment(1000u, x, n, Diff1D_MC, 1e-3, t, d[0], step_uniform);
+    auto space = Experiment(1000u, x, n, Diff1D_MC, t, 1e-3, d[0], step_uniform);
     Space<FLOAT,1>::ToFile(file, x, space, n);
     Space<FLOAT,1>::Deallocate(space, n);
     file.close();
 
     file.open("MonteCarlo_1D_Gaussian.dat");
     Delegate<Step<FLOAT>,FLOAT> step_gaussian(&step, &Step<FLOAT>::Gaussian);
-    space = Experiment(1000u, x, n, Diff1D_MC, 1e-3, t, d[0], step_gaussian);
+    space = Experiment(1000u, x, n, Diff1D_MC, t, 1e-3, d[0], step_gaussian);
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    file.open("MonteCarlo_2D_Gaussian.dat");
+    Delegate<void, Chain<Vector<FLOAT,2>>, FLOAT, FLOAT, FLOAT*, FLOAT*, decltype(step_uniform)> Diff2D_MC(&Diffusion2D_MonteCarlo<Step<FLOAT>,FLOAT>);
+    auto space2d = Experiment(1000u, x, n, Diff2D_MC, t, 1e-3, d.e, w.e, step_gaussian);
+    Space<FLOAT,2>::ToFile(file, x, space2d, n);
+    Space<FLOAT,2>::Deallocate(space2d, n);
+    file.close();
+
+    file.open("Explicit_2D_2.dat");
+    u = Diffusion2D_Explicit<FLOAT>(0.1, t, d, w, n);
+    Space<FLOAT,2>::ToFile(file, x, u, n);
+    Space<FLOAT,2>::Deallocate(u, n);
+    file.close();
+
+    file.open("Jacobi_2D_2.dat");
+    u = Diffusion2D_Jacobi2<FLOAT>(1, 0.1, t, d, w, n);
+    Space<FLOAT,2>::ToFile(file, x, u, n);
+    Space<FLOAT,2>::Deallocate(u, n);
+    file.close();
+
+    file.open("Metropolis_1D.dat");
+    //Delegate<void, void, FLOAT*, FLOAT*[1], unsigned int[1], FLOAT, FLOAT, FLOAT, decltype(step_uniform)> Diff1D_MMC(&Diffusion1D_Metropolis<Step<FLOAT>,FLOAT>);
+    //space = Experiment2(1000u, x, n, Diff1D_MMC, t, 1e-3, d[0], step_gaussian);
+    space = Diffusion1D_Metropolis<FLOAT>(100000000, n[0]);
     Space<FLOAT,1>::ToFile(file, x, space, n);
     Space<FLOAT,1>::Deallocate(space, n);
     file.close();
@@ -105,40 +136,39 @@ int main() {
     return 0;
 }
 
-template<typename C, typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(/*unsigned int N,*/ T dt, T t, T d, Delegate<C,T> step) {
-
-    Chain<Vector<T,1>> particles, *p;
-    Vector<T,1> vec = {0};
-    particles.Add(vec);                                     // Initial particle
-
+template<typename C, typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(T t, T dt, T d, Delegate<C,T> step) {
     T val;
     unsigned int n = t / dt;
     T dx = sqrt(2*dt);
-    uniform_real_distribution<T> pdf(0.0,1.0);              // Distribution for accepting a move
-    default_random_engine rng;                              // Set RNG seeding value
+    uniform_real_distribution<T> pdf(0.0,1.0);      // Distribution for accepting a move
+    default_random_engine rng;                      // Set RNG seeding value
     rng.seed(chrono::high_resolution_clock::now().time_since_epoch().count());
 
-    for(int i = 0; i < n; i++) {                            // Loop of timesteps
+    Chain<Vector<T,1>> particles, *p;
+    Vector<T,1> vec = {0};
+    particles.Add(vec);                             // Seeding particle
+
+    for(int i = 0; i < n; i++) {                    // Loop of timesteps
         p = &particles;
-        for(int j = 0; j < particles.N; j++) {              // Loop of particles
-            val = pdf(rng);                                 // Random number
-            p = p->next;                                    // Next particle
+        for(int j = 0; j < particles.N; j++) {      // Loop of particles
+            val = pdf(rng);                         // Random number
+            p = p->next;                            // Next particle
 
-            if(val <= 0.5) {                                // Sampling rule
+            if(val <= 0.5) {                        // Sampling rule
 
-                val = p->element.element[0] - dx * step();  // Calculate move
-                if(val > 0)                                 // Valid move
-                    p->element.element[0] = val;
+                val = p->e.e[0] - dx * step();      // Calculate backward move
+                if(val > 0)                         // Valid move
+                    p->e.e[0] = val;
 
             } else {
 
-                if(p->element.element[0] == 0) {            // Particle at the source
-                    p->prev->Add(p->element);               // Add new particle at prev
+                if(p->e.e[0] == 0) {                // Particle at the source
+                    p->prev->Add(p->e);             // Add new particle at prev
                     j++;
                 }
-                p->element.element[0] += dx * step();       // Move particle
-                if(p->element.element[0] >= d) {            // Remove particle
-                    p = p->prev;                            // into the postsynaptic
+                p->e.e[0] += dx * step();           // Forward move particle
+                if(p->e.e[0] >= d) {                // Remove particle
+                    p = p->prev;                    // into the postsynaptic
                     p->Remove();
                     j--;
                 }
@@ -149,10 +179,38 @@ template<typename C, typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(/*uns
     return particles;
 }
 
+template<typename T> T* Diffusion1D_Metropolis(unsigned int N, unsigned int n) {
+
+    auto s = Space<T,1>::Allocate(&n);
+    s[0] = 1;
+    T p = 1/n;
+
+    uniform_int_distribution<int> pdf(0,--n);       // Distribution for accepting a move
+    default_random_engine rng;                      // Set RNG seeding value
+    rng.seed(chrono::high_resolution_clock::now().time_since_epoch().count());
+
+    for(unsigned int i = 0, j = 0, k; i < N; i++) {
+        k = pdf(rng);
+        Metropolis<T>(s[j], s[k]);
+        j = k;
+        s[0] = 1;
+        s[n] = 0;
+
+        /*Metropolis<T>(1, s[0], 0.5, s[1]);
+        for(unsigned int j = 0; j < n; j++)
+            Metropolis<T>(0.5, s[j], 0.5, s[j+1]);
+
+        Metropolis<T>(1, s[n+1], 0.5, s[n]);
+        for(unsigned int j = n; j; j--)
+            Metropolis<T>(0.5, s[j+1], 0.5, s[j]);*/
+    }
+    return s;
+}
+
 template<typename T> Vector<T,2> Diffusion2D_alpha(T dt, T dx2[2]) {
     Vector<T,2> vec;
-    vec.element[0] = dt/dx2[0];
-    vec.element[1] = dt/dx2[1];
+    vec.e[0] = dt/dx2[0];
+    vec.e[1] = dt/dx2[1];
     return vec;
 }
 
@@ -167,10 +225,10 @@ template<typename T> T Diffusion2D_deltaT(T alpha, T dx2[2]) {
 
 template<typename T> Vector<T,2> Diffusion2D_deltaX2(T d[2], unsigned int n[2]) {
     Vector<T,2> x2;
-    x2.element[0] = d[0]/n[0];
-    x2.element[0] *= x2.element[0];
-    x2.element[1] = d[1]/n[1];
-    x2.element[1] *= x2.element[1];
+    x2.e[0] = d[0]/n[0];
+    x2.e[0] *= x2.e[0];
+    x2.e[1] = d[1]/n[1];
+    x2.e[1] *= x2.e[1];
     return x2;
 }
 
@@ -230,20 +288,51 @@ template<typename T> T** Diffusion2D_Explicit(T alpha, T t, T d[2], T w[2], unsi
     n[1]--;
     for(int i = 0, j, k; i < nt; i++) {
 
-        for(k = 1; k < m.element[0]; k++) {
-            v[0][k] = u[0][k];
-            v[0][k] += a.element[1]*(u[0][k+1] - 2.0*u[0][k] + u[0][k-1]);
+        for(j = 1; j < n[0]; j++) {
+            for(k = 1; k < n[1]; k++) {
+                v[j][k] = u[j][k];
+                v[j][k] += a.e[0]*(u[j+1][k] - 2.0*u[j][k] + u[j-1][k]);
+                v[j][k] += a.e[1]*(u[j][k+1] - 2.0*u[j][k] + u[j][k-1]);
+            }
         }
-        for(k = m.element[1]+1; k < n[1]; k++) {
+        z = u;
+        u = v;
+        v = z;
+    }
+    n[0]++;
+    n[1]++;
+    Space<T,2>::Deallocate(v, n);
+
+    return u;
+}
+template<typename T> T** Diffusion2D_Explicit2(T alpha, T t, T d[2], T w[2], unsigned int n[2]) {
+    Vector<unsigned int,2> m = Diffusion2D_Source(d[1], w, n[1]);
+    T** u = Diffusion2D_Initialize<T>(m, n);
+    T** v = Diffusion2D_Initialize<T>(m, n);
+    T** z;
+    Vector<T,2> dx2 = Diffusion2D_deltaX2(d, n);
+    T dt = Diffusion2D_deltaT<T>(alpha, dx2);
+    Vector<T,2> a = Diffusion2D_alpha<T>(dt, dx2);
+    unsigned int nt = t/dt;
+
+    n[0]--;
+    n[1]--;
+    for(int i = 0, j, k; i < nt; i++) {
+
+        for(k = 1; k < m.e[0]; k++) {
             v[0][k] = u[0][k];
-            v[0][k] += a.element[1]*(u[0][k+1] - 2.0*u[0][k] + u[0][k-1]);
+            v[0][k] += a.e[1]*(u[0][k+1] - 2.0*u[0][k] + u[0][k-1]);
+        }
+        for(k = m.e[1]+1; k < n[1]; k++) {
+            v[0][k] = u[0][k];
+            v[0][k] += a.e[1]*(u[0][k+1] - 2.0*u[0][k] + u[0][k-1]);
         }
 
         for(j = 1; j < n[0]; j++) {
             for(k = 1; k < n[1]; k++) {
                 v[j][k] = u[j][k];
-                v[j][k] += a.element[0]*(u[j+1][k] - 2.0*u[j][k] + u[j-1][k]);
-                v[j][k] += a.element[1]*(u[j][k+1] - 2.0*u[j][k] + u[j][k-1]);
+                v[j][k] += a.e[0]*(u[j+1][k] - 2.0*u[j][k] + u[j-1][k]);
+                v[j][k] += a.e[1]*(u[j][k+1] - 2.0*u[j][k] + u[j][k-1]);
             }
         }
         z = u;
@@ -284,13 +373,13 @@ template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2]
     n[1]--;
 
     T diff;
-    T c0 = theta * a.element[1];
+    T c0 = theta * a.e[1];
     T c1 = 1 + 2 * c0;
-    T c2 = theta * a.element[0];
+    T c2 = theta * a.e[0];
     T c3 = 1 + 2 * (c0 + c2);
-    T c4 = a.element[1] - c0;
+    T c4 = a.e[1] - c0;
     T c5 = 1 - 2 * c4;
-    T c6 = a.element[0] - c2;
+    T c6 = a.e[0] - c2;
     T c7 = (c5 - 2 * c6) / c3;
     T c8 = c6 / c3;
     T c9 = c4 / c3;
@@ -303,9 +392,9 @@ template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2]
 
     for(int i = 0, j, k; i < nt; i++) {
 
-        for(k = 1; k < m.element[0]; k++)
+        for(k = 1; k < m.e[0]; k++)
             c[0][k] = c5 * u[0][k] + c6 * (u[0][k+1] + u[0][k-1]);
-        for(k = m.element[1]+1; k < n[1]; k++)
+        for(k = m.e[1]+1; k < n[1]; k++)
             c[0][k] = c5 * u[0][k] + c6 * (u[0][k+1] + u[0][k-1]);
         for(j = 1; j < n[0]; j++) {
             for(k = 1; k < n[1]; k++)
@@ -315,17 +404,17 @@ template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2]
         do {
             diff = 0;
 
-            for(k = 1; k < m.element[0]; k++) {
+            for(k = 1; k < m.e[0]; k++) {
                 v[0][k] = c[0][k] + c1 * (u[0][k+1] + u[0][k-1]);
                 diff += abs(v[0][k] - u[0][k]);
             }
-            for(k = m.element[1]+1; k < n[1]; k++) {
+            for(k = m.e[1]+1; k < n[1]; k++) {
                 v[0][k] = c[0][k] + c1 * (u[0][k+1] + u[0][k-1]);
                 diff += abs(v[0][k] - u[0][k]);
             }
             for(j = 1; j < n[0]; j++) {
                 for(k = 1; k < n[1]; k++) {
-                    v[j][k] = c[j][k] + c3 * (u[j+1][k] + u[j-1][k]) + c4 * (u[j+1][k] + u[j-1][k]);
+                    v[j][k] = c[j][k] + c3 * (u[j+1][k] + u[j-1][k]) + c4 * (u[j][k+1] + u[j][k-1]);
                     diff += abs(v[j][k] - u[j][k]);
                 }
             }
@@ -347,10 +436,154 @@ template<typename T> T** Diffusion2D_Jacobi(T theta, T alpha, T t,T d[2], T w[2]
     return u;
 }
 
+template<typename T> T** Diffusion2D_Jacobi2(T theta, T alpha, T t,T d[2], T w[2], unsigned int n[2]) {
+    Vector<unsigned int,2> m = Diffusion2D_Source(d[1], w, n[1]);
+    T** u = Diffusion2D_Initialize<T>(m, n);
+    T** v = Diffusion2D_Initialize<T>(m, n);
+    auto c = Space<T,2>::Allocate(n);
+    T** z;
+    Vector<T,2> dx2 = Diffusion2D_deltaX2(d, n);
+    T dt = Diffusion2D_deltaT<T>(alpha, dx2);
+    Vector<T,2> a = Diffusion2D_alpha<T>(dt, dx2);
+    unsigned int nt = t/dt;
+
+    n[0]--;
+    n[1]--;
+
+    T diff;
+    T c0 = theta * a.e[1];
+    T c1 = 1 + 2 * c0;
+    T c2 = theta * a.e[0];
+    T c3 = 1 + 2 * (c0 + c2);
+    T c4 = a.e[1] - c0;
+    T c5 = 1 - 2 * c4;
+    T c6 = a.e[0] - c2;
+    T c7 = (c5 - 2 * c6) / c3;
+    T c8 = c6 / c3;
+    T c9 = c4 / c3;
+    c5 = c5 / c1;
+    c6 = c4 / c1;
+    c1 = c0 / c1;
+    c4 = c0 / c3;
+    c3 = c2 / c3;
+
+
+    for(int i = 0, j, k; i < nt; i++) {
+
+        /*for(k = 1; k < m.e[0]; k++)
+            c[0][k] = c5 * u[0][k] + c6 * (u[0][k+1] + u[0][k-1]);
+        for(k = m.e[1]+1; k < n[1]; k++)
+            c[0][k] = c5 * u[0][k] + c6 * (u[0][k+1] + u[0][k-1]);*/
+        for(j = 1; j < n[0]; j++) {
+            for(k = 1; k < n[1]; k++)
+                c[j][k] = c7 * u[j][k] + c8 * (u[j+1][k] + u[j-1][k]) + c9 * (u[j][k+1] + u[j][k-1]);
+        }
+
+        do {
+            diff = 0;
+
+            /*for(k = 1; k < m.e[0]; k++) {
+                v[0][k] = c[0][k] + c1 * (u[0][k+1] + u[0][k-1]);
+                diff += abs(v[0][k] - u[0][k]);
+            }
+            for(k = m.e[1]+1; k < n[1]; k++) {
+                v[0][k] = c[0][k] + c1 * (u[0][k+1] + u[0][k-1]);
+                diff += abs(v[0][k] - u[0][k]);
+            }*/
+            for(j = 1; j < n[0]; j++) {
+                for(k = 1; k < n[1]; k++) {
+                    v[j][k] = c[j][k] + c3 * (u[j+1][k] + u[j-1][k]) + c4 * (u[j][k+1] + u[j][k-1]);
+                    diff += abs(v[j][k] - u[j][k]);
+                }
+            }
+
+            diff /= n[0] * n[1];
+
+            z = u;
+            u = v;
+            v = z;
+
+        } while(diff > 0.00001);
+    }
+
+    n[0]++;
+    n[1]++;
+    Space<T,2>::Deallocate(v, n);
+    Space<T,2>::Deallocate(c, n);
+
+    return u;
+}
+
+template<typename C, typename T> Chain<Vector<T,2>> Diffusion2D_MonteCarlo(T t, T dt, T d[2], T w[2], Delegate<C,T> step) {
+    T val;
+    unsigned int n = t / dt;
+    T dx = sqrt(2*dt);
+    uniform_real_distribution<T> pdf(0.0,1.0);              // Distribution for accepting a move
+    default_random_engine rng;                              // Set RNG seeding value
+    rng.seed(chrono::high_resolution_clock::now().time_since_epoch().count());
+
+    Chain<Vector<T,2>> particles, *p;
+    T dw = w[1]-w[0];
+    Vector<T,2> vec = {0,0};
+    vec.e[1] = w[0] + pdf(rng)*dw;                          // Initial position
+    particles.Add(vec);                                     // of seeding particles
+
+    for(int i = 0; i < n; i++) {                            // Loop of timesteps
+        p = &particles;
+        for(int j = 0; j < particles.N; j++) {              // Loop of particles
+            p = p->next;                                    // Next particle
+            val = pdf(rng);                                 // Random number
+            if(val <= 0.25) {                               // Sampling rule: x direction
+
+                val = p->e.e[0] - dx * step();              // Calculate backward move
+                if(val > 0)                                 // Valid move
+                    p->e.e[0] = val;
+
+            } else if(val <= 0.5) {
+
+                // Particle at the source
+                if(p->e.e[0] == 0 && p->e.e[1] >= w[0] && p->e.e[1] <= w[1]) {
+                    vec.e[1] = w[0] + pdf(rng)*dw;
+                    p->prev->Add(vec);                      // Add new particle at prev
+                    j++;
+                }
+                p->e.e[0] += dx * step();                   // Forward move particle
+                if(p->e.e[0] >= d[0]) {                     // Remove particle
+                    p = p->prev;                            // into the postsynaptic
+                    p->Remove();
+                    j--;
+                }
+            } else if(val <= 0.75) {                        // y direction
+
+                if(p->e.e[0]) {
+                    p->e.e[1] -= dx * step();               // Calculate backward move
+                    if(p->e.e[1] <= 0) {                    // Remove particle
+                        p = p->prev;                        // outside cleft
+                        p->Remove();
+                        j--;
+                    }
+                }
+            } else {
+
+                if(p->e.e[0]) {
+                    p->e.e[1] += dx * step();               // Calculate backward move
+                    if(p->e.e[1] >= d[1]) {                 // Remove particle
+                        p = p->prev;                        // outside cleft
+                        p->Remove();
+                        j--;
+                    }
+                }
+            }
+        }
+    }
+
+    return particles;
+}
+
 template<typename T> Vector<unsigned int,2> Diffusion2D_Source(T d, T w[2], unsigned int n) {
     Vector<unsigned int,2> m;
-    m.element[0] = w[0]/d *(n-1) + (T)0.5;
-    m.element[1] = w[1]/d *(n-1) + (T)0.5;
+    m.e[0] = w[0]/d *(n-1) + (T)0.5;
+    m.e[1] = w[1]/d *(n-1) + (T)0.5;
     return m;
 }
 
