@@ -45,24 +45,16 @@ template<typename V, typename T, unsigned int D, typename C, typename... P> type
     return s1;
 }
 
-template<typename T> void Metropolis(T& w1, T& w2) {
-    if(w1 > w2)
-        w2 = w1;
-    else
-        w1 = w2;
-}
-
 template<typename T> void Metropolis(T T1, T& w1, T T2, T& w2) {
     T a1 = T1 * w1;
     T a2 = T2 * w2;
-    if(a1 > a2) {
-        w1 = a2;
-        w2 = a2;
-    }
-    else {
-        w1 = a1;
-        w2 = a1;
-    }
+    T A;
+    if(a1 <= a2)
+        A = 1;
+    else
+        A = a2/a1;
+    w1 += A*a2 - A*a1;
+    w2 += A*a1 - A*a2;
 }
 
 #endif // EXPERIMENT_H

@@ -40,7 +40,7 @@ template<typename T> struct Step {
 };
 
 template<typename C, typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(T t, T dt, T d, Delegate<C,T> step);
-template<typename T> T* Diffusion1D_Metropolis(unsigned int N, unsigned int n);
+template<typename T> T* Diffusion1D_Metropolis(unsigned long N, unsigned int n);
 template<typename T> Vector<T,2> Diffusion2D_alpha(T alpha, T d[2], unsigned int n[2]);
 template<typename T> T Diffusion2D_deltaT(T alpha, T dx2[2]);
 template<typename T> Vector<T,2> Diffusion2D_deltaX2(T d[2], unsigned int n[2]);
@@ -62,7 +62,7 @@ int main() {
     FLOAT u0 = 1;
     FLOAT D = 1;
     FLOAT t = 0.1;
-    Vector<unsigned int,2> n = {10,100};
+    Vector<unsigned int,2> n = {100,100};
     Vector<unsigned int,2> ne = {100,100};
     Vector<FLOAT,2> d = {1,10};
     Vector<FLOAT,2> w = {7,8};
@@ -124,7 +124,7 @@ int main() {
     file.open("Metropolis_1D.dat");
     //Delegate<void, void, FLOAT*, FLOAT*[1], unsigned int[1], FLOAT, FLOAT, FLOAT, decltype(step_uniform)> Diff1D_MMC(&Diffusion1D_Metropolis<Step<FLOAT>,FLOAT>);
     //space = Experiment2(1000u, x, n, Diff1D_MMC, t, 1e-3, d[0], step_gaussian);
-    space = Diffusion1D_Metropolis<FLOAT>(100000000, n[0]);
+    space = Diffusion1D_Metropolis<FLOAT>(10000, n[0]);
     Space<FLOAT,1>::ToFile(file, x, space, n);
     Space<FLOAT,1>::Deallocate(space, n);
     file.close();
@@ -179,30 +179,22 @@ template<typename C, typename T> Chain<Vector<T,1>> Diffusion1D_MonteCarlo(T t, 
     return particles;
 }
 
-template<typename T> T* Diffusion1D_Metropolis(unsigned int N, unsigned int n) {
+template<typename T> T* Diffusion1D_Metropolis(unsigned long N, unsigned int n) {
 
+    T val;
     auto s = Space<T,1>::Allocate(&n);
     s[0] = 1;
-    T p = 1/n;
 
-    uniform_int_distribution<int> pdf(0,--n);       // Distribution for accepting a move
-    default_random_engine rng;                      // Set RNG seeding value
-    rng.seed(chrono::high_resolution_clock::now().time_since_epoch().count());
-
-    for(unsigned int i = 0, j = 0, k; i < N; i++) {
-        k = pdf(rng);
-        Metropolis<T>(s[j], s[k]);
-        j = k;
+    unsigned int j = 0;
+    for(unsigned long i = 0; i < N; i++) {
+        for(j = 1; j < n; j++)
+            Metropolis(0.5, s[j-1], 0.5, s[j]);
         s[0] = 1;
-        s[n] = 0;
-
-        /*Metropolis<T>(1, s[0], 0.5, s[1]);
-        for(unsigned int j = 0; j < n; j++)
-            Metropolis<T>(0.5, s[j], 0.5, s[j+1]);
-
-        Metropolis<T>(1, s[n+1], 0.5, s[n]);
-        for(unsigned int j = n; j; j--)
-            Metropolis<T>(0.5, s[j+1], 0.5, s[j]);*/
+        s[n-1] = 0;
+        for(j = n-1; j; j--)
+            Metropolis(0.5, s[j], 0.5, s[j-1]);
+        s[0] = 1;
+        s[n-1] = 0;
     }
     return s;
 }

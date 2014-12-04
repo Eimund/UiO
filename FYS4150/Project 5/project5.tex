@@ -5,7 +5,7 @@
 
 \renewcommand\title{FYS4150 - Computational Physics - Project 5}
 
-\renewcommand\author{Candidate number: 68}
+\renewcommand\author{Eimund Smestad  - Candidate number: 68}
 %\newcommand\adress{}
 \renewcommand\date{\today}
 \newcommand\email{\href{mailto:eimundsm@fys.uio.no}{eimundsm@fys.uio.no}}
@@ -70,7 +70,7 @@ where $d$ is the distance between the presynaptic and the postsynaptic, and $w$ 
 
 \figur{0.8}{thompsonB2000-p39.eps}{Left: Schematic drawing of the process of vesicle release from the axon terminal and release of transmitter molecules into the synaptic cleft. (From Thompson: \anf{The Brain}, Worth Publ., 2000). Right: Molecular structure of the two important neurotransmitters glutamate and GABA.}{fig1} 
 
-To solve the differential equation \eqref{eq_1} with the boundary and initial condition \eqref{eq_2} we make an ansatz that the solution is unique, which is the case for a deterministic system. We recognize the heat equation as part of the class of partial differential equation spanned by the Poisson's equation for each time instance. The Uniqueness theorem for the Poisson's equation $\nabla^2 u = f$ \cite{Uniqueness} says that the Poisson's equation has a unique solution with the Dirichlet boundary condition, where Dirichlet boundary condition is here defined as a boundary that specifies the values the solution must have at the boundary.  \linebreak
+To solve the differential equation \eqref{eq_1} with the boundary and initial condition \eqref{eq_2} we make an ansatz that the solution is unique, which is the case for a deterministic system. We recognize the heat equation as part of the class of partial differential equations spanned by the Poisson's equation for each time instance. The Uniqueness theorem for the Poisson's equation $\nabla^2 u = f$ \cite{Uniqueness} says that the Poisson's equation has a unique solution with the Dirichlet boundary condition, where Dirichlet boundary condition is here defined as a boundary that specifies the values the solution must have at the boundary. Not to be confused with Dirichlet boundary condition with zero at the boundary, which is just a special case and I will refer to it as 0th Dirichlet boundary condition. \linebreak
 
 Unfortunately the boundary condition in \eqref{eq_2} is not a Dirichlet boundary, since the boundary is not specified on the side of the synaptic vesicles $x_1=0$, $0\leq x_2 < w_1$ and $w_2 < x_2 \leq w$, and closer investigation will show that the boundary condition in \eqref{eq_2} does not provide a unique solution. So we need to add further condition to make the solution unique, and I make an assumption that the total concentration $u$ in an infinitesimal area has uniform concentration per length $u_1$ and $u_2$ in each direction $x_1$ and $x_2$ accordingly. Hence $u=u_1 u_2$ at every point and therefore we can write
 
@@ -99,7 +99,7 @@ I make another assumption that the the boundary at $u\p{0,x_2,t}$ determined by 
 \label{eq_5}
 \end{align}
 
-we have now determined the values on all the boundaries have therefore Dirichlet boundary condition, and therefore a unique solution of $u$. We found the analytical solution to the heat equation in \eqref{eq_4} for $i=2$ with similar boundary and initial condition, and I will therefore not show the derivation here, but just state the solutions
+we have now determined the values on all the boundaries have therefore Dirichlet boundary condition, and therefore a unique solution of $u$. We found the analytical solution to the heat equation in \eqref{eq_4} for $i=2$ with similar boundary and initial condition in project 4 \cite{project4}, and I will therefore not show the derivation here, but just state the solutions
 
 \begin{align}
 u_2\p{x_2,t} = u_0 \begin{cases} \frac{x_2}{w_1} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\p{1-\frac{x_2}{w_1}}}\exp\p{-D\p{\frac{n\pi}{w_1}}^2 t} &: x_2\in\mathbb{R}_0^{w_1-}\\ 1 &: x_2 \in\mathbb{R}_{w_1}^{w_2} \\  \frac{w-x_2}{w-w_2} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{x_2-w_2}{w-w_2}}\exp\p{-D\p{\frac{n\pi}{w-w_2}}^2 t} & : x_2\in\mathbb{R}_{w_2+}^w \,.\end{cases}
@@ -254,8 +254,89 @@ u_{(i+1)\kr{j_k}_{k=1}^2} = u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 \alpha_\ell\
 where
 
 \begin{align*}
-\alpha_\ell = \frac{\Delta t}{\Delta {x_\ell}^2} \qquad \text{and} \qquad n_\ell = \frac{1}{\Delta x_\ell} \,.
+\alpha_\ell = \frac{\Delta t}{\Delta {x_\ell}^2} \qquad \text{and} \qquad n_\ell = \frac{1}{\Delta x_\ell} \,,
 \end{align*}
+
+where $n_\ell$ is number of grid points in $\ell$ direction. 
+
+\subsubsection{Stability and convergence} \label{sec_explicit_stab_conv}
+
+According to Lax equivalence theorem a consistent finite difference method for well-posed  (a solution exists, unique and continuous) linear initial value problem, the method is convergent if and only if stable. Which means that we only can show either stability and convergence to show both. \linebreak
+
+There is a theorem that states that a matrix $\textbf{A}$ converges $\lim_{i\to\infty} \textbf{A}^i = 0$ if and only if the spectral radius $\rho\p{\textbf{A}} < 1$. The spectral radius is defined as
+
+\begin{align*}
+\rho\p{\textbf{A}} = \max_m \abs{\lambda_m} \,,
+\end{align*}
+
+where $\lambda_m$ are the eigenvalues of $\textbf{A}$. The explicit scheme in \eqref{eq_17}  can be written as $\textbf{u}_{i+1} = \textbf{A}\textbf{u}_i = \textbf{A}^{i+1}\textbf{u}_0$, and the this matrix can be written as
+
+\begin{align*}
+\textbf{A} = \textbf{I} - \sum_{\ell = 1}^2 \alpha_\ell \textbf{B}
+\end{align*}
+
+where $\textbf{I}$ is the identity matrix and $\textbf{B}$ is the tridiagonal matrix $-1,2,-1$. This implies that the eigenvalues $\mu_m$ of $\textbf{B}$ is related to the eigenvalues $\lambda_m$ of $\textbf{A}$ as follows
+
+\begin{align}
+\lambda_m = 1 - \sum_{\ell=1}^2 \alpha_\ell \mu_m\,.
+\label{eq_18}
+\end{align}
+
+The eigenvalues $\mu_m$ can be found from the eigenequation
+
+\begin{align}
+-u_{i\kr{j_k + \delta_{k\ell}}_{k=1}^2} + 2 u_{i\kr{j_k}_{k=1}^2}-u_{i\kr{j_k - \delta_{k\ell}}_{k=1}^2} = \mu_m u_{i\kr{j_k}_{k=1}^2} \,.
+\label{eq_19}
+\end{align}
+
+If we divide this equation by ${\Delta x_\ell}^2$ we get a discretization of the following equation
+
+\begin{align*}
+u\p{\kr{x_i}_{i=1}^2,t} = -\omega_{\ell m} \frac{\partial^2 u\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_\ell}^2}\,,
+\end{align*}
+
+which has the solution 
+
+\begin{align*}
+u\p{\kr{x_i}_{i=1}^2, t} = A\p{t} \prod_{\ell=1}^2 \sin\p{\omega_{\ell m} x_\ell + \varphi_\ell}
+\end{align*}
+
+where 
+
+\begin{align*}
+\omega_{\ell m} = \frac{\Delta {x_\ell}}{\sqrt{\mu_m}} = \frac{1}{n_\ell\sqrt{\mu_m}}\,.
+\end{align*}
+
+Now using this solution into the eigenequation \eqref{eq_19} we get
+
+\begin{align*}
+-\sin\p{\omega_{\ell m} \p{x_{\ell j_\ell}+\Delta x_\ell} + \varphi_\ell} + 2\sin\p{\omega_{\ell m} x_{\ell j_\ell} + \varphi_\ell} - \sin\p{\omega_{\ell m} \p{x_{\ell j_\ell}-\Delta x_\ell} + \varphi_\ell} = \mu_i \sin\p{\omega_{\ell m} x_{\ell j_\ell} + \varphi_\ell}
+\end{align*} 
+
+which can be simplified with the trigonometrical relation $\sin\p{u+v} = \sin u \cos v + \cos u \sin v$
+ 
+\begin{align*}
+\mu_m = 2\p{1-\cos\p{\omega_{\ell m} \Delta x_\ell}} \qquad \Rightarrow \quad 0 < \mu_m \leq 4 \quad \text{for real $\mu_m$.} \,,
+\end{align*}
+
+note that $\mu_m\neq 0$ because of $\omega_{\ell m} \propto \frac{1}{\sqrt{\mu_m}}$. Inserting these eigenvalues into \eqref{eq_18} and using the convergence condition $\rho\p{\textbf{A}} < 1$ yields the following inequality
+
+\begin{align*}
+-1 < 1 - \sum_{\ell=1}^2 \alpha_\ell \mu_m < 1
+\end{align*}
+
+which result in the constraint for convergences
+
+\begin{align*}
+\sum_{\ell = 1}^2 \alpha_\ell < \frac{1}{2} \,,
+\end{align*}
+
+where the $\alpha_\ell$ is always positive. So when we want to solve the heat equation explicitly we must chose a time step accordingly
+
+\begin{align}
+\Delta t < \frac{1}{2\sum_{\ell=1}^2 {n_\ell}^2} \,.
+\label{eq_20}
+\end{align}
 
 \subsection{Jacobi's iterative method}
 
@@ -271,7 +352,7 @@ where the boundary are given at the indices $j_k=0$ and $j_k= n_k-1$ where $n_k$
 
 \begin{align}
 v_{(i+1)j} = v_{(i+1)(j_1 n_2 + j_2)} = u_{(i+1)\kr{j_k}_{k=1}^2} \,.
-\label{eq_18}
+\label{eq_21}
 \end{align}
 
 The fixed boundary values with $u_0=1$ at the presynaptic $x_1=0$ and $w_1 \leq x_2 \leq w_2$ are given by the indices $j$ in the set
@@ -326,7 +407,7 @@ a_{(i+1)jk} = a_{jk} = \begin{cases}
 -\theta \alpha_2 &: \forall j\in\mathbb{I}\cup\mathbb{B}_2: k\in\kr{j-1,j+1}\quad \text{(diffusion in $x_2$ direction)} \\ 
 - \theta \alpha_1 &: \forall j\in\mathbb{I} : k \in \kr{j-n_2,j+n_2} \,\,\qquad\text{(diffusion in $x_1$ direction)} \\
  0 & : \text{otherwise,} \end{cases}
-\label{eq_19}
+\label{eq_22}
 \end{align}
 
 and the elements of the vector $\textbf{b}_i$ are
@@ -338,16 +419,16 @@ b_{ij} = b_{i(j_1 n_2 + j_2)} = \begin{cases}
 \p{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell} u_{i\kr{j_k}_{k=1}^2} + \p{1-\theta}\sum_{\ell=1}^2\alpha_\ell\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}} &: j\in\mathbb{I} \\
 0 &: \text{otherwise.}
 \end{cases}
-\label{eq_20}
+\label{eq_23}
 \end{align}
 
-Unfortunately  is the linear algebra problem $\textbf{A}\textbf{v}_{i+1} = \textbf{b}_i$ is computational expensive to solve for the matrix in \eqref{eq_19}. To lower the computational time I therefore prepare the matrix $\textbf{A}$ for Jacobi's iterative method by splitting it into a diagonal matrix $\textbf{D}$ and a remainder matrix $\textbf{R}$;
+Unfortunately  is the linear algebra problem $\textbf{A}\textbf{v}_{i+1} = \textbf{b}_i$ is computational expensive to solve for the matrix in \eqref{eq_22}. To lower the computational time I therefore prepare the matrix $\textbf{A}$ for Jacobi's iterative method by splitting it into a diagonal matrix $\textbf{D}$ and a remainder matrix $\textbf{R}$;
 
 \begin{align*}
 \textbf{A} = \textbf{D} + \textbf{R} \,.
 \end{align*}
 
-From \eqref{eq_19} we see that the elements of the diagonal matrix are given by
+From \eqref{eq_22} we see that the elements of the diagonal matrix are given by
 
 \begin{align}
 d_{jk} = \begin{cases} 
@@ -355,7 +436,7 @@ d_{jk} = \begin{cases}
 1+ 2\theta \alpha_2 &: \forall j\in\mathbb{B}_2: j=k \,\,\quad\qquad\qquad\qquad (\text{side of vesicles}) \\ 
 1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell &: \forall j\in\mathbb{I}: j=k \qquad\qquad\qquad\qquad (\text{the inner points }u_{(i+1)j_1j_2}) \\ 
  0 & : \text{otherwise,} \end{cases}
-\label{eq_21}
+\label{eq_24}
 \end{align}
 
 and the elements of the remainder matrix are given by
@@ -365,7 +446,7 @@ r_{jk} = \begin{cases}
 -\theta \alpha_2 &: \forall j\in\mathbb{I}\cup\mathbb{B}_2: k\in\kr{j-1,j+1}\quad \text{(diffusion in $x_2$ direction)} \\ 
 - \theta \alpha_1 &: \forall j\in\mathbb{I} : k \in \kr{j-n_2,j+n_2} \,\,\qquad\text{(diffusion in $x_1$ direction)} \\
  0 & : \text{otherwise.} \end{cases}
-\label{eq_22}
+\label{eq_25}
 \end{align}
 
 We can now introduce Jacobi's iterative method
@@ -383,7 +464,7 @@ where $\ell$ is the number of iterations and $\ell=0$ are the starting point. Re
 v_{(i+1)j}^{(\ell)} = \begin{cases} v_j &: \ell = 0 \\ \frac{1}{d_{jj}}\p{b_j - \sum_{k\neq j} r_{jk} v_{(i+1)k}^{(\ell-1)}} &: j\in\mathbb{N}_1 \,.\end{cases}
 \end{align*}
 
-Using \eqref{eq_18} and \eqref{eq_22} we have the iterative solution to the heat equation in \eqref{eq_6} with the boundaries in \eqref{eq_2}
+Using \eqref{eq_21} and \eqref{eq_25} we have the iterative solution to the heat equation in \eqref{eq_6} with the boundaries in \eqref{eq_2}
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^2}^{(\ell)} = \begin{cases}
@@ -392,61 +473,69 @@ u_{i\kr{j_k}_{k=1}^2} &: \ell = 0 \\
 c_0 + c_1\p{u_{(i+1)0(j_2+1)}^{(\ell-1)}+u_{(i+1)0(j_2-1)}^{(\ell-1)}} &: j_1=0 \wedge j_2\in\mathbb{N}_0^{n_2-1} \setminus\mathbb{N}_{m_1}^{m_2} \\
 c_2 + \sum_{o=1}^2 c_{o+2}\p{u_{(i+1)\kr{j_k+\delta_{ko}}_{k=1}^2}^{(\ell-1)}+u_{(i+1)\kr{j_k-\delta_{ko}}_{k=1}^2}^{(\ell-1)}} &: j_1\in \mathbb{N}_{1}^{n_1-2} \wedge j_2\in\mathbb{N}_1^{n_2-2} 
 \end{cases} 
-\label{eq_23}
+\label{eq_26}
 \end{align}
 
 \begin{align}
 c_0 &= c_5 u_{i0j_2} + c_6\p{u_{i0(j_2+1)} + u_{i0(j_2-1)}}
-\label{eq_24}\\
-c_1 &= \frac{\theta \alpha_2}{1+2\theta\alpha_2}
-\label{eq_25}\\
-c_2 &= c_7 u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 c_{\ell+7} \p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}
-\label{eq_26}\\
-c_3 &= \frac{\theta \alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
 \label{eq_27}\\
-c_4 &= \frac{\theta \alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+c_1 &= \frac{\theta \alpha_2}{1+2\theta\alpha_2}
 \label{eq_28}\\
-c_5 &= \frac{1-2\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
+c_2 &= c_7 u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 c_{\ell+7} \p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}
 \label{eq_29}\\
-c_6 &= \frac{\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
+c_3 &= \frac{\theta \alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
 \label{eq_30}\\
-c_7 &= \frac{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+c_4 &= \frac{\theta \alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
 \label{eq_31}\\
-c_8 &= \frac{\p{1-\theta}\alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+c_5 &= \frac{1-2\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
 \label{eq_32}\\
+c_6 &= \frac{\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
+\label{eq_33}\\
+c_7 &= \frac{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_34}\\
+c_8 &= \frac{\p{1-\theta}\alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_35}\\
 c_9 &= \frac{\p{1-\theta}\alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
-\label{eq_33}
+\label{eq_36}
 \end{align}
 
-The Jacobi iterative method converges when the matrix $\textbf{A}$ is diagonally dominant 
+\subsubsection{Stability and convergence}
+
+The same procedure as discussed for convergence and stability for the explicit scheme applies for the Jacobi method as well, but now with the spectral radius $\rho\p{\textbf{D}^{-1} \textbf{R}} < 1$, because the Jacobi method are given by 
+
+\begin{align*}
+\textbf{v}_{i+1}^{\p{\ell}} = \textbf{D}^{-1}\p{\textbf{b}_i - \textbf{R}\textbf{v}_{i+1}^{\p{\ell-1}}} = \textbf{D}^{-1}\sum_{j=0}^{\ell-1} \p{-\textbf{D}^{-1}\textbf{R}}^j \textbf{b}_i + \p{-\textbf{D}^{-1}\textbf{R}}^\ell\textbf{v}_{i+1}^{(0)} \,.
+\end{align*}
+
+Similar steps as shown in section \ref{sec_explicit_stab_conv} it can be shown that the always converges for our diffusion problem. More generally it can be shown that the Jacobi iterative method converges when the matrix $\textbf{A} = \textbf{D}+ \textbf{R}$ is diagonally dominant 
 
 \begin{align*}
 \abs{a_{ii}} > \sum_{j\neq i} \abs{a_{ij}}\,,
 \end{align*}
 
-which is the case for the matrix spanned out by \eqref{eq_19} because $1+2\theta \alpha_2 > 2\theta \alpha_2$ and $1+2\theta\sum_{\ell=1}^2 \alpha_{\ell} > 2\theta\sum_{\ell=1}^2 \alpha_\ell$.
+which is the case for the matrix spanned out by \eqref{eq_22} because $1+2\theta \alpha_2 > 2\theta \alpha_2$ and $1+2\theta\sum_{\ell=1}^2 \alpha_{\ell} > 2\theta\sum_{\ell=1}^2 \alpha_\ell$.
 
-\subsection{Markov chain and Metropolis-Hastings algorithm}
+\subsection{Markov chains}
 
 I assume that diffusion is a memoryless physical process that approximates to a stochastic process, hence diffusion is assumed to satisfy the Markov property and therefore is a Markov process where the transition between states are described by Markov chains 
 
 \begin{align}
 w_{(i+1)\kr{j_k}_{k=1}^n}^+ = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} w_{i\kr{\ell_k}_{k=1}^n} \,,
-\label{eq_34}
+\label{eq_37}
 \end{align}
 
 where $w_{i\kr{j_k}_{k=1}^n}$ is the probability distribution function \anf{PDF} at time step $i$, and $W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}$  is the transition probability from state $\kr{\ell_k}_{k=1}^n$ to $\kr{j_k}_{k=1}^n$. And the reverse Markov chain is given by
 
 \begin{align}
 w_{(i+1)\kr{j_k}_{k=1}^n}^- = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} \,,
-\label{eq_35}
+\label{eq_38}
 \end{align}
 
 Using the assumption that diffusion can be modelled as Markov process then we can use a Master equation to describe the normalized concentration at time step $i+1$ by the difference of transition to and from the state $\kr{j_k}_{k=1}^n$ plus the amount that stays in the state; 
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^n} = W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} +  w_{(i+1)\kr{j_k}_{k=1}^n}^+ - w_{(i+1)\kr{j_k}_{k=1}^n}^-
-\label{eq_36}
+\label{eq_39}
 \end{align} 
 
 Note that the reverse Markov chain is all the transitions that a state $\kr{j_k}_{k=1}$ takes, including transition to itself. Therefore the reverse Markov chain in time step $i+1$ describes the transition of the entire concentration at time step $i$;
@@ -460,17 +549,17 @@ We assume that one can't stay in the same state $W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^n} = w_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{i\kr{j_k}_{k=1}^n} \,.
-\label{eq_37}
+\label{eq_40}
 \end{align}
 
-Further diffusion is assumed to be approximated as stochastic move in distance and direction, where distance and direction is stochastically independent. Which means that transition probability can be written as
+Further, diffusion is assumed to be approximated as stochastic move in distance and direction, where distance and direction is stochastically independent. Which means that transition probability can be written as
 
 \begin{align}
 W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} = T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} \,,
-\label{eq_38}
+\label{eq_41}
 \end{align}
 
-where $T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving the distance between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$, and $ A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving in the direction between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$. $T$ and $A$ can be used as proposed and acceptance distribution accordingly in the Metropolis-Hastings algorithm. \linebreak
+where $T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving the distance between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$, and $ A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving in the direction between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$. \linebreak
 
 Assume that we move a distance $\ell$ from state $\kr{j_k}_{k=1}^n$, which means that the states $\kr{j_k+\delta_{km}\ell}$ are the possible destinations, which puts the following constraint on the direction probability $A$;
 
@@ -489,7 +578,7 @@ and the constraint on the direction probability then yields
 
 \begin{align}
 A = A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} = \frac{1}{2n}\,,
-\label{eq_39}
+\label{eq_42}
 \end{align}
 
 and the distance probability $T$ is only dependent on the distance $\ell$
@@ -504,7 +593,7 @@ which has the constraint
 \sum_{\ell} p_\ell = 1\,.
 \end{align*}
 
-Then the normalized concentration \eqref{eq_37} is now given by
+Then the normalized concentration \eqref{eq_40} is now given by
 
 \begin{align*}
 u_{(i+1)\p{j_k}_{k=1}^n} = \frac{1}{2n}\sum_\ell p_\ell\sum_{m=1}^n \p{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}} - u_{i\kr{j_k}_{k=1}^n} \,,
@@ -514,7 +603,7 @@ which can be rewritten to
 
 \begin{align}
 \frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} = \sum_{\ell}\frac{p_\ell \p{\ell \Delta x}^2}{2n\Delta t}\sum_{m=1}^n\frac{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}}{\p{\ell\Delta x}^2} \,.
-\label{eq_40}
+\label{eq_43}
 \end{align}
 
 When we have the Kronecker delta distribution $p_\ell = \delta_{1\ell}$ this becomes the discretization of the heat equation in \eqref{eq_1} 
@@ -527,17 +616,21 @@ with the relation to the diffusion constant $D$ as follows
 
 \begin{align}
 \Delta x = \sqrt{2nD\Delta t}\,. 
-\label{eq_41}
+\label{eq_44}
 \end{align}
 
-For a general distribution $p_\ell$ we see from \eqref{eq_40} that the step length now is given by
+For a general distribution $p_\ell$ we see from \eqref{eq_43} that the step length now is given by
 
 \begin{align}
 \Delta x_\ell = \ell \Delta x = \ell\sqrt{2nD\Delta t}\,.
-\label{eq_42}
+\label{eq_45}
 \end{align} 
 
-The steps above with Markov chains are designed to give a approximated time evolution. However if we are only interested in the steady state solution, we can derive a faster algorithm to reach it, which is the Metropolis-Hastings algorithm. To derive the Metropolis-Hastings algorithm we start by looking back at the Master equation in \eqref{eq_36} for equilibrium, where we realize that transition to and from the state $\kr{j_k}_{k=1}^n$ must be equal
+If we use a random generator to make a proposition to move at each time step, we get a deterministic running time with approximation in the result, which is known as Monte Carlo algorithm. 
+
+\subsubsection{Metropolis-Hastings algorithm}
+
+The steps above with Markov chains are designed to give a approximated time evolution. However if we are only interested in the steady state solution, we can derive a faster algorithm to reach it, which is the Metropolis-Hastings algorithm. To derive the Metropolis-Hastings algorithm we start by looking back at the Master equation in \eqref{eq_39} for equilibrium, where we realize that transition to and from the state $\kr{j_k}_{k=1}^n$ must be equal
 
 \begin{align*}
 \lim_{i\to \infty} \p{w_{(i+1)\kr{j_k}_{k=1}^n}^+ - w_{(i+1)\kr{j_k}_{k=1}^n}^-} = 0
@@ -549,11 +642,12 @@ and that concentration remains the same
 \lim_{i\to \infty} u_{(i+1)\kr{j_k}_{k=1}^n} = \lim_{i\to \infty} W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} = \lim_{i\to\infty} u_{i\kr{j_k}_{k=1}^n} \,.
 \end{align*}
 
-Using the equality of transition to and from the state $\kr{j_k}_{k=1}^n$ at equilibrium the Markov chains in \eqref{eq_34} and \eqref{eq_35} with independent probability distributions $T$ and $A$ in \eqref{eq_38}, we have the following equation
+Using the equality of transition to and from the state $\kr{j_k}_{k=1}^n$ at equilibrium,  the Markov chains in \eqref{eq_37} and \eqref{eq_38}, with proposed transition distribution $T$ which is independent of the accepted $A$, must satisfy the following equation
 
 \begin{align*}
-\sum_{\kr{\ell_k}_{k=1}^n}\p{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n} w_{i\kr{\ell_k}_{k=1}^n} - T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n}} = 0
+\sum_{\kr{\ell_k}_{k=1}^n}\p{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n} w_{i\kr{\ell_k}_{k=1}^n} - T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n}} = 0 \,,
 \end{align*}
+
 
 which is satisfied by the relation
 
@@ -561,14 +655,40 @@ which is satisfied by the relation
 \frac{A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}}{A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}} = \frac{T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}w_{i\kr{j_k}_{k=1}^n}}{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}w_{i\kr{\ell_k}_{k=1}^n}} \,,
 \end{align*}
 
-where $T$ is a distribution that we propose and $A$ is a probability to accept the proposition. We reach equilibrium fastest when the transition from states are as large as possible, which means $A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}$ should be as close to 1 as possible and still satisfy that $A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n} \leq 1$, which is the Metropolis-Hastings algorithm;
+where $T$ is a distribution that we propose and $A$ is a probability to accept the proposition. We reach equilibrium faster when the transition from states are as large as possible, which means $A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}$ should be as close to 1 as possible and still satisfy that $A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n} \leq 1$, which is the Metropolis-Hastings algorithm;
 
 \begin{align}
-A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} = \min\p{1,\frac{T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}w_{\kr{\ell_k}_{k=1}^n}}{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}w_{\kr{j_k}_{k=1}^n}}}\,.
-\label{eq_43}
-\end{align} 
+A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} = \min\p{1,\frac{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}w_{i\kr{\ell_k}_{k=1}^n}}{T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}w_{i\kr{j_k}_{k=1}^n}}}\,,
+\label{eq_46}
+\end{align}
 
-If we use a random generator to make a proposition to move at each time step, we get a deterministic running time with approximation in the result, which is known as Monte Carlo algorithm. 
+where the two states change accordingly when we transition from $\kr{j_k}_{k=1}^2$ to $\kr{\ell_k}_{k=1}^2$ 
+
+\begin{align*}
+u_{(i+1)\kr{j_k}_{k=1}^n} &= \p{1-T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}} u_{i\kr{j_k}_{k=1}^n}
+\\
+u_{(i+1)\kr{\ell_k}_{k=1}^n} &= u_{i\kr{\ell_k}_{k=1}^n} + T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n} \,.
+\end{align*} 
+
+The move is accepted with 
+
+\begin{align}
+\frac{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}u_{i\kr{\ell_k}_{k=1}^n}} {T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}u_{i\kr{j_k}_{k=1}^n}} \geq 1 :
+\qquad
+ \begin{tabular}{l} $u_{(i+1)\kr{j_k}_{k=1}^n} = \p{1-T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}} u_{i\kr{j_k}_{k=1}^n}$ \\ $u_{(i+1)\kr{\ell_k}_{k=1}^n} = u_{i\kr{\ell_k}_{k=1}^n} + T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n}$ \end{tabular}
+ \label{eq_47}
+\end{align}
+
+and reject the move with
+
+\begin{align}
+\frac{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}u_{i\kr{\ell_k}_{k=1}^n}} {T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}u_{i\kr{j_k}_{k=1}^n}} < 1 :
+\qquad
+ \begin{tabular}{l} $u_{(i+1)\kr{j_k}_{k=1}^n} = u_{i\kr{j_k}_{k=1}^n} - T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} u_{i\kr{\ell_k}_{k=1}^n}$ \\ $u_{(i+1)\kr{\ell_k}_{k=1}^n} = \p{1+T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}} u_{i\kr{\ell_k}_{k=1}^n}$ \end{tabular}
+ \label{eq_48}
+\end{align}
+
+\subsubsection{Wall boundary}
 
 \section{Attachments}
 
@@ -585,13 +705,14 @@ The source files developed are
 \end{enumerate}
 
 \begin{thebibliography}{1}
-\bibitem{project4}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-5-deadline-december-1/project5_diffusion.pdf}{\emph{FYS4150 - Project 5}} - \emph{Diffusion in two dimensions}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{project5}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/projects/project-5-deadline-december-1/project5_diffusion.pdf}{\emph{FYS4150 - Project 5}} - \emph{Diffusion in two dimensions}, \href{http://www.uio.no}{University of Oslo}, 2014} 
 \bibitem{lecture}{\href{mailto:morten.hjorth-jensen@fys.uio.no}{Morten Hjorth-Jensen}, \href{http://www.uio.no/studier/emner/matnat/fys/FYS3150/h14/undervisningsmateriale/Lecture\%20Notes/lecture2014.pdf}{\emph{Computational Physics - Lecture Notes Fall 2014}}, \href{http://www.uio.no}{University of Oslo}, 2014} 
+\bibitem{project4} \href{mailto:eimundsm@fys.uio.no}{Eimund Smestad}, \href{https://github.com/Eimund/UiO/tree/master/FYS4150/Project\%204}{\emph{FYS4150 - Computational Physics - Project 4}}, \href{http://www.uio.no}{University of Oslo}, 2014
 \bibitem{Farnell}
 Farnell and Gibson, \href{https://vpn2.uio.no/+CSCO+00756767633A2F2F6A6A6A2E667076726170727176657270672E70627A++/science/article/pii/S0021999105001087#}
 {\emph{Monte Carlo simulation of diffusion in a spatially
-nonhomogeneous medium:}} A biased random walk
-on an asymmetrical lattice, Journal of Computational Physics Vol. 208 p. 253-265, 2005
+nonhomogeneous medium:}} \emph{A biased random walk
+on an asymmetrical lattice}, Journal of Computational Physics Vol. 208 p. 253-265, 2005
 \bibitem{Diffusion}\href{http://en.wikipedia.org/wiki/Diffusion\_equation}{http://en.wikipedia.org/wiki/Diffusion\_equation}
 \bibitem{Heat}\href{http://en.wikipedia.org/wiki/Heat\_equation}{http://en.wikipedia.org/wiki/Heat\_equation}
 \bibitem{Dirichlet}\href{http://en.wikipedia.org/wiki/Dirichlet\_boundary\_condition}{http://en.wikipedia.org/wiki/Dirichlet\_boundary\_condition}
@@ -609,6 +730,9 @@ on an asymmetrical lattice, Journal of Computational Physics Vol. 208 p. 253-265
 \bibitem{Metropolis}\href{http://en.wikipedia.org/wiki/Metropolis\%E2\%80\%93Hastings\_algorithm}{http://en.wikipedia.org/wiki/Metropolis\%E2\%80\%93Hastings\_algorithm}
 \bibitem{MonteCarlo}\href{http://en.wikipedia.org/wiki/Monte\_Carlo\_algorithm}{http://en.wikipedia.org/wiki/Monte\_Carlo\_algorithm}
 \bibitem{Isotropic}\href{http://en.wikipedia.org/wiki/Isotropy}{http://en.wikipedia.org/wiki/Isotropy}
+\bibitem{Lax}\href{http://en.wikipedia.org/wiki/Lax\_equivalence\_theorem}{http://en.wikipedia.org/wiki/Lax\_equivalence\_theorem}
+\bibitem{WellPosed}\href{http://en.wikipedia.org/wiki/Well-posed\_problem}{http://en.wikipedia.org/wiki/Well-posed\_problem}
+\bibitem{Spectral_radius}\href{http://en.wikipedia.org/wiki/Spectral\_radius}{http://en.wikipedia.org/wiki/Spectral\_radius}
 \end{thebibliography}
 
 \end{flushleft}
