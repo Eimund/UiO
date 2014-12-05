@@ -45,6 +45,7 @@ template<typename T> Vector<T,2> Diffusion2D_alpha(T alpha, T d[2], unsigned int
 template<typename T> T Diffusion2D_deltaT(T alpha, T dx2[2]);
 template<typename T> Vector<T,2> Diffusion2D_deltaX2(T d[2], unsigned int n[2]);
 template<typename T> T** Diffusion2D_Exact(T u0, T D, T t, T d[2], T w[2], T* x[2], unsigned int n[2], unsigned int ne[2]);
+template<typename T> T** Diffusion2D_Exact2(T u0, T D, T t, T d[2], T w[2], T* x[2], unsigned int n[2], unsigned int ne[2]);
 template<typename T> T** Diffusion2D_Explicit(T alpha, T t, T d[2], T w[2], unsigned int n[2]);
 template<typename T> T** Diffusion2D_Explicit2(T alpha, T t, T d[2], T w[2], unsigned int n[2]);
 template<typename T> T** Diffusion2D_Initialize(unsigned int m[2], unsigned int n[2]);
@@ -61,7 +62,7 @@ int main() {
 
     FLOAT u0 = 1;
     FLOAT D = 1;
-    FLOAT t = 0.1;
+    FLOAT t = 1;
     Vector<unsigned int,2> n = {100,100};
     Vector<unsigned int,2> ne = {100,100};
     Vector<FLOAT,2> d = {1,10};
@@ -122,8 +123,6 @@ int main() {
     file.close();
 
     file.open("Metropolis_1D.dat");
-    //Delegate<void, void, FLOAT*, FLOAT*[1], unsigned int[1], FLOAT, FLOAT, FLOAT, decltype(step_uniform)> Diff1D_MMC(&Diffusion1D_Metropolis<Step<FLOAT>,FLOAT>);
-    //space = Experiment2(1000u, x, n, Diff1D_MMC, t, 1e-3, d[0], step_gaussian);
     space = Diffusion1D_Metropolis<FLOAT>(10000, n[0]);
     Space<FLOAT,1>::ToFile(file, x, space, n);
     Space<FLOAT,1>::Deallocate(space, n);
@@ -225,6 +224,57 @@ template<typename T> Vector<T,2> Diffusion2D_deltaX2(T d[2], unsigned int n[2]) 
 }
 
 template<typename T> T** Diffusion2D_Exact(T u0, T D, T t, T d[2], T w[2], T* x[2], unsigned int n[2], unsigned int ne[2]) {
+    T omega, a, b, f;
+    T t1 = - D*t/(3*w[0]*w[0]);
+    T t2 = - D*t/(3*(w[1]-d[1])*(w[1]-d[1]));
+    T t3 = 5*t1;
+    T t4 = 5*t2;
+    T t5 = - D*t/(d[0]*d[0]);
+    auto u = Space<T,2>::Allocate(n);
+
+    for(int i = 0; i < n[0]; i++) {
+        for(int j = 0; j < n[1]; j++) {
+
+            if(x[1][j] < w[0]) {
+                a = 0;
+                b = 0;
+                f = 1-x[1][j]/w[0];
+                for(int k=1; k < ne[1]; k++) {
+                    omega = M_PI* k;
+                    a -= (T)2/omega * sin(omega*f) * exp(omega*omega*t3);
+                    b += (T)2/(sqrt(3)*omega) * exp(omega*omega*t1);
+                }
+                //b = 1;
+                a += (1 - f) * b;
+            }
+            else if(x[1][j] > w[1]) {
+                a = 0;
+                b = 0;
+                f = (w[1]-x[1][j])/(w[1]-d[1]);
+                for(int k=1; k < ne[1]; k++) {
+                    omega = M_PI* k;
+                    a -= (T)2/omega * sin(omega*f) * exp(omega*omega*t4);
+                    b += exp(omega*omega*t2);
+                }
+                b = 1;
+                a += (x[1][j]-d[1])/(w[1]-d[1]) * b;
+            }
+            else
+                a = 1;
+
+            u[i][j] = 0;
+            f = x[0][i]/d[0];
+            for(int k = 1; k < ne[0]; k++) {
+                omega = M_PI* k;
+                u[i][j] -= (T)2/omega * sin(omega*f) * exp(omega*omega*t5);
+            }
+            u[i][j] = u0 * a * (1 - f + u[i][j]);
+        }
+    }
+    return u;
+}
+
+template<typename T> T** Diffusion2D_Exact2(T u0, T D, T t, T d[2], T w[2], T* x[2], unsigned int n[2], unsigned int ne[2]) {
     T omega, a, f;
     T t1 = - D*t/(w[0]*w[0]);
     T t2 = - D*t/((w[1]-d[1])*(w[1]-d[1]));

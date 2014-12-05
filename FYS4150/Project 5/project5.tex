@@ -72,56 +72,59 @@ where $d$ is the distance between the presynaptic and the postsynaptic, and $w$ 
 
 To solve the differential equation \eqref{eq_1} with the boundary and initial condition \eqref{eq_2} we make an ansatz that the solution is unique, which is the case for a deterministic system. We recognize the heat equation as part of the class of partial differential equations spanned by the Poisson's equation for each time instance. The Uniqueness theorem for the Poisson's equation $\nabla^2 u = f$ \cite{Uniqueness} says that the Poisson's equation has a unique solution with the Dirichlet boundary condition, where Dirichlet boundary condition is here defined as a boundary that specifies the values the solution must have at the boundary. Not to be confused with Dirichlet boundary condition with zero at the boundary, which is just a special case and I will refer to it as 0th Dirichlet boundary condition. \linebreak
 
-Unfortunately the boundary condition in \eqref{eq_2} is not a Dirichlet boundary, since the boundary is not specified on the side of the synaptic vesicles $x_1=0$, $0\leq x_2 < w_1$ and $w_2 < x_2 \leq w$, and closer investigation will show that the boundary condition in \eqref{eq_2} does not provide a unique solution. So we need to add further condition to make the solution unique, and I make an assumption that the total concentration $u$ in an infinitesimal area has uniform concentration per length $u_1$ and $u_2$ in each direction $x_1$ and $x_2$ accordingly. Hence $u=u_1 u_2$ at every point and therefore we can write
+Unfortunately the boundary condition in \eqref{eq_2} is not a Dirichlet boundary, since the boundary is not specified on the side of the synaptic vesicles $x_1=0$, $0\leq x_2 < w_1$ and $w_2 < x_2 \leq w$, and closer investigation will show that the boundary condition in \eqref{eq_2} does not provide a unique solution. Therefore I introduce a wall boundary at the side of the synaptic vesicles as described in \eqref{eq_56}, and make an ansatz that the concentration can be separated as follows
 
 \begin{align}
-\forall x_1 \in \mathbb{R}_0^d \forall x_2 \in \mathbb{R}_0^w \forall t \in \mathbb{R}_{0}: u\p{\kr{x_i}_{i=1}^2,t} = u_1\p{x_1,t} u_2\p{x_2,t} \,.
+\forall x_1 \in \mathbb{R}_0^d \forall x_2 \in \mathbb{R}_0^w \forall t \in \mathbb{R}_0 : u\p{\kr{x_i}_{i=1}^2,t} =  u_1\p{x_1,t}u_2\p{x_2,t}\,, 
 \label{eq_3}
 \end{align}
 
-Putting this into the heat equation \eqref{eq_1} we get
-
-\begin{align*}
-u_2\p{x_2,t}\frac{\partial u_1\p{x_1,t}}{\partial t} + u_1\p{x_1,t}\frac{\partial u_2\p{x_2,t}}{\partial t} = D\p{u_2\p{x_2,t}\frac{\partial^2 u_1\p{x_1,t}}{\partial {x_1}^2} + u_1\p{x_1,t}\frac{\partial^2 u_2\p{x_2,t}}{\partial {x_2}^2}} \,,
-\end{align*}
-
-which can be written as two heat equations
+where
 
 \begin{align}
-\forall i \in \mathbb{N}_1^2 : \frac{\partial u_i\p{x_i,t}}{\partial t}  = D \frac{\partial^2 u_i\p{x_i,t}}{\partial {x_i}^2} \,.
+u_2\p{x_2,t} &= \sum_{n=1}\p{u_{3n}\p{x_2} +  u_{4n}\p{x_2,t}}\exp\p{-\frac{D{\omega_n}^2 t}{3}}
 \label{eq_4}
-\end{align}
-
-I make another assumption that the the boundary at $u\p{0,x_2,t}$ determined by $u_2\p{x_2,t}$ alone, and by satisfying initial condition $u\p{0,x_2,0}$ for $u_2$
-
-\begin{align}
-\forall t \in \mathbb{R}_0 \p{: u_2\p{0,t} = u_2\p{w,t} = 0 \wedge \forall x_2\in\mathbb{R}_{w_1}^{w_2}: u_2\p{x_2,t} = u_0} \wedge \forall x_2 \in\mathbb{R}_{0}^{w} \setminus \mathbb{R}_{w_1}^{w_2}: u_2\p{x_2,0} = 0
+\\
+u_5\p{x_2,t} &= \sum_{n=1} u_{3n}\p{x_2} + u_{4n}\p{x_2,t}
 \label{eq_5}
 \end{align}
 
-we have now determined the values on all the boundaries have therefore Dirichlet boundary condition, and therefore a unique solution of $u$. We found the analytical solution to the heat equation in \eqref{eq_4} for $i=2$ with similar boundary and initial condition in project 4 \cite{project4}, and I will therefore not show the derivation here, but just state the solutions
+is the wall boundary condition in \eqref{eq_56} with $n=2$;
 
 \begin{align}
-u_2\p{x_2,t} = u_0 \begin{cases} \frac{x_2}{w_1} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\p{1-\frac{x_2}{w_1}}}\exp\p{-D\p{\frac{n\pi}{w_1}}^2 t} &: x_2\in\mathbb{R}_0^{w_1-}\\ 1 &: x_2 \in\mathbb{R}_{w_1}^{w_2} \\  \frac{w-x_2}{w-w_2} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{x_2-w_2}{w-w_2}}\exp\p{-D\p{\frac{n\pi}{w-w_2}}^2 t} & : x_2\in\mathbb{R}_{w_2+}^w \,.\end{cases}
+\forall x_2 \in \mathbb{R}_0^w \setminus \mathbb{R}_{w_1}^{w_2} \forall t \in \mathbb{R}_0 :\frac{\partial u_5\p{x_2,t}}{\partial t} = \frac{4}{3}D\frac{\partial^2 u_5\p{x_2,t}}{\partial {x_2}^2} \,.
 \label{eq_6}
 \end{align}
 
-Since I have established that the boundary at $u\p{0,x_2,t}$ determined by $u_2\p{x_2,t}$ alone, means that $u_1$ has the following boundary and initial condition
+We have now defined all the values on the boundary and therefore we have Dirichlet boundary condition of $u$, and we have satisfied the uniqueness theorem at each time step. We found the analytic solution to the heat equation in \eqref{eq_6} with similar boundary and initial condition in project 4 \cite{project4}, and I will therefore not show the derivation here, but just state the solutions
 
 \begin{align}
-\forall t \in \mathbb{R}_0\p{: u_1\p{0,t} = 1 \wedge u_1\p{d,t} = 0} \wedge  \forall x_1 \in \mathbb{R}_{0+}^{d-} : u_1\p{x_1,0}=0 \,.  
+u_1\p{x_1,t} &= u_0\p{1-\frac{x_1}{d} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{x_1}{d}}\exp\p{-D\p{\frac{n\pi}{d}}^2 t}}
 \label{eq_7}
-\end{align}
-
-And using the analytical solution from project 4 to heat equation \eqref{eq_4} for $i=1$ with boundary and initial condition in \eqref{eq_7}, we have 
-
-\begin{align}
-u_1\p{x_1,t} = 1-\frac{x_1}{d} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{x_1}{d}}\exp\p{-D\p{\frac{n\pi}{d}}^2 t} \,.
+\\
+u_5\p{x_2,t} &= \begin{cases} \frac{x_2}{w_1} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\p{1-\frac{x_2}{w_1}}}\exp\p{-\frac{4}{3}D\p{\frac{n\pi}{w_1}}^2 t} &: x_2\in\mathbb{R}_0^{w_1-}\\ 1 &: x_2 \in\mathbb{R}_{w_1}^{w_2} \\  \frac{w-x_2}{w-w_2} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{x_2-w_2}{w-w_2}}\exp\p{-\frac{4}{3}D\p{\frac{n\pi}{w-w_2}}^2 t} & : x_2\in\mathbb{R}_{w_2+}^w \,.\end{cases}
 \label{eq_8}
 \end{align}
 
-To summarize the solution to the concentration $u$ is given by \eqref{eq_3} with \eqref{eq_6} and \eqref{eq_8}. 
+These are the solution that satisfy for boundary and initial condition for $u\p{\kr{x_i}_{i=1}^n,t}$. What we are left with to proving the ansatz in \eqref{eq_3} is to find $\omega_n$, which we can do by putting \eqref{eq_3}, \eqref{eq_4} and \eqref{eq_6} into \eqref{eq_1} yields the following partial differential equation
 
+\begin{align*}
+\frac{\partial^2 u_{4n}\p{x_2,t}}{\partial {x_2}^2} = {\omega_n}^2 u_{4n}\p{x_2,t}
+\end{align*}
+
+which is satisfied with
+
+\begin{align}
+\omega_n = \begin{cases} \frac{n\pi}{w_1} &: x_2\in\mathbb{R}_0^{w_1-} \\ 0 &: x_2\in\mathbb{R}_{w_1}^{w_2} \\ \frac{n\pi}{w-w_2} &: x_2\in\mathbb{R}_{w_2+}^w \end{cases}
+\label{eq_9}
+\end{align}
+
+because of the solution of $u_5\p{x_2,t}$ in \eqref{eq_4} and \eqref{eq_7}. This yields
+
+\begin{align}
+u_2\p{x_2,t} &= \begin{cases} \frac{x_2}{w_1}\sum_{n=1}\exp\p{-\frac{1}{3}D\p{\frac{n\pi}{w_1}}^2 t} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\p{1-\frac{x_2}{w_1}}}\exp\p{-\frac{5}{3}D\p{\frac{n\pi}{w_1}}^2 t} &: x_2\in\mathbb{R}_0^{w_1-}\\ 1 &: x_2 \in\mathbb{R}_{w_1}^{w_2} \\  \frac{w-x_2}{w-w_2}\sum_{n=1}\exp\p{-\frac{1}{3}D\p{\frac{n\pi}{w_1}}^2 t} - \sum_{n=1} \frac{2}{n \pi} \sin\p{n\pi\frac{x_2-w_2}{w-w_2}}\exp\p{-\frac{5}{3}D\p{\frac{n\pi}{w-w_2}}^2 t} & : x_2\in\mathbb{R}_{w_2+}^w \,.\end{cases}
+\label{eq_10}
+\end{align}
 
 \section{Numerical methods}
 
@@ -131,7 +134,7 @@ The Taylor expansion is given by
 
 \begin{align}
 u\p{x} = \sum_{n=0} \frac{\T{u}{(n)}\p{x_0}}{n!}\p{x-x_0}^n
-\label{eq_9}
+\label{eq_15}
 \end{align}
 
 where $\T{u}{(n)} = \frac{\mathrm{d}^n u}{\mathrm{d}t^n}$ and $x_0$ is a initial value where we step from to $x$ . If we now use the first order approximation
@@ -144,7 +147,7 @@ The first order differential equation $\T{u}{(1)}\p{x} = f\p{x}$ is determined w
 
 \begin{align}
 \T{u}{(1)}\p{x_0} \approx \frac{u\p{x}-u\p{x_0}}{x-x_0}\,.
-\label{eq_10}
+\label{eq_16}
 \end{align}
 
 So now use this in another point $x_{\theta} = \theta x + \p{1-\theta}x_0$ which we also approximate to the first order, and if we use the expression above for $\T{u}{(1)}\p{x_0}$ we get
@@ -153,17 +156,17 @@ So now use this in another point $x_{\theta} = \theta x + \p{1-\theta}x_0$ which
 u\p{x_\theta} &\approx u\p{x_0} + \T{u}{(1)}\p{x_0}\p{x_{\theta}-x_0} = u\p{x_0} + \theta\,\T{u}{(1)}\p{x_0}\p{x-x_0} 
 \nonumber\\
 &\approx u\p{x_0} + \frac{u\p{x}-u\p{x_0}}{x-x_0}\theta\p{x-x_0} = \theta u\p{x} + \p{1-\theta}u\p{x_0} \,,
-\label{eq_11}
+\label{eq_17}
 \end{align}
 
 this is known as the $\theta$-rule. The $\theta$-rule can be used to approximate the solution of the following first order differential equation
 
 \begin{align}
 \T{u}{(1)}\p{x} = f\p{u\p{x}} \,,
-\label{eq_12}
+\label{eq_18}
 \end{align}
 
-where we use \eqref{eq_10} to approximate the expression $\T{u}{(1)}\p{x}$ and given an even better or worse approximation to the solution $u\p{x}$ by approximating $f\p{x}\approx f\p{x_{\theta}}$;
+where we use \eqref{eq_16} to approximate the expression $\T{u}{(1)}\p{x}$ and given an even better or worse approximation to the solution $u\p{x}$ by approximating $f\p{x}\approx f\p{x_{\theta}}$;
 
 \begin{align*}
 \frac{u\p{x}-u\p{x_0}}{x-x_0} \approx f\p{u\p{x_{\theta}}} = f\p{\theta u\p{x} + \p{1-\theta}u\p{x_0}}\,,
@@ -173,18 +176,18 @@ which discretize to
 
 \begin{align}
 \frac{u_{i+1}-u_i}{x_{i+1}-x_i} = f\p{\theta u_{i+1} + \p{1-\theta}u_i} \qquad \text{where } i\in\mathbb{N}_0 \text{ and $u_0$ is an initial contidion.} 
-\label{eq_13}
+\label{eq_19}
 \end{align}
 
-We can find the the next step in the numerical solution to \eqref{eq_12} by solving this difference equation with regard to $u_{i+1}$. Note the above discretization is known as Forward Euler scheme (Explicit) when $\theta = 0$, Backward Euler scheme (Implicit) when $\theta = 1$ and Crank-Nicolson scheme when $\theta = \frac{1}{2}$.
+We can find the the next step in the numerical solution to \eqref{eq_18} by solving this difference equation with regard to $u_{i+1}$. Note the above discretization is known as Forward Euler scheme (Explicit) when $\theta = 0$, Backward Euler scheme (Implicit) when $\theta = 1$ and Crank-Nicolson scheme when $\theta = \frac{1}{2}$.
 
 \subsection{Second order derivative}
 
-We approximated the first order derivative in \eqref{eq_10}, but we need to approximate the second order derivative to be able to solve the diffusion in \eqref{eq_1}. I start by expanding the Taylor series in \eqref{eq_9} around the point $x_0\pm\Delta x$ accordingly;
+We approximated the first order derivative in \eqref{eq_16}, but we need to approximate the second order derivative to be able to solve the diffusion in \eqref{eq_1}. I start by expanding the Taylor series in \eqref{eq_15} around the point $x_0\pm\Delta x$ accordingly;
 
 \begin{align}
 u\p{x_0\pm\Delta x} = \sum_{n=0} \frac{\T{u}{(n)}\p{x_0}}{n!}\p{\pm\Delta x}^n\,.
-\label{eq_14}
+\label{eq_20}
 \end{align}
 
 Now adding these two expansions
@@ -204,7 +207,7 @@ So the second order derivative can be approximated with
 
 \begin{align}
 \T{u}{(2)}\p{x_0} \approx   \frac{u\p{x_0+\Delta x} - 2 u\p{x_0} + u\p{x_0-\Delta x}}{\Delta x^2}
-\label{eq_15}
+\label{eq_21}
 \end{align}
 
 with the local truncation error $\mathcal{O}\p{\Delta x^2}$.
@@ -217,7 +220,7 @@ We want to discretize the dimensionless heat equation from \eqref{eq_1}, where w
 \frac{\partial u\p{\kr{x_i}_{i=1}^2,t}}{\partial t} = \sum_{\ell=1}^2\frac{\partial^2 u\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_\ell}^2}\,,
 \end{align*}
 
-to numerically solve diffusion of neurotransmitters. First we do the $\theta$-rule discretization in \eqref{eq_13} 
+to numerically solve diffusion of neurotransmitters. First we do the $\theta$-rule discretization in \eqref{eq_19} 
 
 \begin{align*}
 \frac{u_{(i+1)\kr{j_k}_{k=1}^2}-u_{i\kr{j_k}_{k=1}^2}}{\Delta t} 
@@ -227,18 +230,18 @@ to numerically solve diffusion of neurotransmitters. First we do the $\theta$-ru
 &= \sum_{\ell=1}^2\p{\theta \frac{\partial u_{(i+1)\kr{j_k}_{k=1}^2}}{\partial {x_\ell}^2} + \p{1-\theta}\frac{\partial u_{i\kr{j_k}_{k=1}^2}}{\partial {x_\ell}^2}}
 \end{align*}
 
-where index $i$ is stepping of $t$ and $j_k$ are stepping of $x_k$. Note also that the following notation expand accordingly $u_{i\kr{j_k}_{k=1}^2} = u_{ij_1 j_2}$, which becomes a more elegant notation for larger $n$ in $u_{i\kr{j_k}_{k=1}^n} = u_{ij_1j_2\ldots j_n}$. Now we implement the discretization of the second order in \eqref{eq_15}
+where index $i$ is stepping of $t$ and $j_k$ are stepping of $x_k$. Note also that the following notation expand accordingly $u_{i\kr{j_k}_{k=1}^2} = u_{ij_1 j_2}$, which becomes a more elegant notation for larger $n$ in $u_{i\kr{j_k}_{k=1}^n} = u_{ij_1j_2\ldots j_n}$. Now we implement the discretization of the second order in \eqref{eq_21}
 
 \begin{align}
 \frac{u_{(i+1)\kr{j_k}_{k=1}^2}-u_{i\kr{j_k}_{k=1}^2}}{\Delta t} =& \sum_{\ell=1}^2 \left(\frac{\theta}{\Delta {x_\ell}^2}\p{u_{(i+1)\kr{j_k+\delta_{k\ell}}_{k=1}^2} - 2 u_{(i+1)\kr{j_k}_{k=1}^2} + u_{(i+1)\kr{j_k-\delta_{k\ell}}_{k=1}^2}} \right.
 \nonumber\\
 &\quad \left. + \frac{1-\theta}{\Delta {x_\ell}^2}\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} - 2u_{i\kr{j_k}_{k=1}^2} +u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}\right) \,,
-\label{eq_16}
+\label{eq_22}
 \end{align}
 
 where $\delta_{k\ell}$ is the Kronecker delta, and we now clearly see the elegance of the notation $u_{i\kr{j_k}_{k=1}^n}$. \linebreak
 
-The dimensionless initial condition from \eqref{eq_4} gives us
+The dimensionless initial condition from \eqref{eq_10} gives us
 
 \begin{align*}
 u_{0\kr{j_k}_{k=1}^2} = \begin{cases} 1 & : j_1 = 0 \text{ and } x_{2 j_2} \in \mathbb{R}_{w_1}^{w_2} \\ 0 & :\text{elsewhere,} \end{cases} 
@@ -248,7 +251,7 @@ where $x_{2 j_2} = x_{2 0}  + \frac{j_2}{\Delta x_2}$. For the explicit scheme $
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^2} = u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 \alpha_\ell\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} - 2u_{i\kr{j_k}_{k=1}^2} +u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}
-\label{eq_17}
+\label{eq_23}
 \end{align}
 
 where
@@ -269,7 +272,7 @@ There is a theorem that states that a matrix $\textbf{A}$ converges $\lim_{i\to\
 \rho\p{\textbf{A}} = \max_m \abs{\lambda_m} \,,
 \end{align*}
 
-where $\lambda_m$ are the eigenvalues of $\textbf{A}$. The explicit scheme in \eqref{eq_17}  can be written as $\textbf{u}_{i+1} = \textbf{A}\textbf{u}_i = \textbf{A}^{i+1}\textbf{u}_0$, and the this matrix can be written as
+where $\lambda_m$ are the eigenvalues of $\textbf{A}$. The explicit scheme in \eqref{eq_23}  can be written as $\textbf{u}_{i+1} = \textbf{A}\textbf{u}_i = \textbf{A}^{i+1}\textbf{u}_0$, and the this matrix can be written as
 
 \begin{align*}
 \textbf{A} = \textbf{I} - \sum_{\ell = 1}^2 \alpha_\ell \textbf{B}
@@ -279,14 +282,14 @@ where $\textbf{I}$ is the identity matrix and $\textbf{B}$ is the tridiagonal ma
 
 \begin{align}
 \lambda_m = 1 - \sum_{\ell=1}^2 \alpha_\ell \mu_m\,.
-\label{eq_18}
+\label{eq_24}
 \end{align}
 
 The eigenvalues $\mu_m$ can be found from the eigenequation
 
 \begin{align}
 -u_{i\kr{j_k + \delta_{k\ell}}_{k=1}^2} + 2 u_{i\kr{j_k}_{k=1}^2}-u_{i\kr{j_k - \delta_{k\ell}}_{k=1}^2} = \mu_m u_{i\kr{j_k}_{k=1}^2} \,.
-\label{eq_19}
+\label{eq_25}
 \end{align}
 
 If we divide this equation by ${\Delta x_\ell}^2$ we get a discretization of the following equation
@@ -307,7 +310,7 @@ where
 \omega_{\ell m} = \frac{\Delta {x_\ell}}{\sqrt{\mu_m}} = \frac{1}{n_\ell\sqrt{\mu_m}}\,.
 \end{align*}
 
-Now using this solution into the eigenequation \eqref{eq_19} we get
+Now using this solution into the eigenequation \eqref{eq_25} we get
 
 \begin{align*}
 -\sin\p{\omega_{\ell m} \p{x_{\ell j_\ell}+\Delta x_\ell} + \varphi_\ell} + 2\sin\p{\omega_{\ell m} x_{\ell j_\ell} + \varphi_\ell} - \sin\p{\omega_{\ell m} \p{x_{\ell j_\ell}-\Delta x_\ell} + \varphi_\ell} = \mu_i \sin\p{\omega_{\ell m} x_{\ell j_\ell} + \varphi_\ell}
@@ -319,7 +322,7 @@ which can be simplified with the trigonometrical relation $\sin\p{u+v} = \sin u 
 \mu_m = 2\p{1-\cos\p{\omega_{\ell m} \Delta x_\ell}} \qquad \Rightarrow \quad 0 < \mu_m \leq 4 \quad \text{for real $\mu_m$.} \,,
 \end{align*}
 
-note that $\mu_m\neq 0$ because of $\omega_{\ell m} \propto \frac{1}{\sqrt{\mu_m}}$. Inserting these eigenvalues into \eqref{eq_18} and using the convergence condition $\rho\p{\textbf{A}} < 1$ yields the following inequality
+note that $\mu_m\neq 0$ because of $\omega_{\ell m} \propto \frac{1}{\sqrt{\mu_m}}$. Inserting these eigenvalues into \eqref{eq_24} and using the convergence condition $\rho\p{\textbf{A}} < 1$ yields the following inequality
 
 \begin{align*}
 -1 < 1 - \sum_{\ell=1}^2 \alpha_\ell \mu_m < 1
@@ -335,12 +338,12 @@ where the $\alpha_\ell$ is always positive. So when we want to solve the heat eq
 
 \begin{align}
 \Delta t < \frac{1}{2\sum_{\ell=1}^2 {n_\ell}^2} \,.
-\label{eq_20}
+\label{eq_26}
 \end{align}
 
 \subsection{Jacobi's iterative method}
 
-When we have $\theta\neq 0$ in \eqref{eq_16} we have implicit schemes, and I rewrite \eqref{eq_16} with unknowns on the left side and knowns on the right side;
+When we have $\theta\neq 0$ in \eqref{eq_22} we have implicit schemes, and I rewrite \eqref{eq_22} with unknowns on the left side and knowns on the right side;
 
 \begin{align*}
 \forall k\in\mathbb{N}_1^2 \forall j_k \in \mathbb{N}_1^{n_k-2} : &\p{1+2\theta\sum_{\ell=1}^2 \alpha_\ell} u_{(i+1)\kr{j_k}_{k=1}^2} - \theta\sum_{\ell = 1}^2\alpha_\ell \p{u_{(i+1)\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{(i+1)\kr{j_k-\delta_{k\ell}}_{k=1}^2}} 
@@ -352,7 +355,7 @@ where the boundary are given at the indices $j_k=0$ and $j_k= n_k-1$ where $n_k$
 
 \begin{align}
 v_{(i+1)j} = v_{(i+1)(j_1 n_2 + j_2)} = u_{(i+1)\kr{j_k}_{k=1}^2} \,.
-\label{eq_21}
+\label{eq_27}
 \end{align}
 
 The fixed boundary values with $u_0=1$ at the presynaptic $x_1=0$ and $w_1 \leq x_2 \leq w_2$ are given by the indices $j$ in the set
@@ -407,7 +410,7 @@ a_{(i+1)jk} = a_{jk} = \begin{cases}
 -\theta \alpha_2 &: \forall j\in\mathbb{I}\cup\mathbb{B}_2: k\in\kr{j-1,j+1}\quad \text{(diffusion in $x_2$ direction)} \\ 
 - \theta \alpha_1 &: \forall j\in\mathbb{I} : k \in \kr{j-n_2,j+n_2} \,\,\qquad\text{(diffusion in $x_1$ direction)} \\
  0 & : \text{otherwise,} \end{cases}
-\label{eq_22}
+\label{eq_28}
 \end{align}
 
 and the elements of the vector $\textbf{b}_i$ are
@@ -419,16 +422,16 @@ b_{ij} = b_{i(j_1 n_2 + j_2)} = \begin{cases}
 \p{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell} u_{i\kr{j_k}_{k=1}^2} + \p{1-\theta}\sum_{\ell=1}^2\alpha_\ell\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}} &: j\in\mathbb{I} \\
 0 &: \text{otherwise.}
 \end{cases}
-\label{eq_23}
+\label{eq_29}
 \end{align}
 
-Unfortunately  is the linear algebra problem $\textbf{A}\textbf{v}_{i+1} = \textbf{b}_i$ is computational expensive to solve for the matrix in \eqref{eq_22}. To lower the computational time I therefore prepare the matrix $\textbf{A}$ for Jacobi's iterative method by splitting it into a diagonal matrix $\textbf{D}$ and a remainder matrix $\textbf{R}$;
+Unfortunately  is the linear algebra problem $\textbf{A}\textbf{v}_{i+1} = \textbf{b}_i$ is computational expensive to solve for the matrix in \eqref{eq_28}. To lower the computational time I therefore prepare the matrix $\textbf{A}$ for Jacobi's iterative method by splitting it into a diagonal matrix $\textbf{D}$ and a remainder matrix $\textbf{R}$;
 
 \begin{align*}
 \textbf{A} = \textbf{D} + \textbf{R} \,.
 \end{align*}
 
-From \eqref{eq_22} we see that the elements of the diagonal matrix are given by
+From \eqref{eq_28} we see that the elements of the diagonal matrix are given by
 
 \begin{align}
 d_{jk} = \begin{cases} 
@@ -436,7 +439,7 @@ d_{jk} = \begin{cases}
 1+ 2\theta \alpha_2 &: \forall j\in\mathbb{B}_2: j=k \,\,\quad\qquad\qquad\qquad (\text{side of vesicles}) \\ 
 1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell &: \forall j\in\mathbb{I}: j=k \qquad\qquad\qquad\qquad (\text{the inner points }u_{(i+1)j_1j_2}) \\ 
  0 & : \text{otherwise,} \end{cases}
-\label{eq_24}
+\label{eq_30}
 \end{align}
 
 and the elements of the remainder matrix are given by
@@ -446,7 +449,7 @@ r_{jk} = \begin{cases}
 -\theta \alpha_2 &: \forall j\in\mathbb{I}\cup\mathbb{B}_2: k\in\kr{j-1,j+1}\quad \text{(diffusion in $x_2$ direction)} \\ 
 - \theta \alpha_1 &: \forall j\in\mathbb{I} : k \in \kr{j-n_2,j+n_2} \,\,\qquad\text{(diffusion in $x_1$ direction)} \\
  0 & : \text{otherwise.} \end{cases}
-\label{eq_25}
+\label{eq_31}
 \end{align}
 
 We can now introduce Jacobi's iterative method
@@ -464,7 +467,7 @@ where $\ell$ is the number of iterations and $\ell=0$ are the starting point. Re
 v_{(i+1)j}^{(\ell)} = \begin{cases} v_j &: \ell = 0 \\ \frac{1}{d_{jj}}\p{b_j - \sum_{k\neq j} r_{jk} v_{(i+1)k}^{(\ell-1)}} &: j\in\mathbb{N}_1 \,.\end{cases}
 \end{align*}
 
-Using \eqref{eq_21} and \eqref{eq_25} we have the iterative solution to the heat equation in \eqref{eq_6} with the boundaries in \eqref{eq_2}
+Using \eqref{eq_27} and \eqref{eq_31} we have the iterative solution to the heat equation in \eqref{eq_12} with the boundaries in \eqref{eq_2}
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^2}^{(\ell)} = \begin{cases}
@@ -473,30 +476,30 @@ u_{i\kr{j_k}_{k=1}^2} &: \ell = 0 \\
 c_0 + c_1\p{u_{(i+1)0(j_2+1)}^{(\ell-1)}+u_{(i+1)0(j_2-1)}^{(\ell-1)}} &: j_1=0 \wedge j_2\in\mathbb{N}_0^{n_2-1} \setminus\mathbb{N}_{m_1}^{m_2} \\
 c_2 + \sum_{o=1}^2 c_{o+2}\p{u_{(i+1)\kr{j_k+\delta_{ko}}_{k=1}^2}^{(\ell-1)}+u_{(i+1)\kr{j_k-\delta_{ko}}_{k=1}^2}^{(\ell-1)}} &: j_1\in \mathbb{N}_{1}^{n_1-2} \wedge j_2\in\mathbb{N}_1^{n_2-2} 
 \end{cases} 
-\label{eq_26}
+\label{eq_32}
 \end{align}
 
 \begin{align}
 c_0 &= c_5 u_{i0j_2} + c_6\p{u_{i0(j_2+1)} + u_{i0(j_2-1)}}
-\label{eq_27}\\
-c_1 &= \frac{\theta \alpha_2}{1+2\theta\alpha_2}
-\label{eq_28}\\
-c_2 &= c_7 u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 c_{\ell+7} \p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}
-\label{eq_29}\\
-c_3 &= \frac{\theta \alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
-\label{eq_30}\\
-c_4 &= \frac{\theta \alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
-\label{eq_31}\\
-c_5 &= \frac{1-2\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
-\label{eq_32}\\
-c_6 &= \frac{\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
 \label{eq_33}\\
-c_7 &= \frac{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+c_1 &= \frac{\theta \alpha_2}{1+2\theta\alpha_2}
 \label{eq_34}\\
-c_8 &= \frac{\p{1-\theta}\alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+c_2 &= c_7 u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 c_{\ell+7} \p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}
 \label{eq_35}\\
+c_3 &= \frac{\theta \alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_36}\\
+c_4 &= \frac{\theta \alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_37}\\
+c_5 &= \frac{1-2\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
+\label{eq_38}\\
+c_6 &= \frac{\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
+\label{eq_39}\\
+c_7 &= \frac{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_40}\\
+c_8 &= \frac{\p{1-\theta}\alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_41}\\
 c_9 &= \frac{\p{1-\theta}\alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
-\label{eq_36}
+\label{eq_42}
 \end{align}
 
 \subsubsection{Stability and convergence}
@@ -513,59 +516,60 @@ Similar steps as shown in section \ref{sec_explicit_stab_conv} it can be shown t
 \abs{a_{ii}} > \sum_{j\neq i} \abs{a_{ij}}\,,
 \end{align*}
 
-which is the case for the matrix spanned out by \eqref{eq_22} because $1+2\theta \alpha_2 > 2\theta \alpha_2$ and $1+2\theta\sum_{\ell=1}^2 \alpha_{\ell} > 2\theta\sum_{\ell=1}^2 \alpha_\ell$.
+which is the case for the matrix spanned out by \eqref{eq_28} because $1+2\theta \alpha_2 > 2\theta \alpha_2$ and $1+2\theta\sum_{\ell=1}^2 \alpha_{\ell} > 2\theta\sum_{\ell=1}^2 \alpha_\ell$.
 
 \subsection{Markov chains}
 
 I assume that diffusion is a memoryless physical process that approximates to a stochastic process, hence diffusion is assumed to satisfy the Markov property and therefore is a Markov process where the transition between states are described by Markov chains 
 
 \begin{align}
-w_{(i+1)\kr{j_k}_{k=1}^n}^+ = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} w_{i\kr{\ell_k}_{k=1}^n} \,,
-\label{eq_37}
+u_{(i+1)\kr{j_k}_{k=1}^n}^+ = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} u_{i\kr{\ell_k}_{k=1}^n} \,,
+\label{eq_43}
 \end{align}
 
-where $w_{i\kr{j_k}_{k=1}^n}$ is the probability distribution function \anf{PDF} at time step $i$, and $W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}$  is the transition probability from state $\kr{\ell_k}_{k=1}^n$ to $\kr{j_k}_{k=1}^n$. And the reverse Markov chain is given by
+where $u_{i\kr{j_k}_{k=1}^n}$ is the probability distribution function \anf{PDF} at time step $i$, and $W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}$  is the transition probability from state $\kr{\ell_k}_{k=1}^n$ to $\kr{j_k}_{k=1}^n$. And the reverse Markov chain is given by
 
 \begin{align}
-w_{(i+1)\kr{j_k}_{k=1}^n}^- = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} \,,
-\label{eq_38}
+u_{(i+1)\kr{j_k}_{k=1}^n}^- = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n} \,,
+\label{eq_44}
 \end{align}
 
-Using the assumption that diffusion can be modelled as Markov process then we can use a Master equation to describe the normalized concentration at time step $i+1$ by the difference of transition to and from the state $\kr{j_k}_{k=1}^n$ plus the amount that stays in the state; 
+Using the assumption that diffusion can be modelled as Markov process then we can use a Master equation to describe the normalized concentration at time step $i+1$ by the difference of transition to and from the state $\kr{j_k}_{k=1}^n$ plus the amount that was in the state; 
 
 \begin{align}
-u_{(i+1)\kr{j_k}_{k=1}^n} = W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} +  w_{(i+1)\kr{j_k}_{k=1}^n}^+ - w_{(i+1)\kr{j_k}_{k=1}^n}^-
-\label{eq_39}
+u_{(i+1)\kr{j_k}_{k=1}^n} = u_{i\kr{j_k}_{k=1}^n} +  u_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{(i+1)\kr{j_k}_{k=1}^n}^-
+\label{eq_45}
 \end{align} 
 
-Note that the reverse Markov chain is all the transitions that a state $\kr{j_k}_{k=1}$ takes, including transition to itself. Therefore the reverse Markov chain in time step $i+1$ describes the transition of the entire concentration at time step $i$;
+Note that the reverse Markov chain is all the transitions that a state $\kr{j_k}_{k=1}$ takes, including transition to itself. Therefore the reverse Markov chain in time step $i+1$ describes all the transitions that the state does at time step $i$;
 
 \begin{align*}
-u_{i\kr{j_k}_{k=1}^n} =  w_{(i+1)\kr{j_k}_{k=1}^n}^- \,.
+u_{i\kr{j_k}_{k=1}^n} =  u_{(i+1)\kr{j_k}_{k=1}^n}^- \,,
 \end{align*}
 
 
-We assume that one can't stay in the same state $W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} = 0$, hence all of the concentration should transition to other states at any given time step, which yields
+which yields
 
 \begin{align}
-u_{(i+1)\kr{j_k}_{k=1}^n} = w_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{i\kr{j_k}_{k=1}^n} \,.
-\label{eq_40}
+u_{(i+1)\kr{j_k}_{k=1}^n} = u_{(i+1)\kr{j_k}_{k=1}^n}^+ \,.
+\label{eq_46}
 \end{align}
 
 Further, diffusion is assumed to be approximated as stochastic move in distance and direction, where distance and direction is stochastically independent. Which means that transition probability can be written as
 
 \begin{align}
 W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} = T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} \,,
-\label{eq_41}
+\label{eq_47}
 \end{align}
 
 where $T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving the distance between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$, and $ A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving in the direction between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$. \linebreak
 
 Assume that we move a distance $\ell$ from state $\kr{j_k}_{k=1}^n$, which means that the states $\kr{j_k+\delta_{km}\ell}$ are the possible destinations, which puts the following constraint on the direction probability $A$;
 
-\begin{align*}
+\begin{align}
 \sum_{m=1}^n \p{A_{\kr{j_k+\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}+A_{\kr{j_k-\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}} = 1 \,.
-\end{align*}
+\label{eq_48}
+\end{align}
 
 Now assuming isotropic diffusion, which means that
 
@@ -578,7 +582,7 @@ and the constraint on the direction probability then yields
 
 \begin{align}
 A = A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} = \frac{1}{2n}\,,
-\label{eq_42}
+\label{eq_49}
 \end{align}
 
 and the distance probability $T$ is only dependent on the distance $\ell$
@@ -593,17 +597,17 @@ which has the constraint
 \sum_{\ell} p_\ell = 1\,.
 \end{align*}
 
-Then the normalized concentration \eqref{eq_40} is now given by
+Then the normalized concentration \eqref{eq_46} is now given by
 
 \begin{align*}
-u_{(i+1)\p{j_k}_{k=1}^n} = \frac{1}{2n}\sum_\ell p_\ell\sum_{m=1}^n \p{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}} - u_{i\kr{j_k}_{k=1}^n} \,,
+u_{(i+1)\kr{j_k}_{k=1}^n} = \frac{1}{2n}\sum_\ell p_\ell\sum_{m=1}^n \p{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}} \,,
 \end{align*}
 
 which can be rewritten to
 
 \begin{align}
 \frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} = \sum_{\ell}\frac{p_\ell \p{\ell \Delta x}^2}{2n\Delta t}\sum_{m=1}^n\frac{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}}{\p{\ell\Delta x}^2} \,.
-\label{eq_43}
+\label{eq_50}
 \end{align}
 
 When we have the Kronecker delta distribution $p_\ell = \delta_{1\ell}$ this becomes the discretization of the heat equation in \eqref{eq_1} 
@@ -616,79 +620,103 @@ with the relation to the diffusion constant $D$ as follows
 
 \begin{align}
 \Delta x = \sqrt{2nD\Delta t}\,. 
-\label{eq_44}
+\label{eq_51}
 \end{align}
 
-For a general distribution $p_\ell$ we see from \eqref{eq_43} that the step length now is given by
+For a general distribution $p_\ell$ we see from \eqref{eq_50} that the step length now is given by
 
 \begin{align}
 \Delta x_\ell = \ell \Delta x = \ell\sqrt{2nD\Delta t}\,.
-\label{eq_45}
+\label{eq_52}
 \end{align} 
 
 If we use a random generator to make a proposition to move at each time step, we get a deterministic running time with approximation in the result, which is known as Monte Carlo algorithm. 
 
 \subsubsection{Metropolis-Hastings algorithm}
 
-The steps above with Markov chains are designed to give a approximated time evolution. However if we are only interested in the steady state solution, we can derive a faster algorithm to reach it, which is the Metropolis-Hastings algorithm. To derive the Metropolis-Hastings algorithm we start by looking back at the Master equation in \eqref{eq_39} for equilibrium, where we realize that transition to and from the state $\kr{j_k}_{k=1}^n$ must be equal
+The steps above with Markov chains are designed to give a approximated time evolution. However if we are only interested in the steady state solution, we can derive a faster algorithm to reach it, which is the Metropolis-Hastings algorithm. To derive the Metropolis-Hastings algorithm we start by looking back at the Master equation in \eqref{eq_45} for equilibrium, where we realize that transition to and from the state $\kr{j_k}_{k=1}^n$ must be equal
 
 \begin{align*}
-\lim_{i\to \infty} \p{w_{(i+1)\kr{j_k}_{k=1}^n}^+ - w_{(i+1)\kr{j_k}_{k=1}^n}^-} = 0
+\lim_{i\to \infty} \p{u_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{(i+1)\kr{j_k}_{k=1}^n}^-} = 0 \,.
 \end{align*}
 
-and that concentration remains the same
+Using the equality of transition to and from the state $\kr{j_k}_{k=1}^n$ at equilibrium,  the Markov chains in \eqref{eq_43} and \eqref{eq_44}, with proposed transition distribution $T$ which is independent of the accepted $A$, must satisfy the following equation
 
 \begin{align*}
-\lim_{i\to \infty} u_{(i+1)\kr{j_k}_{k=1}^n} = \lim_{i\to \infty} W_{\kr{j_k}_{k=1}^n\kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n} = \lim_{i\to\infty} u_{i\kr{j_k}_{k=1}^n} \,.
-\end{align*}
-
-Using the equality of transition to and from the state $\kr{j_k}_{k=1}^n$ at equilibrium,  the Markov chains in \eqref{eq_37} and \eqref{eq_38}, with proposed transition distribution $T$ which is independent of the accepted $A$, must satisfy the following equation
-
-\begin{align*}
-\sum_{\kr{\ell_k}_{k=1}^n}\p{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n} w_{i\kr{\ell_k}_{k=1}^n} - T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n} w_{i\kr{j_k}_{k=1}^n}} = 0 \,,
+\sum_{\kr{\ell_k}_{k=1}^n}\p{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n} u_{i\kr{\ell_k}_{k=1}^n} - T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n}} = 0 \,,
 \end{align*}
 
 
 which is satisfied by the relation
 
 \begin{align*}
-\frac{A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}}{A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}} = \frac{T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}w_{i\kr{j_k}_{k=1}^n}}{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}w_{i\kr{\ell_k}_{k=1}^n}} \,,
+\frac{A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}}{A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}} = \frac{T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}u_{i\kr{j_k}_{k=1}^n}}{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}u_{i\kr{\ell_k}_{k=1}^n}} \,,
 \end{align*}
 
 where $T$ is a distribution that we propose and $A$ is a probability to accept the proposition. We reach equilibrium faster when the transition from states are as large as possible, which means $A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}$ should be as close to 1 as possible and still satisfy that $A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n} \leq 1$, which is the Metropolis-Hastings algorithm;
 
 \begin{align}
-A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} = \min\p{1,\frac{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}w_{i\kr{\ell_k}_{k=1}^n}}{T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}w_{i\kr{j_k}_{k=1}^n}}}\,,
-\label{eq_46}
+A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} = \min\p{1,\frac{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}u_{i\kr{\ell_k}_{k=1}^n}}{T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}u_{i\kr{j_k}_{k=1}^n}}}\,,
+\label{eq_53}
 \end{align}
 
-where the two states change accordingly when we transition from $\kr{j_k}_{k=1}^2$ to $\kr{\ell_k}_{k=1}^2$ 
-
-\begin{align*}
-u_{(i+1)\kr{j_k}_{k=1}^n} &= \p{1-T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}} u_{i\kr{j_k}_{k=1}^n}
-\\
-u_{(i+1)\kr{\ell_k}_{k=1}^n} &= u_{i\kr{\ell_k}_{k=1}^n} + T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n} \,.
-\end{align*} 
-
-The move is accepted with 
+where the two states change accordingly to a Master equation when we transition from $\kr{j_k}_{k=1}^2$ to $\kr{\ell_k}_{k=1}^2$ 
 
 \begin{align}
-\frac{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}u_{i\kr{\ell_k}_{k=1}^n}} {T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}u_{i\kr{j_k}_{k=1}^n}} \geq 1 :
-\qquad
- \begin{tabular}{l} $u_{(i+1)\kr{j_k}_{k=1}^n} = \p{1-T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}} u_{i\kr{j_k}_{k=1}^n}$ \\ $u_{(i+1)\kr{\ell_k}_{k=1}^n} = u_{i\kr{\ell_k}_{k=1}^n} + T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n}$ \end{tabular}
- \label{eq_47}
-\end{align}
-
-and reject the move with
-
-\begin{align}
-\frac{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}u_{i\kr{\ell_k}_{k=1}^n}} {T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}u_{i\kr{j_k}_{k=1}^n}} < 1 :
-\qquad
- \begin{tabular}{l} $u_{(i+1)\kr{j_k}_{k=1}^n} = u_{i\kr{j_k}_{k=1}^n} - T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} u_{i\kr{\ell_k}_{k=1}^n}$ \\ $u_{(i+1)\kr{\ell_k}_{k=1}^n} = \p{1+T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}} u_{i\kr{\ell_k}_{k=1}^n}$ \end{tabular}
- \label{eq_48}
-\end{align}
+u_{(i+1)\kr{j_k}_{k=1}^n} &=  T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{\ell_k}_{k=1}^n} + \p{1-T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}} u_{i\kr{j_k}_{k=1}^n}
+\label{eq_54}\\
+u_{(i+1)\kr{\ell_k}_{k=1}^n} &= T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n} + \p{1-T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}} u_{i\kr{\ell_k}_{k=1}^n} \,.
+\label{eq_55}
+\end{align} 
 
 \subsubsection{Wall boundary}
+
+The Markov chain give insight into how to treat a boundary that is a wall. A wall is a boundary that does not allow transitions beyond it. If we look at direction probability $A$ in \eqref{eq_48} and assume that our wall sets $A_{\kr{j_k-\delta_{kp}}_{k=1}^n\kr{j_k}_{k=1}^n}=0$ we get
+
+\begin{align*}
+A_{\kr{j_k+\delta_{kp}\ell}_{k=1}^n\kr{j_k}_{k=1}^n} + \sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n \p{A_{\kr{j_k+\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}+A_{\kr{j_k-\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}} = 1 \,,
+\end{align*}
+
+and imposing isotropy the direction probability at the wall becomes
+
+\begin{align*}
+A = A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} = \frac{1}{2n-1} \,.
+\end{align*}
+
+Now our Master equation becomes
+
+\begin{align*}
+u_{(i+1)\kr{j_k}_{k=1}^n} = \frac{1}{2n-1}\sum_\ell p_\ell \p{u_{i\kr{j_k+\delta_{kp}\ell}_{k=1}^n}+\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n \p{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}}}
+\end{align*}
+
+which can be rewritten to 
+
+\begin{align*}
+\frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} =& \sum_{\ell}\frac{p_\ell \p{\ell \Delta x}^2}{\p{2n-1}\Delta t}\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n\frac{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}}{\p{\ell\Delta x}^2} 
+\\
+&\quad +\sum_{\ell}\frac{p_\ell\ell \Delta x}{\p{2n-1}\Delta t} \frac{u_{i\kr{j_k+\delta_{kp}\ell}_{k=1}^n} - u_{i\kr{j_k}_{k=1}^n}}{\ell\Delta x} \,.
+\end{align*}
+
+When we have the Kronecker delta distribution $p_\ell = \delta_{1\ell}$ this becomes the following discretization
+
+\begin{align*}
+\frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} =& \frac{\Delta x^2}{\p{2n-1}\Delta t}\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n\frac{u_{i\kr{j_k+\delta_{km}}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}}_{k=1}^n}}{\Delta x^2} 
+\\&\quad + \frac{\Delta x}{\p{2n-1}\Delta t} \frac{u_{i\kr{j_k+\delta_{kp}\ell}_{k=1}^n} - u_{i\kr{j_k}_{k=1}^n}}{\Delta x} \,.
+\end{align*}
+
+I have already established the relation between step size and time step in \eqref{eq_51}, which yields the discretization
+
+\begin{align*}
+\frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} =& \frac{2n D}{\p{2n-1}}\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n\frac{u_{i\kr{j_k+\delta_{km}}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}}_{k=1}^n}}{\Delta x^2} 
+\\&\quad + \frac{\sqrt{2nD}}{\p{2n-1}\sqrt{\Delta t}} \frac{u_{i\kr{j_k+\delta_{kp}}_{k=1}^n} - u_{i\kr{j_k}_{k=1}^n}}{\Delta x} \,.
+\end{align*}
+
+To avoid that the above equation diverges for smaller an smaller time steps, we realize that the we must satisfy the following the partial differential equation at the wall boundary
+
+\begin{align}
+\frac{\partial u\p{\kr{x_i}_{i=1}^n, t}}{\partial t} = \frac{2n D}{\p{2n-1}}\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n \frac{\partial^2 u\p{\kr{x_i}_{i=1}^n, t}}{\partial {x_m}^2} \qquad \text{and} \qquad \frac{\partial u\p{\kr{x_i}_{i=1}^n, t}}{\partial x_p} = 0 \,.
+\label{eq_56}
+\end{align}
 
 \section{Attachments}
 
