@@ -92,7 +92,7 @@ which can be written as two heat equations
 \label{eq_4}
 \end{align}
 
-I make another assumption that the the boundary at $u\p{0,x_2,t}$ determined by $u_2\p{x_2,t}$ alone, and by satisfying initial condition $u\p{0,x_2,0}$ for $u_2$
+I make another ansatz that the the boundary at $u\p{0,x_2,t}$ determined by $u_2\p{x_2,t}$ alone, and by satisfying initial condition $u\p{0,x_2,0}$ for $u_2$
 
 \begin{align}
 \forall t \in \mathbb{R}_0 \p{: u_2\p{0,t} = u_2\p{w,t} = 0 \wedge \forall x_2\in\mathbb{R}_{w_1}^{w_2}: u_2\p{x_2,t} = u_0} \wedge \forall x_2 \in\mathbb{R}_{0}^{w} \setminus \mathbb{R}_{w_1}^{w_2}: u_2\p{x_2,0} = 0
@@ -701,19 +701,35 @@ When we have the Kronecker delta distribution $p_\ell = \delta_{1\ell}$ this bec
 \\&\quad + \frac{\Delta x}{\p{2n-1}\Delta t} \frac{u_{i\kr{j_k+\delta_{kp}\ell}_{k=1}^n} - u_{i\kr{j_k}_{k=1}^n}}{\Delta x} \,.
 \end{align*}
 
-I have already established the relation between step size and time step in \eqref{eq_45}, which yields the discretization
-
-\begin{align*}
-\frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} =& \frac{2n D}{\p{2n-1}}\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n\frac{u_{i\kr{j_k+\delta_{km}}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}}_{k=1}^n}}{\Delta x^2} 
-\\&\quad + \frac{\sqrt{2nD}}{\p{2n-1}\sqrt{\Delta t}} \frac{u_{i\kr{j_k+\delta_{kp}}_{k=1}^n} - u_{i\kr{j_k}_{k=1}^n}}{\Delta x} \,.
-\end{align*}
-
-To avoid that the above equation diverges for smaller an smaller time steps, we realize that the we must satisfy the following the partial differential equation at the wall boundary
+Relating to the diffusion constant $D$ gives
 
 \begin{align}
-\frac{\partial u\p{\kr{x_i}_{i=1}^n, t}}{\partial t} = \frac{2n D}{\p{2n-1}}\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n \frac{\partial^2 u\p{\kr{x_i}_{i=1}^n, t}}{\partial {x_m}^2} \qquad \text{and} \qquad \frac{\partial u\p{\kr{x_i}_{i=1}^n, t}}{\partial x_p} = 0 \,.
+\Delta x = \sqrt{\p{2n-1}D\Delta t} \,,
 \label{eq_50}
 \end{align}
+
+and in general
+
+\begin{align}
+\Delta x_\ell = \ell \Delta x = \ell\sqrt{\p{2n-1}D\Delta t}
+\label{eq_51}
+\end{align}
+
+which results in the discretization
+
+\begin{align*}
+\frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} =& D\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n\frac{u_{i\kr{j_k+\delta_{km}}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}}_{k=1}^n}}{\Delta x^2} 
+\\&\quad + \frac{D}{\Delta x} \frac{u_{i\kr{j_k+\delta_{kp}}_{k=1}^n} - u_{i\kr{j_k}_{k=1}^n}}{\Delta x} \,.
+\end{align*}
+
+To avoid that the above equation diverges for smaller an smaller step sizes, we realize that the we must satisfy the following the partial differential equation at the wall boundary
+
+\begin{align}
+\frac{\partial u\p{\kr{x_i}_{i=1}^n, t}}{\partial t} = D\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n \frac{\partial^2 u\p{\kr{x_i}_{i=1}^n, t}}{\partial {x_m}^2} \qquad \text{and} \qquad \frac{\partial u\p{\kr{x_i}_{i=1}^n, t}}{\partial x_p} = 0 \,,
+\label{eq_52}
+\end{align}
+
+and we have proven the ansatz that I made in the analytical derivation where the boundary $u\p{0,x_2,t}$ is determined by $u_2\p{x_2,t}$ which yielded the solution on the boundary as in \eqref{eq_6}.
 
 \section{Attachments}
 

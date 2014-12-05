@@ -68,21 +68,19 @@ fig = plt.figure(6)
 ax = fig.add_subplot(1, 1, 1, projection='3d')
 ax.plot_surface(X,Y, data, rstride=4, cstride=4)
 
-x, data = FromFile('build-project5-Desktop-Debug/Explicit_2D_2.dat')
-X, Y = nu.meshgrid(x[1],x[0]) 
-fig = plt.figure(7)
-ax = fig.add_subplot(1, 1, 1, projection='3d')
-ax.plot_surface(X,Y, data, rstride=4, cstride=4)
-
-x, data = FromFile('build-project5-Desktop-Debug/Jacobi_2D_2.dat')
-X, Y = nu.meshgrid(x[1],x[0]) 
-fig = plt.figure(8)
-ax = fig.add_subplot(1, 1, 1, projection='3d')
-ax.plot_surface(X,Y, data, rstride=4, cstride=4)
-
 x, data = FromFile('build-project5-Desktop-Debug/Metropolis_1D.dat')
-fig = plt.figure(9)
+fig = plt.figure(7)
 plt.plot(x[0],data)
+
+x, data = FromFile('build-project5-Desktop-Debug/Exact_1D.dat')
+fig = plt.figure(8)
+plt.plot(x[0],data)
+
+x, data = FromFile('build-project5-Desktop-Debug/Metropolis_2D.dat')
+X, Y = nu.meshgrid(x[1],x[0]) 
+fig = plt.figure(9)
+ax = fig.add_subplot(1, 1, 1, projection='3d')
+ax.plot_surface(X,Y, data, rstride=4, cstride=4)
 
 plt.show()
          
