@@ -731,6 +731,25 @@ To avoid that the above equation diverges for smaller an smaller step sizes, we 
 
 and we have proven the ansatz that I made in the analytical derivation where the boundary $u\p{0,x_2,t}$ is determined by $u_2\p{x_2,t}$ which yielded the solution on the boundary as in \eqref{eq_6}.
 
+\section{Implementation}
+
+\section{Results}
+
+Order of relative error of $\varv$ to $u$ is calculated by
+
+\begin{align*}
+\epsilon = \log_{10}\abs{\frac{\varv - u}{u}} \,.
+\end{align*}
+
+\figur{1}{MonteCarlo1D_t0.01.eps}{Monte Carlo simulations for 1D diffusion problem, plotted in 100 grid points. Uniform step is of size $\Delta x$ \eqref{eq_45}, and Gaussian step is of size $\Delta x_\ell$  \eqref{eq_46} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. Uniform distribution requires smaller time step than the Gaussian distribution to give a good approximation. The problem with uniform distribution is that it leaves grid points empty which should not be empty when the plot grid is smaller than the step size of the simulation. This is not a problem for Gaussian distribution.}{fig1}
+
+\begin{tabell}{|r|c|c|c|}{\small}{$N$ & MCU 1e-3 & MCU 1e-5 & MCG 1e-4 \\}{\input{build-project5-Desktop-Debug/MonteCarlo_1D_time_t0.01.dat}}{Calculation time for the Monte Carlo 1D in seconds for $t=0.01$. MCU = Monte Carlo Uniform, MCG = Monte Carlo Gaussian.}{tab1}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|}{\small}{$N$ & MCU 1e-3 & MCU 1e-5 & MCG 1e-4 \\}{\input{build-project5-Desktop-Debug/MonteCarlo_1D_error_t0.01.dat}}{Order of relative error for the Monte Carlo 1D at $t=0.01$. MCU = Monte Carlo Uniform, MCG = Monte Carlo Gaussian. Excluding source point and relative error of calculated and exact value less than $10^{-2}$ are also excluded.}{tab2}
+\end{tabell}
+
+
 \section{Attachments}
 
 The source files developed are

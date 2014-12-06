@@ -55,7 +55,7 @@ template<typename T> Vector<unsigned int,2> Diffusion2D_Source(T d, T w[2], unsi
 
 int main() {
 
-    ofstream file, time;
+    ofstream file, time, error;
 
     FLOAT u0 = 1;
     FLOAT D = 1;
@@ -65,14 +65,144 @@ int main() {
     Vector<FLOAT,2> d = {1,10};
     Vector<FLOAT,2> w = {0.1,9.9};
     auto x = Space<FLOAT,2>::Range(ARRAYLIST(FLOAT,0,0), d, n);
+    clock_t t0;
+    FLOAT* space, *space1d;
+    Step<FLOAT> step;
+    Delegate<Step<FLOAT>,FLOAT> step_uniform(&step, &Step<FLOAT>::Uniform);
+    Delegate<Step<FLOAT>,FLOAT> step_gaussian(&step, &Step<FLOAT>::Gaussian);
+    Delegate<void, Chain<Vector<FLOAT,1>>, FLOAT, FLOAT, FLOAT, decltype(step_uniform)> Diff1D_MC(&Diffusion1D_MonteCarlo<Step<FLOAT>,FLOAT>);
 
-    /*file.open("Exact_1D.dat");
-    auto space = Diffusion1D_Exact<FLOAT>(u0, D, t, d[0], n[0], ne[0]);
+    /*file.open("Exact_1D_t0.01.dat");
+    space1d = Diffusion1D_Exact<FLOAT>(u0, D, 0.01, d[0], n[0], ne[0]);
+    Space<FLOAT,1>::ToFile(file, x, space1d, n);
+    file.close();
+
+    time.open("MonteCarlo_1D_time_t0.01.dat");
+    error.open("MonteCarlo_1D_error_t0.01.dat");
+    time << "1 & ";
+    error << "1 & ";
+    file.open("MonteCarlo_1D_Uniform_t0.01_dt1e-3_n1.dat");
+    t0 = clock();
+    space = Experiment(1u, x, n, Diff1D_MC, 0.01, 1e-3, d[0], step_uniform);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " & ";
     Space<FLOAT,1>::ToFile(file, x, space, n);
     Space<FLOAT,1>::Deallocate(space, n);
     file.close();
 
-    file.open("Exact_2D.dat");
+    file.open("MonteCarlo_1D_Uniform_t0.01_dt1e-5_n1.dat");
+    t0 = clock();
+    space = Experiment(1u, x, n, Diff1D_MC, 0.01, 1e-5, d[0], step_uniform);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " & ";
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    file.open("MonteCarlo_1D_Gaussian_t0.01_dt1e-4_n1.dat");
+    t0 = clock();
+    space = Experiment(1u, x, n, Diff1D_MC, 0.01, 1e-4, d[0], step_gaussian);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\ " << endl;
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " \\\\ " << endl;
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    time << "100 & ";
+    error << "100 & ";
+    file.open("MonteCarlo_1D_Uniform_t0.01_dt1e-3_n100.dat");
+    t0 = clock();
+    space = Experiment(100u, x, n, Diff1D_MC, 0.01, 1e-3, d[0], step_uniform);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " & ";
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    file.open("MonteCarlo_1D_Uniform_t0.01_dt1e-5_n100.dat");
+    t0 = clock();
+    space = Experiment(100u, x, n, Diff1D_MC, 0.01, 1e-5, d[0], step_uniform);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " & ";
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    file.open("MonteCarlo_1D_Gaussian_t0.01_dt1e-4_n100.dat");
+    t0 = clock();
+    space = Experiment(100u, x, n, Diff1D_MC, 0.01, 1e-4, d[0], step_gaussian);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\ " << endl;
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " \\\\ " << endl;
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    time << "10000 & ";
+    error << "10000 & ";
+    file.open("MonteCarlo_1D_Uniform_t0.01_dt1e-3_n10000.dat");
+    t0 = clock();
+    space = Experiment(10000u, x, n, Diff1D_MC, 0.01, 1e-3, d[0], step_uniform);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " & ";
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    file.open("MonteCarlo_1D_Uniform_t0.01_dt1e-5_n10000.dat");
+    t0 = clock();
+    space = Experiment(10000u, x, n, Diff1D_MC, 0.01, 1e-5, d[0], step_uniform);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " & ";
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    file.open("MonteCarlo_1D_Gaussian_t0.01_dt1e-4_n10000.dat");
+    t0 = clock();
+    space = Experiment(10000u, x, n, Diff1D_MC, 0.01, 1e-4, d[0], step_gaussian);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\ " << endl;
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " \\\\ ";
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    Space<FLOAT,1>::Deallocate(space1d, n);
+    time.close();
+    error.close();*/
+
+    file.open("Exact_1D_t1.dat");
+    space1d = Diffusion1D_Exact<FLOAT>(u0, D, 1, d[0], n[0], ne[0]);
+    Space<FLOAT,1>::ToFile(file, x, space1d, n);
+    file.close();
+
+    time.open("MonteCarlo_1D_time_t1.dat");
+    error.open("MonteCarlo_1D_error_t1.dat");
+    time << "1 & ";
+    error << "1 & ";
+    file.open("MonteCarlo_1D_Gaussian_t1_dt1e-3_n1.dat");
+    t0 = clock();
+    space = Experiment(1u, x, n, Diff1D_MC, 1.0, 1e-3, d[0], step_gaussian);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\ " << endl;
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " \\\\ " << endl;
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    file.open("MonteCarlo_1D_Gaussian_t1000_dt1e-3_n1.dat");
+    t0 = clock();
+    space = Experiment(1000u, x, n, Diff1D_MC, 1.0, 1e-3, d[0], step_gaussian);
+    time << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\ " << endl;
+    error << ArrayRelativeError(&space1d[1], &space[1], n[0],1e-2) << " \\\\ " << endl;
+    Space<FLOAT,1>::ToFile(file, x, space, n);
+    Space<FLOAT,1>::Deallocate(space, n);
+    file.close();
+
+    Space<FLOAT,1>::Deallocate(space1d, n);
+    time.close();
+    error.close();
+
+
+    /*file.open("Exact_2D.dat");
     auto u = Diffusion2D_Exact<FLOAT>(u0, D, t, d, w, x, n, ne);
     Space<FLOAT,2>::ToFile(file, x, u, n);
     Space<FLOAT,2>::Deallocate(u, n);
@@ -117,7 +247,7 @@ int main() {
     space = Diffusion1D_Metropolis<FLOAT>(10000u, n[0]);
     Space<FLOAT,1>::ToFile(file, x, space, n);
     Space<FLOAT,1>::Deallocate(space, n);
-    file.close();*/
+    file.close();
 
     time.open("Metropolis_2D_time.dat");
     file.open("Metropolis_2D.dat");
@@ -127,7 +257,7 @@ int main() {
     Space<FLOAT,2>::ToFile(file, x, u, n);
     Space<FLOAT,2>::Deallocate(u, n);
     file.close();
-    time.close();
+    time.close();*/
 
     Space<FLOAT,2>::DeRange(x);
 
