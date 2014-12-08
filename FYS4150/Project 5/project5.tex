@@ -272,70 +272,89 @@ There is a theorem that states that a matrix $\textbf{A}$ converges $\lim_{i\to\
 where $\lambda_m$ are the eigenvalues of $\textbf{A}$. The explicit scheme in \eqref{eq_17}  can be written as $\textbf{u}_{i+1} = \textbf{A}\textbf{u}_i = \textbf{A}^{i+1}\textbf{u}_0$, and the this matrix can be written as
 
 \begin{align*}
-\textbf{A} = \textbf{I} - \sum_{\ell = 1}^2 \alpha_\ell \textbf{B}
+\textbf{A} = \textbf{I} - \textbf{B}
 \end{align*}
 
-where $\textbf{I}$ is the identity matrix and $\textbf{B}$ is the tridiagonal matrix $-1,2,-1$. This implies that the eigenvalues $\mu_m$ of $\textbf{B}$ is related to the eigenvalues $\lambda_m$ of $\textbf{A}$ as follows
+where $\textbf{I}$ is the identity matrix. This implies that the eigenvalues $\mu_m$ of $\textbf{B}$ is related to the eigenvalues $\lambda_m$ of $\textbf{A}$ as follows
 
 \begin{align}
-\lambda_m = 1 - \sum_{\ell=1}^2 \alpha_\ell \mu_m\,.
+\lambda_m = 1 - \mu_m\,.
 \label{eq_18}
 \end{align}
 
-The eigenvalues $\mu_m$ can be found from the eigenequation
+The eigenvalues $\mu_m$ can be found from the eigenequation \eqref{eq_17}
 
 \begin{align}
--u_{i\kr{j_k + \delta_{k\ell}}_{k=1}^2} + 2 u_{i\kr{j_k}_{k=1}^2}-u_{i\kr{j_k - \delta_{k\ell}}_{k=1}^2} = \mu_m u_{i\kr{j_k}_{k=1}^2} \,.
+\sum_{\ell=1}^2\alpha_\ell\p{-u_{i\kr{j_k + \delta_{k\ell}}_{k=1}^2} + 2 u_{i\kr{j_k}_{k=1}^2}-u_{i\kr{j_k - \delta_{k\ell}}_{k=1}^2}} = \mu_m u_{i\kr{j_k}_{k=1}^2} \,.
 \label{eq_19}
 \end{align}
 
-If we divide this equation by ${\Delta x_\ell}^2$ we get a discretization of the following equation
+Using the expression for$\alpha_\ell = \frac{\Delta t}{\Delta {x_\ell}^2}$ we have the discretization of the following equation
 
 \begin{align*}
-u\p{\kr{x_i}_{i=1}^2,t} = -\omega_{\ell m} \frac{\partial^2 u\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_\ell}^2}\,,
+u\p{\kr{x_i}_{i=1}^2,t} = -{\omega_{m}}^2 \sum_{\ell=1}^2 \frac{\partial^2 u\p{\kr{x_i}_{i=1}^2,t}}{\partial {x_\ell}^2}\,,
 \end{align*}
 
 which has the solution 
 
 \begin{align*}
-u\p{\kr{x_i}_{i=1}^2, t} = A\p{t} \prod_{\ell=1}^2 \sin\p{\omega_{\ell m} x_\ell + \varphi_\ell}
+u\p{\kr{x_i}_{i=1}^2, t} = \sum_{\ell=1}^2 A_\ell\p{t} \prod_{\ell=1}^2 \sin\p{\omega_{m} x_\ell + \varphi_\ell}
 \end{align*}
 
 where 
 
 \begin{align*}
-\omega_{\ell m} = \frac{\Delta {x_\ell}}{\sqrt{\mu_m}} = \frac{1}{n_\ell\sqrt{\mu_m}}\,.
+\omega_{m} = \sqrt{\frac{\Delta t}{\mu_m}}\,.
 \end{align*}
 
 Now using this solution into the eigenequation \eqref{eq_19} we get
 
 \begin{align*}
--\sin\p{\omega_{\ell m} \p{x_{\ell j_\ell}+\Delta x_\ell} + \varphi_\ell} + 2\sin\p{\omega_{\ell m} x_{\ell j_\ell} + \varphi_\ell} - \sin\p{\omega_{\ell m} \p{x_{\ell j_\ell}-\Delta x_\ell} + \varphi_\ell} = \mu_i \sin\p{\omega_{\ell m} x_{\ell j_\ell} + \varphi_\ell}
+&\mu_m \sum_{\ell=1}^2\sin\p{\omega_{m} x_{\ell j_\ell} + \varphi_\ell}
+\\
+&\quad =
+\sum_{\ell=1}^2 \alpha_\ell\p{-\sin\p{\omega_{m} \p{x_{\ell j_\ell}+\Delta x_\ell} + \varphi_\ell} + 2\sin\p{\omega_{m} x_{\ell j_\ell} + \varphi_\ell} - \sin\p{\omega_{m} \p{x_{\ell j_\ell}-\Delta x_\ell} + \varphi_\ell}}
 \end{align*} 
 
 which can be simplified with the trigonometrical relation $\sin\p{u+v} = \sin u \cos v + \cos u \sin v$
  
+\begin{align}
+\mu_m\sum_{\ell=1}^2\sin\p{\omega_m x_\ell + \varphi_\ell} = 2\sum_{\ell=1}^2 \alpha_\ell\p{1-\cos\p{\omega_{m} \Delta x_\ell}}\sin\p{\omega_m x_\ell + \varphi_\ell} \,,
+\label{eq_20}
+\end{align}
+
+note that $\mu_m\neq 0$ because of $\omega_{m} \propto \frac{1}{\sqrt{\mu_m}}$. For this equation to be an eigeneqution we need to satisfy
+
 \begin{align*}
-\mu_m = 2\p{1-\cos\p{\omega_{\ell m} \Delta x_\ell}} \qquad \Rightarrow \quad 0 < \mu_m \leq 4 \quad \text{for real $\mu_m$.} \,,
+\alpha_1 \p{1-\cos\p{\omega_m \Delta x_1}} = \alpha_2\p{1-\cos\p{\omega_m \Delta x_2}}\,.
 \end{align*}
 
-note that $\mu_m\neq 0$ because of $\omega_{\ell m} \propto \frac{1}{\sqrt{\mu_m}}$. Inserting these eigenvalues into \eqref{eq_18} and using the convergence condition $\rho\p{\textbf{A}} < 1$ yields the following inequality
+If we have square lattice $\alpha_1 = \alpha_2$ the above relation is automatically satisfied, if not we need to solve the equation with regard to $\omega_m$, and from that find the eigenvalue $\mu_m$ from the relation $\omega_m = \sqrt{\frac{\Delta t}{\mu_m}}$. Since the approach with $\alpha_1 \neq \alpha_2$ is difficult to solve analytically I will show the further steps with square lattice $\alpha = \alpha_1 = \alpha_2$, and in the case of $\alpha_1 \neq \alpha_2$ one can approximate to a square lattice problem with the smallest step size of $\Delta x_\ell$. If you forfill the convergence criteria for the a square lattice with the smallest step size, then you are guaranteed to satisfy the convergence criteria in the non-square lattice case as well. \linebreak
+
+For the square lattice with $\alpha$ we see from \eqref{eq_20} that the eigenvalue $\mu_m$ must be within
 
 \begin{align*}
--1 < 1 - \sum_{\ell=1}^2 \alpha_\ell \mu_m < 1
+0 \leq \mu_m \leq 2\alpha \,.
+\end{align*}
+
+
+Inserting these eigenvalues into \eqref{eq_18} and using the convergence condition $\rho\p{\textbf{A}} < 1$ yields the following inequality
+
+\begin{align*}
+-1 < 1 - 2\alpha < 1
 \end{align*}
 
 which result in the constraint for convergences
 
 \begin{align*}
-\sum_{\ell = 1}^2 \alpha_\ell < \frac{1}{2} \,,
+\alpha < \frac{1}{2} \,,
 \end{align*}
 
-where the $\alpha_\ell$ is always positive. So when we want to solve the heat equation explicitly we must chose a time step accordingly
+where the $\alpha$ is always positive. So when we want to solve the heat equation explicitly we satisfy the convergence criteria if we chose a time step accordingly
 
 \begin{align}
-\Delta t < \frac{1}{2\sum_{\ell=1}^2 {n_\ell}^2} \,.
-\label{eq_20}
+\Delta t < \min_\ell \frac{1}{{n_\ell}^2} \,.
+\label{eq_21}
 \end{align}
 
 \subsection{Jacobi's iterative method}
@@ -352,7 +371,7 @@ where the boundary are given at the indices $j_k=0$ and $j_k= n_k-1$ where $n_k$
 
 \begin{align}
 v_{(i+1)j} = v_{(i+1)(j_1 n_2 + j_2)} = u_{(i+1)\kr{j_k}_{k=1}^2} \,.
-\label{eq_21}
+\label{eq_22}
 \end{align}
 
 The fixed boundary values with $u_0=1$ at the presynaptic $x_1=0$ and $w_1 \leq x_2 \leq w_2$ are given by the indices $j$ in the set
@@ -407,7 +426,7 @@ a_{(i+1)jk} = a_{jk} = \begin{cases}
 -\theta \alpha_2 &: \forall j\in\mathbb{I}\cup\mathbb{B}_2: k\in\kr{j-1,j+1}\quad \text{(diffusion in $x_2$ direction)} \\ 
 - \theta \alpha_1 &: \forall j\in\mathbb{I} : k \in \kr{j-n_2,j+n_2} \,\,\qquad\text{(diffusion in $x_1$ direction)} \\
  0 & : \text{otherwise,} \end{cases}
-\label{eq_22}
+\label{eq_23}
 \end{align}
 
 and the elements of the vector $\textbf{b}_i$ are
@@ -419,16 +438,16 @@ b_{ij} = b_{i(j_1 n_2 + j_2)} = \begin{cases}
 \p{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell} u_{i\kr{j_k}_{k=1}^2} + \p{1-\theta}\sum_{\ell=1}^2\alpha_\ell\p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}} &: j\in\mathbb{I} \\
 0 &: \text{otherwise.}
 \end{cases}
-\label{eq_23}
+\label{eq_24}
 \end{align}
 
-Unfortunately  is the linear algebra problem $\textbf{A}\textbf{v}_{i+1} = \textbf{b}_i$ is computational expensive to solve for the matrix in \eqref{eq_22}. To lower the computational time I therefore prepare the matrix $\textbf{A}$ for Jacobi's iterative method by splitting it into a diagonal matrix $\textbf{D}$ and a remainder matrix $\textbf{R}$;
+Unfortunately  is the linear algebra problem $\textbf{A}\textbf{v}_{i+1} = \textbf{b}_i$ is computational expensive to solve for the matrix in \eqref{eq_23}. To lower the computational time I therefore prepare the matrix $\textbf{A}$ for Jacobi's iterative method by splitting it into a diagonal matrix $\textbf{D}$ and a remainder matrix $\textbf{R}$;
 
 \begin{align*}
 \textbf{A} = \textbf{D} + \textbf{R} \,.
 \end{align*}
 
-From \eqref{eq_22} we see that the elements of the diagonal matrix are given by
+From \eqref{eq_23} we see that the elements of the diagonal matrix are given by
 
 \begin{align}
 d_{jk} = \begin{cases} 
@@ -436,7 +455,7 @@ d_{jk} = \begin{cases}
 1+ 2\theta \alpha_2 &: \forall j\in\mathbb{B}_2: j=k \,\,\quad\qquad\qquad\qquad (\text{side of vesicles}) \\ 
 1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell &: \forall j\in\mathbb{I}: j=k \qquad\qquad\qquad\qquad (\text{the inner points }u_{(i+1)j_1j_2}) \\ 
  0 & : \text{otherwise,} \end{cases}
-\label{eq_24}
+\label{eq_25}
 \end{align}
 
 and the elements of the remainder matrix are given by
@@ -446,7 +465,7 @@ r_{jk} = \begin{cases}
 -\theta \alpha_2 &: \forall j\in\mathbb{I}\cup\mathbb{B}_2: k\in\kr{j-1,j+1}\quad \text{(diffusion in $x_2$ direction)} \\ 
 - \theta \alpha_1 &: \forall j\in\mathbb{I} : k \in \kr{j-n_2,j+n_2} \,\,\qquad\text{(diffusion in $x_1$ direction)} \\
  0 & : \text{otherwise.} \end{cases}
-\label{eq_25}
+\label{eq_26}
 \end{align}
 
 We can now introduce Jacobi's iterative method
@@ -464,7 +483,7 @@ where $\ell$ is the number of iterations and $\ell=0$ are the starting point. Re
 v_{(i+1)j}^{(\ell)} = \begin{cases} v_j &: \ell = 0 \\ \frac{1}{d_{jj}}\p{b_j - \sum_{k\neq j} r_{jk} v_{(i+1)k}^{(\ell-1)}} &: j\in\mathbb{N}_1 \,.\end{cases}
 \end{align*}
 
-Using \eqref{eq_21} and \eqref{eq_25} we have the iterative solution to the heat equation in \eqref{eq_6} with the boundaries in \eqref{eq_2}
+Using \eqref{eq_22} and \eqref{eq_26} we have the iterative solution to the heat equation in \eqref{eq_6} with the boundaries in \eqref{eq_2}
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^2}^{(\ell)} = \begin{cases}
@@ -473,30 +492,30 @@ u_{i\kr{j_k}_{k=1}^2} &: \ell = 0 \\
 c_0 + c_1\p{u_{(i+1)0(j_2+1)}^{(\ell-1)}+u_{(i+1)0(j_2-1)}^{(\ell-1)}} &: j_1=0 \wedge j_2\in\mathbb{N}_0^{n_2-1} \setminus\mathbb{N}_{m_1}^{m_2} \\
 c_2 + \sum_{o=1}^2 c_{o+2}\p{u_{(i+1)\kr{j_k+\delta_{ko}}_{k=1}^2}^{(\ell-1)}+u_{(i+1)\kr{j_k-\delta_{ko}}_{k=1}^2}^{(\ell-1)}} &: j_1\in \mathbb{N}_{1}^{n_1-2} \wedge j_2\in\mathbb{N}_1^{n_2-2} 
 \end{cases} 
-\label{eq_26}
+\label{eq_27}
 \end{align}
 
 \begin{align}
 c_0 &= c_5 u_{i0j_2} + c_6\p{u_{i0(j_2+1)} + u_{i0(j_2-1)}}
-\label{eq_27}\\
-c_1 &= \frac{\theta \alpha_2}{1+2\theta\alpha_2}
 \label{eq_28}\\
-c_2 &= c_7 u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 c_{\ell+7} \p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}
+c_1 &= \frac{\theta \alpha_2}{1+2\theta\alpha_2}
 \label{eq_29}\\
-c_3 &= \frac{\theta \alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+c_2 &= c_7 u_{i\kr{j_k}_{k=1}^2} + \sum_{\ell=1}^2 c_{\ell+7} \p{u_{i\kr{j_k+\delta_{k\ell}}_{k=1}^2} + u_{i\kr{j_k-\delta_{k\ell}}_{k=1}^2}}
 \label{eq_30}\\
-c_4 &= \frac{\theta \alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+c_3 &= \frac{\theta \alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
 \label{eq_31}\\
-c_5 &= \frac{1-2\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
+c_4 &= \frac{\theta \alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
 \label{eq_32}\\
-c_6 &= \frac{\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
+c_5 &= \frac{1-2\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
 \label{eq_33}\\
-c_7 &= \frac{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+c_6 &= \frac{\p{1-\theta}\alpha_2}{1+2\theta \alpha_2} 
 \label{eq_34}\\
-c_8 &= \frac{\p{1-\theta}\alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+c_7 &= \frac{1-2\p{1-\theta}\sum_{\ell = 1}^2 \alpha_\ell}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
 \label{eq_35}\\
+c_8 &= \frac{\p{1-\theta}\alpha_1}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
+\label{eq_36}\\
 c_9 &= \frac{\p{1-\theta}\alpha_2}{1+ 2\theta \sum_{\ell = 1}^2 \alpha_\ell}
-\label{eq_36}
+\label{eq_37}
 \end{align}
 
 \subsubsection{Stability and convergence}
@@ -513,7 +532,7 @@ Similar steps as shown in section \ref{sec_explicit_stab_conv} it can be shown t
 \abs{a_{ii}} > \sum_{j\neq i} \abs{a_{ij}}\,,
 \end{align*}
 
-which is the case for the matrix spanned out by \eqref{eq_22} because $1+2\theta \alpha_2 > 2\theta \alpha_2$ and $1+2\theta\sum_{\ell=1}^2 \alpha_{\ell} > 2\theta\sum_{\ell=1}^2 \alpha_\ell$.
+which is the case for the matrix spanned out by \eqref{eq_23} because $1+2\theta \alpha_2 > 2\theta \alpha_2$ and $1+2\theta\sum_{\ell=1}^2 \alpha_{\ell} > 2\theta\sum_{\ell=1}^2 \alpha_\ell$.
 
 \subsection{Markov chains}
 
@@ -521,21 +540,21 @@ I assume that diffusion is a memoryless physical process that approximates to a 
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^n}^+ = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} u_{i\kr{\ell_k}_{k=1}^n} \,,
-\label{eq_37}
+\label{eq_38}
 \end{align}
 
 where $u_{i\kr{j_k}_{k=1}^n}$ is the probability distribution function \anf{PDF} at time step $i$, and $W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}$  is the transition probability from state $\kr{\ell_k}_{k=1}^n$ to $\kr{j_k}_{k=1}^n$. And the reverse Markov chain is given by
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^n}^- = \sum_{\kr{\ell_k}_{k=1}^n} W_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n} \,,
-\label{eq_38}
+\label{eq_39}
 \end{align}
 
 Using the assumption that diffusion can be modelled as Markov process then we can use a Master equation to describe the normalized concentration at time step $i+1$ by the difference of transition to and from the state $\kr{j_k}_{k=1}^n$ plus the amount that was in the state; 
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^n} = u_{i\kr{j_k}_{k=1}^n} +  u_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{(i+1)\kr{j_k}_{k=1}^n}^-
-\label{eq_39}
+\label{eq_40}
 \end{align} 
 
 Note that the reverse Markov chain is all the transitions that a state $\kr{j_k}_{k=1}$ takes, including transition to itself. Therefore the reverse Markov chain in time step $i+1$ describes all the transitions that the state does at time step $i$;
@@ -549,14 +568,14 @@ which yields
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^n} = u_{(i+1)\kr{j_k}_{k=1}^n}^+ \,.
-\label{eq_40}
+\label{eq_41}
 \end{align}
 
 Further, diffusion is assumed to be approximated as stochastic move in distance and direction, where distance and direction is stochastically independent. Which means that transition probability can be written as
 
 \begin{align}
 W_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} = T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2} \,,
-\label{eq_41}
+\label{eq_42}
 \end{align}
 
 where $T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving the distance between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$, and $ A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^2}$ is the probability of moving in the direction between the states $\kr{j_k}_{k=1}^n$ and $\kr{\ell_k}_{k=1}^2$. \linebreak
@@ -565,7 +584,7 @@ Assume that we move a distance $\ell$ from state $\kr{j_k}_{k=1}^n$, which means
 
 \begin{align}
 \sum_{m=1}^n \p{A_{\kr{j_k+\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}+A_{\kr{j_k-\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}} = 1 \,.
-\label{eq_42}
+\label{eq_43}
 \end{align}
 
 Now assuming isotropic diffusion, which means that
@@ -579,7 +598,7 @@ and the constraint on the direction probability then yields
 
 \begin{align}
 A = A_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} = \frac{1}{2n}\,,
-\label{eq_43}
+\label{eq_44}
 \end{align}
 
 and the distance probability $T$ is only dependent on the distance $\ell$
@@ -594,7 +613,7 @@ which has the constraint
 \sum_{\ell} p_\ell = 1\,.
 \end{align*}
 
-Then the normalized concentration \eqref{eq_40} is now given by
+Then the normalized concentration \eqref{eq_41} is now given by
 
 \begin{align*}
 u_{(i+1)\kr{j_k}_{k=1}^n} = \frac{1}{2n}\sum_\ell p_\ell\sum_{m=1}^n \p{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}} \,,
@@ -604,7 +623,7 @@ which can be rewritten to
 
 \begin{align}
 \frac{u_{(i+1)\kr{j_k}_{k=1}^n}-u_{i\kr{j_k}_{k=1}^n}}{\Delta t} = \sum_{\ell}\frac{p_\ell \p{\ell \Delta x}^2}{2n\Delta t}\sum_{m=1}^n\frac{u_{i\kr{j_k+\delta_{km}\ell}_{k=1}^n} - 2 u_{i\kr{j_k}_{k=1}^n} + u_{i\kr{j_k-\delta_{km}\ell}_{k=1}^n}}{\p{\ell\Delta x}^2} \,.
-\label{eq_44}
+\label{eq_45}
 \end{align}
 
 When we have the Kronecker delta distribution $p_\ell = \delta_{1\ell}$ this becomes the discretization of the heat equation in \eqref{eq_1} 
@@ -617,27 +636,27 @@ with the relation to the diffusion constant $D$ as follows
 
 \begin{align}
 \Delta x = \sqrt{2nD\Delta t}\,. 
-\label{eq_45}
+\label{eq_46}
 \end{align}
 
-For a general distribution $p_\ell$ we see from \eqref{eq_44} that the step length now is given by
+For a general distribution $p_\ell$ we see from \eqref{eq_45} that the step length now is given by
 
 \begin{align}
 \Delta x_\ell = \ell \Delta x = \ell\sqrt{2nD\Delta t}\,.
-\label{eq_46}
+\label{eq_47}
 \end{align} 
 
 If we use a random generator to make a proposition to move at each time step, we get a deterministic running time with approximation in the result, which is known as Monte Carlo algorithm. 
 
 \subsubsection{Metropolis-Hastings algorithm}
 
-The steps above with Markov chains are designed to give a approximated time evolution. However if we are only interested in the steady state solution, we can derive a faster algorithm to reach it, which is the Metropolis-Hastings algorithm. To derive the Metropolis-Hastings algorithm we start by looking back at the Master equation in \eqref{eq_39} for equilibrium, where we realize that transition to and from the state $\kr{j_k}_{k=1}^n$ must be equal
+The steps above with Markov chains are designed to give a approximated time evolution. However if we are only interested in the steady state solution, we can derive a faster algorithm to reach it, which is the Metropolis-Hastings algorithm. To derive the Metropolis-Hastings algorithm we start by looking back at the Master equation in \eqref{eq_40} for equilibrium, where we realize that transition to and from the state $\kr{j_k}_{k=1}^n$ must be equal
 
 \begin{align*}
 \lim_{i\to \infty} \p{u_{(i+1)\kr{j_k}_{k=1}^n}^+ - u_{(i+1)\kr{j_k}_{k=1}^n}^-} = 0 \,.
 \end{align*}
 
-Using the equality of transition to and from the state $\kr{j_k}_{k=1}^n$ at equilibrium,  the Markov chains in \eqref{eq_37} and \eqref{eq_38}, with proposed transition distribution $T$ which is independent of the accepted $A$, must satisfy the following equation
+Using the equality of transition to and from the state $\kr{j_k}_{k=1}^n$ at equilibrium,  the Markov chains in \eqref{eq_38} and \eqref{eq_39}, with proposed transition distribution $T$ which is independent of the accepted $A$, must satisfy the following equation
 
 \begin{align*}
 \sum_{\kr{\ell_k}_{k=1}^n}\p{T_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n}A_{\kr{j_k}_{k=1}^n \kr{\ell_k}_{k=1}^n} u_{i\kr{\ell_k}_{k=1}^n} - T_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n}A_{\kr{\ell_k}_{k=1}^n \kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n}} = 0 \,,
@@ -654,21 +673,21 @@ where $T$ is a distribution that we propose and $A$ is a probability to accept t
 
 \begin{align}
 A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} = \min\p{1,\frac{T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n}u_{i\kr{\ell_k}_{k=1}^n}}{T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}u_{i\kr{j_k}_{k=1}^n}}}\,,
-\label{eq_47}
+\label{eq_48}
 \end{align}
 
 where the two states change accordingly to a Master equation when we transition from $\kr{j_k}_{k=1}^2$ to $\kr{\ell_k}_{k=1}^2$ 
 
 \begin{align}
 u_{(i+1)\kr{j_k}_{k=1}^n} &=  T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{\ell_k}_{k=1}^n} + \p{1-T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}} u_{i\kr{j_k}_{k=1}^n}
-\label{eq_48}\\
+\label{eq_49}\\
 u_{(i+1)\kr{\ell_k}_{k=1}^n} &= T_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n} u_{i\kr{j_k}_{k=1}^n} + \p{1-T_{\kr{j_k}_{k=1}^n\kr{\ell_k}_{k=1}^n} A_{\kr{\ell_k}_{k=1}^n\kr{j_k}_{k=1}^n}} u_{i\kr{\ell_k}_{k=1}^n} \,.
-\label{eq_49}
+\label{eq_50}
 \end{align} 
 
 \subsubsection{Wall boundary}
 
-The Markov chain give insight into how to treat a boundary that is a wall. A wall is a boundary that does not allow transitions beyond it. If we look at direction probability $A$ in \eqref{eq_42} and assume that our wall sets $A_{\kr{j_k-\delta_{kp}}_{k=1}^n\kr{j_k}_{k=1}^n}=0$ we get
+The Markov chain give insight into how to treat a boundary that is a wall. A wall is a boundary that does not allow transitions beyond it. If we look at direction probability $A$ in \eqref{eq_43} and assume that our wall sets $A_{\kr{j_k-\delta_{kp}}_{k=1}^n\kr{j_k}_{k=1}^n}=0$ we get
 
 \begin{align*}
 A_{\kr{j_k+\delta_{kp}\ell}_{k=1}^n\kr{j_k}_{k=1}^n} + \sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n \p{A_{\kr{j_k+\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}+A_{\kr{j_k-\delta_{km}\ell}_{k=1}^n\kr{j_k}_{k=1}^n}} = 1 \,,
@@ -705,14 +724,14 @@ Relating to the diffusion constant $D$ gives
 
 \begin{align}
 \Delta x = \sqrt{\p{2n-1}D\Delta t} \,,
-\label{eq_50}
+\label{eq_51}
 \end{align}
 
 and in general
 
 \begin{align}
 \Delta x_\ell = \ell \Delta x = \ell\sqrt{\p{2n-1}D\Delta t}
-\label{eq_51}
+\label{eq_52}
 \end{align}
 
 which results in the discretization
@@ -726,7 +745,7 @@ To avoid that the above equation diverges for smaller an smaller step sizes, we 
 
 \begin{align}
 \frac{\partial u\p{\kr{x_i}_{i=1}^n, t}}{\partial t} = D\sum_{\scriptsize\begin{matrix}m=1\\ m\neq p\end{matrix}}^n \frac{\partial^2 u\p{\kr{x_i}_{i=1}^n, t}}{\partial {x_m}^2} \qquad \text{and} \qquad \frac{\partial u\p{\kr{x_i}_{i=1}^n, t}}{\partial x_p} = 0 \,,
-\label{eq_52}
+\label{eq_53}
 \end{align}
 
 and we have proven the ansatz that I made in the analytical derivation where the boundary $u\p{0,x_2,t}$ is determined by $u_2\p{x_2,t}$ which yielded the solution on the boundary as in \eqref{eq_6}.
@@ -741,14 +760,72 @@ Order of relative error of $\varv$ to $u$ is calculated by
 \epsilon = \log_{10}\abs{\frac{\varv - u}{u}} \,.
 \end{align*}
 
-\figur{1}{MonteCarlo1D_t0.01.eps}{Monte Carlo simulations for 1D diffusion problem, plotted in 100 grid points. Uniform step is of size $\Delta x$ \eqref{eq_45}, and Gaussian step is of size $\Delta x_\ell$  \eqref{eq_46} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. Uniform distribution requires smaller time step than the Gaussian distribution to give a good approximation. The problem with uniform distribution is that it leaves grid points empty which should not be empty when the plot grid is smaller than the step size of the simulation. This is not a problem for Gaussian distribution.}{fig1}
+\figur{1}{MonteCarlo1D_t0.01.eps}{Monte Carlo simulations for 1D diffusion problem, plotted in 100 lattice. Uniform step is of size $\Delta x$ \eqref{eq_46}, and Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle. Uniform distribution requires smaller time step than the Gaussian distribution to give a good approximation. The problem with uniform distribution is that it leaves grid points empty which should not be empty when the plot grid is smaller than the step size of the simulation. This is not a problem for Gaussian distribution.}{fig1}
 
 \begin{tabell}{|r|c|c|c|}{\small}{$N$ & MCU 1e-3 & MCU 1e-5 & MCG 1e-4 \\}{\input{build-project5-Desktop-Debug/MonteCarlo_1D_time_t0.01.dat}}{Calculation time for the Monte Carlo 1D in seconds for $t=0.01$. MCU = Monte Carlo Uniform, MCG = Monte Carlo Gaussian.}{tab1}
 \end{tabell}
 
-\begin{tabell}{|r|c|c|c|}{\small}{$N$ & MCU 1e-3 & MCU 1e-5 & MCG 1e-4 \\}{\input{build-project5-Desktop-Debug/MonteCarlo_1D_error_t0.01.dat}}{Order of relative error for the Monte Carlo 1D at $t=0.01$. MCU = Monte Carlo Uniform, MCG = Monte Carlo Gaussian. Excluding source point and relative error of calculated and exact value less than $10^{-2}$ are also excluded.}{tab2}
+\begin{tabell}{|r|c|c|c|}{\small}{$N$ & MCU 1e-3 & MCU 1e-5 & MCG 1e-4 \\}{\input{build-project5-Desktop-Debug/MonteCarlo_1D_error_t0.01.dat}}{Order of relative error for the Monte Carlo 1D at $t=0.01$. MCU = Monte Carlo Uniform, MCG = Monte Carlo Gaussian. Relative error of calculated and exact value less than $10^{-2}$ are excluded.}{tab2}
 \end{tabell}
 
+\figur{1}{MonteCarlo1D_t1.eps}{Monte Carlo simulations and Metropolis simulation for 1D diffusion problem at equilibrium, plotted in 100 lattice. Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle. 1 Metropolis cycle is a loop forward and backward on all the grid points.}{fig2}
+
+\begin{tabell}{|r|cIr|c|}{\small}{$N$ & MCG 1e-3 & $N$ & Metropolis \\}{\input{build-project5-Desktop-Debug/MonteCarlo_1D_time_t1.dat}}{Calculation time for 1D diffusion in seconds for $t=1$. MCG = Monte Carlo Gaussian.}{tab3}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|}{\small}{$N$ & MCG 1e-3 & $N$ & Metropolis \\}{\input{build-project5-Desktop-Debug/MonteCarlo_1D_error_t1.dat}}{Order of relative error for 1D diffusion at $t=1$. MCG = Monte Carlo Gaussian. Relative error of calculated and exact value less than $10^{-1}$ are excluded.}{tab4}
+\end{tabell}
+
+\figur{1}{Exact_2D_t0.01_w(0.1,9.9).eps}{Exact solution at $t=0.01$ of 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$. Which corresponds well with 1D dimensional case in \reffig{fig1}.}{fig3}
+
+\figur{1}{Explicit_2D_t0.01_w(0.1,9.9)_alpha0.49.eps}{Explicit solution in 100x100 lattice at $t=0.01$ with $\alpha = 0.49$ of 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$.}{fig4}
+
+\figur{1}{Explicit_2D_t0.01_w(0.1,9.9)_alpha0.51.eps}{Explicit solution in 100x100 lattice at $t=0.01$ with $\alpha = 0.51$ of 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$. Instability in the solution because of the convergence criteria is not meet.}{fig5}
+
+\figur{1}{Jacobi_2D_t0.01_w(0.1,9.9)_theta1_alpha100.eps}{Jacobi solution in 100x100 lattice at $t=0.01$ with $\theta=1$ and $\alpha = 100$ of 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$.}{fig6}
+
+\figur{1}{MonteCarlo_2D_t0.01_w(0.1,9.9)_N1.eps}{1 Monte Carlo Gaussian experiment in 100x100 lattice at $t=0.01$ with time step $10^{-4}$ for 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$. Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle.}{fig7}
+
+\figur{1}{MonteCarlo_2D_t0.01_w(0.1,9.9)_N100.eps}{100 Monte Carlo Gaussian experiments in 100x100 lattice at $t=0.01$ with time step $10^{-4}$ for 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$. Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle.}{fig8}
+
+\figur{1}{MonteCarlo_2D_t0.01_w(0.1,9.9)_N10000.eps}{10000 Monte Carlo Gaussian experiments in 100x100 lattice at $t=0.01$ with time step $10^{-4}$ for 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$. Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle.}{fig9}
+
+\figur{1}{Exact_2D_t1_w(0.1,9.9).eps}{Exact solution at $t=1$ of 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$. Which corresponds well with 1D dimensional case in \reffig{fig2}.}{fig10}
+
+\figur{1}{Explicit_2D_t1_w(0.1,9.9)_alpha0.49.eps}{Explicit solution in 100x100 lattice at $t=1$ with $\alpha = 0.49$ of 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$.}{fig11}
+
+\figur{1}{Jacobi_2D_t1_w(0.1,9.9)_theta1_alpha10000.eps}{Jacobi solution in 100x100 lattice at $t=1$ with $\theta=1$ and $\alpha = 10000$ of 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$.}{fig12}
+
+\figur{1}{MonteCarlo_2D_t1_w(0.1,9.9)_N10000.eps}{10000 Monte Carlo Gaussian experiments in 100x100 lattice at $t=1$ with time step $10^{-3}$ for 2D diffusion with source boundary of neurotransmitters $0.1 \leq x_2 \leq 9.9$. Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle.}{fig13}
+
+\figur{1}{Exact_2D_t0.1_w(7,8).eps}{Exact solution at $t=0.1$ of 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$.}{fig14}
+\newpage
+
+\figur{1}{Explicit_2D_t0.1_w(7,8)_alpha0.49.eps}{Explicit solution in 100x100 lattice at $t=0.1$ with $\alpha = 0.49$ of 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$.}{fig15}
+
+\figur{1}{Jacobi_2D_t0.1_w(7,8)_theta1_alpha1000.eps}{Jacobi solution in 100x100 lattice at $t=0.1$ with $\theta=1$ and $\alpha = 1000$ of 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$.}{fig12}
+
+\figur{1}{MonteCarlo_2D_t0.1_w(7,8)_N10000.eps}{10000 Monte Carlo Gaussian experiments in 100x100 lattice at $t=0.1$ with time step $10^{-3}$ for 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$. Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle.}{fig17}
+
+\figur{1}{Exact_2D_t1_w(7,8).eps}{Exact solution at $t=1$ of 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$.}{fig18}
+
+\figur{1}{Explicit_2D_t1_w(7,8)_alpha0.49.eps}{Explicit solution in 100x100 lattice at $t=1$ with $\alpha = 0.49$ of 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$.}{fig19}
+
+\figur{1}{Jacobi_2D_t1_w(7,8)_theta1_alpha10000.eps}{Jacobi solution in 100x100 lattice at $t=1$ with $\theta=1$ and $\alpha = 10000$ of 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$.}{fig20}
+
+\figur{1}{MonteCarlo_2D_t1_w(7,8)_N100.eps}{100 Monte Carlo Gaussian experiments in 100x100 lattice at $t=1$ with time step $10^{-3}$ for 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$. Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle.}{fig21}
+
+\figur{1}{MonteCarlo_2D_t1_w(7,8)_N10000.eps}{10000 Monte Carlo Gaussian experiments in 100x100 lattice at $t=1$ with time step $10^{-3}$ for 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$. Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle.}{fig22}
+
+\figur{1}{MonteCarlo_2D_t1_w(7,8)_N1000000.eps}{1000000 Monte Carlo Gaussian experiments in 100x100 lattice at $t=1$ with time step $10^{-3}$ for 2D diffusion with source boundary of neurotransmitters $7 \leq x_2 \leq 8$. Gaussian step is of size $\Delta x_\ell$  \eqref{eq_47} where $\ell = -\log x$ and $x$ is a uniform random number between 0 and 1, this correspond to mean value 0 and $1 / \sqrt{2}$ standard divination in the Gaussian distribution. 1 Monte Carlo experiment has only 1 seeding particle.}{fig23}
+
+\newpage
+
+\begin{tabell}{|r|c|c|c|}{\small}{Case & Explicit & Jacobi & Monte Carlo 10000 \\}{\input{build-project5-Desktop-Debug/2D_time.dat}}{Calculation time for 2D diffusion in seconds.}{tab5}
+\end{tabell}
+
+\begin{tabell}{|r|c|c|c|}{\small}{Case & Explicit & Jacobi & Monte Carlo 10000 \\}{\input{build-project5-Desktop-Debug/2D_error.dat}}{Order of relative error for 2D diffusion Relative error of calculated and exact value less than $10^{-1}$ are excluded.}{tab6}
+\end{tabell}
 
 \section{Attachments}
 

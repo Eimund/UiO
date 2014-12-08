@@ -343,4 +343,18 @@ template<class T> T ArrayRelativeError(T* u, T* v, unsigned int n, T cutoff) {
     return log10(error);
 }
 
+template<class T> T ArrayRelativeError2(T** u, T** v, unsigned int n[2], T cutoff) {
+    T e, error = 0;
+    for(unsigned int i = 0; i < n[0]; i++) {
+        for(unsigned int j = 0; j < n[1]; j++) {
+            if(v[i][j] > cutoff || u[i][j] > cutoff) {
+                e = abs((v[i][j]-u[i][j])/u[i][j]);
+                if(e > error)
+                    error = e;
+            }
+        }
+    }
+    return log10(error);
+}
+
 #endif // ARRAY_H
