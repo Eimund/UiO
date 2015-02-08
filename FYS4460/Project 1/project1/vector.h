@@ -37,10 +37,13 @@ template<typename T, size_t D> struct Vector {
     inline T& operator[](size_t i) {
         return e[i];
     }
-    public: template<typename U> inline friend basic_ostream<U>& operator<<(basic_ostream<U>& out, const Vector<T,D>& other) {
+    inline T operator[](size_t i) const {
+        return e[i];
+    }
+    inline friend Stream& operator<<(Stream& stream, const Vector<T,D>& data) {
         for(size_t i = 0; i < D; i++)
-            out << other[i];
-        return out;
+            stream << data[i];
+        return stream;
     }
 };
 

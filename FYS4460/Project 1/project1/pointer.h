@@ -17,5 +17,4 @@ template<typename T> struct Pointer<T,0> {
     typedef T Type;
 };
 
-
 #endif // POINTER_H

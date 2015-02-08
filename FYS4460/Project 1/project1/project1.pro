@@ -11,7 +11,12 @@ HEADERS += \
     boltzmann.h \
     unit.h \
     random.h \
-    template.h
+    template.h \
+    run.h \
+    timestep.h \
+    vmd.h \
+    struct.h \
+    stream.h
 
 CONFIG += \
     C++11

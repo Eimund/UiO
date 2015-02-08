@@ -7,8 +7,10 @@
 #include <string>
 #include "boltzmann.h"
 #include "gaussian.h"
-#include "vector.h"
 #include "unit.h"
+#include "vector.h"
+#include "timestep.h"
+#include "vmd.h"
 
 
 #define FLOAT double
@@ -47,11 +49,18 @@ int main() {
     ofstream file;
     file.open("a/Ar.xyz");
 
+    VMD<angstrom<FLOAT>,Vector<FLOAT,3>> data("Argon centered cubic lattice");
+    data.LatticeCenteredCubic(l, angstrom<FLOAT>(5.26), N);
+    TimeStep<FLOAT,VMD<angstrom<FLOAT>,Vector<FLOAT,3>>> time(data);
+    data.Open("a/test.xyz");
+    time.Print();
+    data.Close();
+
     Boltzmann<FLOAT> boltz(K<FLOAT>(100),u<FLOAT>(39.948));
     Gaussian<m_div_s<FLOAT>> vel(boltz.StandardDeviation());
     Delegate<Gaussian<m_div_s<FLOAT>>,m_div_s<FLOAT>> vel_distr(vel, &Gaussian<m_div_s<FLOAT>>::Distribution_mu_0);
     auto Ar = LatticeCenteredCubic(l, angstrom<FLOAT>(5.26), vel_distr, N);
-    LatticeToVMD(file, Ar, "Argon centered cubic lattice");
+    //LatticeToVMD(file, Ar, "Argon centered cubic lattice");
     auto t = Boltzmann<FLOAT>().kB;
 
     file.close();
@@ -95,13 +104,13 @@ template<typename U1, typename U2, typename C> Array<void,Particle<U1,U2,3>> Lat
     return data;
 }
 
-template<typename U1, typename U2> void LatticeToVMD(ofstream& file, ArrayLength<void,Particle<U1,U2,3>> data, string comment) {
+/*template<typename U1, typename U2> void LatticeToVMD(ofstream& file, ArrayLength<void,Particle<U1,U2,3>> data, string comment) {
     file << data << endl << comment;
     for(unsigned int i = 0; i < data; i++) {
         file << endl << data[i].label << " ";
         file << data[i].x[0] << " " << data[i].x[1] << " " << data[i].x[2] << " ";
         file << data[i].v[0] << " " << data[i].v[1] << " " << data[i].v[2];
     }
-}
+}*/
 
 #endif // PROJECT_CPP

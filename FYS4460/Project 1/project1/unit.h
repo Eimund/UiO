@@ -12,7 +12,7 @@
 #define UNIT_H
 
 #include <cmath>
-#include <iostream>
+#include "stream.h"
 
 using namespace std;
 
@@ -39,8 +39,8 @@ template<typename V, typename T> class Unit<V,T> : public Unit<V> {
     public: inline bool operator<(const V& value) const {
         return this->value < value ? true : false;
     }
-    public: template<typename U> inline friend basic_ostream<U>& operator<<(basic_ostream<U>& out, const T& other) {
-        out << *other;
+    public: inline friend Stream& operator<<(Stream& out, const T& data) {
+        out << data.value;
         return out;
     }
     public: inline T& operator-() {
@@ -67,6 +67,7 @@ template<typename V> struct kg;
 template<typename V> struct K;
 template<typename V> struct J;
 template<typename V> struct m;
+template<typename V> struct s;
 template<typename V> struct u;
 template<typename V> struct angstrom;
 template<typename V> struct J_div_K;
@@ -101,6 +102,11 @@ template<typename V> struct m : public Unit<V,m<V>> {
     inline operator angstrom<V>() const {
         constexpr V o = pow((V)10,(V)10);
         return this->value*o;
+    }
+};
+
+template<typename V> struct s : public Unit<V,s<V>> {
+    inline s(V value = 0) : Unit<V,s<V>>(this, value) {
     }
 };
 

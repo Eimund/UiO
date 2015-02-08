@@ -11,10 +11,10 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-#include <iostream>
 #include "delegate.h"
 #include "ref.h"
 #include "pointer.h"
+#include "stream.h"
 
 using namespace std;
 
@@ -71,8 +71,16 @@ template<typename C, typename T> class ArrayLength {
     public: inline T& operator[](int i) {
         return (*array)[i];
     }
+    public: inline T operator[](int i) const {
+        return (*array)[i];
+    }
     public: inline T* operator->() const {
         return *array;
+    }
+    public: inline friend Stream& operator<<(Stream& stream, const ArrayLength<C,T>& data) {
+        for(size_t i = 0; i < data.length; i++)
+            stream << data[i] << Stream::endl;
+        return stream;
     }
     public: template<typename K, typename U> void Get(Delegate<K,U> func) {
         for(size_t i = 0; i < length; i++)
@@ -100,6 +108,10 @@ template<typename C, typename T> class Array : public ArrayLength<C,T> {
         for(size_t i = 0; i < other; i++)
             array[i] = other.array[i];
         return *this;
+    }
+    public: inline friend Stream& operator<<(Stream& stream, const Array<C,T>& data) {
+        stream << (ArrayLength<C,T>)data;
+        return stream;
     }
 };
 
