@@ -16,7 +16,7 @@ def FromVMDFile(filename) :
     fil.close()
     return x,v
 
-x,v = FromVMDFile('build-project1-Desktop-Debug/a/Ar.xyz')
+x,v = FromVMDFile('build-project1-Desktop-Debug/b.xyz')
 mu = [0 for i in range(4)]
 sigma = [0 for i in range(4)]
 vel = [0 for i in range(len(v))]  
@@ -36,26 +36,26 @@ for j in range(3) :
     sigma[j] = sqrt(sigma[j]/len(v))
 sigma[3] = sqrt(2/pi)*mu[3]
 
-range = np.arange(-500, 500, 1)
+range = np.arange(-5, 5, 0.01)
 plt.figure(1)
 plt.plot(range, norm.pdf(range, mu[0], sigma[0]))
-plt.xlabel('$v_x$ [m/s]')
+plt.xlabel('$v_x$ [angstrom/ps]')
 plt.ylabel('probability')
 plt.title('$\mu$=%g, $\sigma$=%g'%(mu[0],sigma[0]))
 plt.figure(2)
 plt.plot(range, norm.pdf(range, mu[1], sigma[1]))
-plt.xlabel('$v_y$ [m/s]')
+plt.xlabel('$v_y$ [angstrom/ps]')
 plt.ylabel('probability')
 plt.title('$\mu$=%g, $\sigma$=%g'%(mu[1],sigma[1]))
 plt.figure(3)
 plt.plot(range, norm.pdf(range, mu[2], sigma[2]))
-plt.xlabel('$v_z$ [m/s]')
+plt.xlabel('$v_z$ [angstrom/ps]')
 plt.ylabel('probability')
 plt.title('$\mu$=%g, $\sigma$=%g'%(mu[2],sigma[2]))
 plt.figure(4)
-range = np.arange(0, 600, 1)
+range = np.arange(0, 6, 0.01)
 plt.plot(range, rayleigh.pdf(range, scale=sigma[3]))
-plt.xlabel('$v$ [m/s]')
+plt.xlabel('$v$ [angstrom/ps]')
 plt.ylabel('probability')
 plt.title('mean=%g, $\sigma$=%g'%(mu[3],sigma[3]))
 plt.show()

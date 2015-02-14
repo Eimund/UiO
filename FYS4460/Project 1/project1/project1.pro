@@ -16,7 +16,10 @@ HEADERS += \
     timestep.h \
     vmd.h \
     struct.h \
-    stream.h
+    stream.h \
+    verlet.h \
+    pbc.h \
+    LJpotential.h
 
 CONFIG += \
     C++11

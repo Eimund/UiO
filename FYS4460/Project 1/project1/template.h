@@ -15,7 +15,6 @@ template<typename T> struct RemoveTemplate {
     typedef T type;
 };
 template<typename T, template<typename> class C> struct RemoveTemplate<C<T>> : RemoveTemplate<T> {
-
 };
 
 #endif // TEMPLATE_H

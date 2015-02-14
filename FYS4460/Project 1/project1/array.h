@@ -28,7 +28,7 @@ template<typename C, typename T> class MathArray;
 template<typename C, typename T> class ArrayLength {
     private: T** array;
     protected: size_t length;
-    private: Delegate<C, void, T*, size_t, size_t>* init;
+    protected: Delegate<C, void, T*, size_t, size_t>* init;
     public: ArrayLength(T* &array) : init(nullptr) {
         this->length = 0;
         this->array = &array;
@@ -40,12 +40,12 @@ template<typename C, typename T> class ArrayLength {
         *this->array = new T[0];
         *this = length;
     }
-    public: ArrayLength(T* &array, Delegate<C, void, T*, size_t, size_t> init) : init(init) {
+    public: ArrayLength(T* &array, Delegate<C, void, T*, size_t, size_t>& init) : init(&init) {
         this->length = 0;
         this->array = &array;
         *this->array = new T[0];
     }
-    public: ArrayLength(T* &array, size_t length, Delegate<C, void, T*, size_t, size_t> init) : init(init) {
+    public: ArrayLength(T* &array, size_t length, Delegate<C, void, T*, size_t, size_t>& init) : init(&init) {
         this->length = 0;
         this->array = &array;
         *this->array = new T[0];
@@ -97,11 +97,14 @@ template<typename C, typename T> class Array : public ArrayLength<C,T> {
     }
     public: Array(Delegate<C, void, T*, size_t, size_t> init) : ArrayLength<C,T>(array, 0, init) {
     }
-    public: Array(size_t length, Delegate<C, void, T*, size_t, size_t> init) : ArrayLength<C,T>(array, length, init) {
+    public: Array(size_t length, Delegate<C, void, T*, size_t, size_t>& init) : ArrayLength<C,T>(array, length, init) {
     }
     public: ~Array() {
         if(array != nullptr)
             delete [] array;
+    }
+    public: Array(const Array<C,T>& other) : ArrayLength<C,T>(array, other.length, *other.init) {
+        *this = other;
     }
     public: Array<C,T>& operator=(const Array<C,T>& other) {
         static_cast<ArrayLength<C,T>&>(*this) = static_cast<size_t>(other);

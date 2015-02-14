@@ -40,6 +40,9 @@ template<typename T, size_t D> struct Vector {
     inline T operator[](size_t i) const {
         return e[i];
     }
+    inline operator size_t() const {
+        return D;
+    }
     inline friend Stream& operator<<(Stream& stream, const Vector<T,D>& data) {
         for(size_t i = 0; i < D; i++)
             stream << data[i];

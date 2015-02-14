@@ -12,6 +12,7 @@
 #define STREAM_H
 
 #include <iostream>
+#include <fstream>
 #include <string>
 
 using namespace std;
@@ -19,21 +20,29 @@ using namespace std;
 class Stream {
     private: typedef Stream& (*StreamManipulator)(Stream&);
     private: typedef ofstream& (*StandardEndLine)(ofstream&);
-    private: bool skip;
+    protected: bool first;
+    private: bool newline;
     private: string del;
     protected: ofstream stream;
-    public: inline Stream(string del) : skip(true), del(del) {
+    public: inline Stream(string del) : first(true), newline(false), del(del) {
     }
     public: inline Stream(const Stream& other) {
-        this->skip = other.skip;
+        this->first = other.first;
+        this->newline = other.newline;
         this->del = other.del;
     }
     public: template<typename T> inline Stream& operator <<(const T& data) {
-        if(skip) {
+        if(first) {
             stream << data;
-            skip = false;
+            first = false;
+            newline = false;
             return *this;
         }
+        if(newline) {
+            stream << std::endl << data;
+            newline = false;
+            return *this;
+        }        
         stream << del << data;
         return *this;
     }
@@ -45,8 +54,7 @@ class Stream {
         return *this;
     }
     public: inline static Stream& endl(Stream& stream) {
-        stream.stream << std::endl;
-        stream.skip = true;
+        stream.newline = true;
         return stream;
     }
     public: inline void Close() {
@@ -54,6 +62,8 @@ class Stream {
     }
     public: inline void Open(string str) {
         stream.open(str);
+        first = true;
+        newline = false;
     }
 };
 

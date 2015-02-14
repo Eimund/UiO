@@ -28,13 +28,13 @@ template<typename T> class Gaussian : public Random<typename RemoveTemplate<T>::
     public: inline T Distribution() {
         typename RemoveTemplate<T>::type val = this->rand;
         if(val < 0)
-            return mu-sigma*sqrt(-2*log(abs(val)));
-        return mu+sigma*sqrt(-2*log(abs(val)));
+            return mu-sigma*sqrt(-2.0*log(abs(val)));
+        return mu+sigma*sqrt(-2.0*log(abs(val)));
     }
     public: inline T Distribution_mu_0() {
         typename RemoveTemplate<T>::type val = this->rand;
         if(val < 0)
-            return -sigma*sqrt(-2*log(abs(val)));
+            return sigma*(-sqrt(-2*log(abs(val))));
         return sigma*sqrt(-2*log(abs(val)));
     }
 };

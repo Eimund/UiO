@@ -50,4 +50,42 @@ template<typename R> class Delegate<void,R,void> {
     }
 };
 
+template<typename... D> struct DelegateElement;
+template<typename C, typename R, typename... P, typename... D> struct DelegateElement<Delegate<C,R,P...>,D...> : public DelegateElement<D...> {
+    const Delegate<C,R,P...>& delegate;
+    inline DelegateElement(const Delegate<C,R,P...>& delegate, const D&... delegates) : DelegateElement<D...>(delegates...), delegate(delegate) {
+    }
+    inline void operator()(P... params) {
+        delegate(params...);
+        DelegateElement<D...>::operator()(params...);
+    }
+};
+template<typename C, typename R, typename... P> struct DelegateElement<Delegate<C,R,P...>> {
+    const Delegate<C,R,P...>& delegate;
+    inline DelegateElement(const Delegate<C,R,P...>& delegate) : delegate(delegate) {
+    }
+    inline void operator()(P... params) {
+        delegate(params...);
+    }
+};
+
+template<typename... P> struct DelegateArray;
+template<typename... C, typename... R, typename... P> struct DelegateArray<Delegate<C,R,P...>...> : public DelegateElement<Delegate<C,R,P...>...> {
+    inline DelegateArray(const Delegate<C,R,P...>&... delegates) : DelegateElement<Delegate<C,R,P...>...>(delegates...) {
+    }
+    inline void operator()(P... params) {
+        DelegateElement<Delegate<C,R,P...>...>::operator()(params...);
+    }
+};
+
+template<typename R, typename... P> inline Delegate<void,R,P...> delegate(R (*func)(P...)) {
+    return Delegate<void,R,P...>(func);
+}
+template<typename C, typename R, typename... P> inline Delegate<C,R,P...> delegate(C& owner, R (C::*func)(P...)) {
+    return Delegate<C,R,P...>(owner, func);
+}
+template<typename... C, typename... R, typename... P> inline DelegateArray<Delegate<C,R,P...>...> delegate_array(const Delegate<C,R,P...>&... delegates) {
+    return DelegateArray<Delegate<C,R,P...>...>(delegates...);
+}
+
 #endif // DELEGATE_

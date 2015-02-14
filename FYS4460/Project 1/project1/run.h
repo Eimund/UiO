@@ -11,14 +11,16 @@
 #ifndef RUN_H
 #define RUN_H
 
-#include "array.h"
+#include "delegate.h"
 #include "timestep.h"
 
-template<typename T, typename N, typename C> void Run(TimeStep<T,N> data, Array<C,Delegate<void,void,const TimeStep<T,N>&>> func, T t_end) {
-    while(data < t_end) {
-        for(size_t i = 0; i < func; i++)
-            func[i](data);
+template<typename T, typename N, typename... C, typename... R> void Run(TimeStep<T,N>& data, T t_end, const Delegate<C,R,TimeStep<T,N>&>&... f) {
+    auto func = delegate_array(f...);
+    while(static_cast<T&>(data) < t_end) {
+        data.Print();
+        func(data);
     }
+    data.Save();
 }
 
 #endif // RUN_H
