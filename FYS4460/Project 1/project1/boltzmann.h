@@ -17,7 +17,7 @@
 template<typename T> class Boltzmann {
     public: K<T> temp;
     public: kg<T> mass;
-    public: static const J_div_K<T> kB;//{1.3806488e-23};
+    public: static const J_div_K<T> kB;
     public: Boltzmann() : temp(0), mass(1) {
     }
     public: Boltzmann(const K<T>& temp, const kg<T>& mass) : temp(temp), mass(mass) {

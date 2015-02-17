@@ -11,60 +11,23 @@
 #ifndef VERLET_H
 #define VERLET_H
 
+#include "acceleration.h"
 #include "array.h"
-#include "delegate.h"
-
-template<typename X, typename V, typename A, typename D> class VelocityVerletFunction {
-
-};
-
-template<typename X, typename V, typename A> class VelocityVerletFunction<X,V,A,void> {
-    public: static inline void Run(X&, V&, A&) {
-    }
-};
-template<typename X, typename V, typename A, typename C> struct VelocityVerletFunction<X,V,A,Delegate<C,void,A&>> {
-    private: Delegate<C,void,A&> f;
-    protected: inline VelocityVerletFunction(const Delegate<C,void,A&>& f) : f(f) {
-    }
-    protected: inline void Run(X&, V&, A& a) {
-        f(a);
-    }
-};
-template<typename X, typename V, typename A, typename C> struct VelocityVerletFunction<X,V,A,Delegate<C,void,X&,A&>> {
-    private: Delegate<C,void,X&,A&> f;
-    protected: inline VelocityVerletFunction(const Delegate<C,void,X&,A&>& f) : f(f) {
-    }
-    protected: inline void Run(X& x, V&, A& a) {
-        f(x,a);
-    }
-};
-template<typename X,typename V, typename A, typename C> struct VelocityVerletFunction<X,V,A,Delegate<C,void,V&,A&>> {
-    private: Delegate<C,void,V&,A&> f;
-    protected: inline VelocityVerletFunction(const Delegate<C,void,V&,A&>& f) : f(f) {
-    }
-    protected: inline void Run(X&, V& v, A& a) {
-        f(v,a);
-    }
-};
-template<typename X,typename V, typename A, typename C> struct VelocityVerletFunction<X,V,A,Delegate<C,void,X&,V&,A&>> {
-    private: Delegate<C,void,X&,V&,A&> f;
-    protected: inline VelocityVerletFunction(const Delegate<C,void,X&,V&,A&>& f) : f(f) {
-    }
-    protected: inline void Run(X& x, V& v, A& a) {
-        f(x,v,a);
-    }
-};
 
 template<size_t N, typename X, typename V, typename A, typename D> class VelocityVerlet;
-template<typename X, typename V, typename A, typename D> class VelocityVerlet<2,X,V,A,D> : VelocityVerletFunction<X,V,Array<void,A>,D> {
-    private: X* x;
-    private: V* v;
-    private: Array<void,A> a;
-    public: inline VelocityVerlet(X& x, V& v, const D& f) : VelocityVerletFunction<X,V,Array<void,A>,D>(f), x(&x), v(&v), a(x) {
-        f(x,v,a);
+template<typename X, typename V, typename A, typename D> class VelocityVerlet<2,X,V,A,D> : Acceleration<X,V,Array<void,A>,D> {
+    protected: X* x;
+    protected: V* v;
+    protected: Array<void,A> a;
+    public: inline VelocityVerlet(X& x, V& v, const D& f) : Acceleration<X,V,Array<void,A>,D>(f), x(&x), v(&v), a(x) {
+        this->Run(x,v,a);           // Initialize
     }
     public: template<typename T> inline void Solve(T& dt) {
         T dt_div_2 = dt / 2;
+        size_t n = a;
+        a = static_cast<size_t>(*x);
+        if(n != a)
+            this->Run(*x,*v,a);     // Initialize
         for(size_t i = 0; i < *v; i++) {
             for(size_t j = 0; j < (*v)[i]; j++) {
                 (*v)[i][j] += a[i][j] * dt_div_2;
@@ -77,10 +40,19 @@ template<typename X, typename V, typename A, typename D> class VelocityVerlet<2,
                 (*v)[i][j] += a[i][j] * dt_div_2;
         }
     }
+    public: inline size_t& operator=(const size_t& len) {
+        return a = len;
+    }
+    public: inline operator size_t&() {
+        return a;
+    }
+    public: inline operator size_t() const {
+        return a;
+    }
 };
 template<typename X, typename V, typename A> class VelocityVerlet<2,X,V,A,void> : public VelocityVerlet<2,X,V,A,Delegate<void,void,X&,V&,Array<void,A>&>> {
     public: inline VelocityVerlet(X& x, V& v) :
-        VelocityVerlet<2,X,V,A,Delegate<void,void,X&,V&,Array<void,A>&>>(x, v, delegate(&VelocityVerletFunction<X,V,Array<void,A>,void>::Run)) {
+        VelocityVerlet<2,X,V,A,Delegate<void,void,X&,V&,Array<void,A>&>>(x, v, delegate(&Acceleration<X,V,Array<void,A>,void>::Run)) {
     }
     public: template<typename T> inline void Solve(T& dt) {
         VelocityVerlet<2,X,V,A,Delegate<void,void,X&,V&,Array<void,A>&>>::Solve(dt);

@@ -19,7 +19,9 @@ using namespace std;
 
 template<typename T, size_t D> struct Vector {
     T e[D];
-    Vector(T val = 0) {
+    Vector() : Vector(static_cast<T>(0)) {
+    }
+    Vector(const T& val) {
         for(size_t i = 0; i < D; i++)
             e[i] = val;
     }

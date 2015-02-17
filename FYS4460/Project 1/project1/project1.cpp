@@ -11,10 +11,13 @@
 #define PROJECT_CPP
 
 #include <string>
+#include <time.h>
 #include "array.h"
 #include "boltzmann.h"
 #include "delegate.h"
+#include "euclidean.h"
 #include "gaussian.h"
+#include "LJpotential.h"
 #include "pbc.h"
 #include "run.h"
 #include "timestep.h"
@@ -68,25 +71,31 @@ int main() {
     typedef double FLOAT;
 
     // Units
-    typedef angstrom<FLOAT> x;          // length
-    typedef K<FLOAT> T;                 // temperature
-    typedef u<FLOAT> m;                 // mass
-    typedef angstrom_div_ps<FLOAT> v;   // velocity
-    typedef m_div_s2<FLOAT> a;          // acceleration
-    typedef ps<FLOAT> t;                // time
+    typedef angstrom<FLOAT> x;                  // length
+    typedef K<FLOAT> T;                         // temperature
+    typedef u<FLOAT> m;                         // mass
+    typedef angstrom_div_ps<FLOAT> v;           // velocity
+    typedef angstrom_div_ps2<FLOAT> a;          // acceleration
+    typedef u_mul_angstrom_div_ps2<FLOAT> f;    // force
+    typedef u_mul_angstrom2_div_ps2<FLOAT> e;   // energy
+    typedef ps<FLOAT> t;                        // time
 
     // Declarations
     auto mass = m(39.948);
     auto temp = T(100);
+    auto epsilon = T(119.8);
     auto dx = x(5.26);
-    auto dt = t(0.1);
-    auto t_end = t(100);
-    auto N = ARRAYLIST(size_t, 8, 8, 8);
+    auto sigma = x(3.405);
+    auto dt = t(0.01);
+    auto t_end = t(10);
+    auto N = ARRAYLIST(size_t, 1, 1, 1);
     string molecule[4];
     molecule[0] = "Ar";
     molecule[1] = "Ar";
     molecule[2] = "Ar";
     molecule[3] = "Ar";
+    ofstream time_file;
+    time_file.open("time.dat");
 
     // Boltzmann velocity dirstribution
     Boltzmann<FLOAT> boltz(temp, mass);
@@ -96,49 +105,79 @@ int main() {
     // Models
     typedef VMD<x,Vector<v,3>> pos;
     typedef VMD_Vel<x,v> vel;
-    typedef VelocityVerlet<2,pos,vel,Vector<a,3>,void> BasicVerletModel;
-    typedef Delegate<BasicVerletModel,void,t&> BasicVerletSolver;
-    typedef Delegate<PBC<x,3>,void,pos&> PeriodicBoundary;
+    typedef Vector<a,3> va;
+    typedef Array<void,va> acc;
+    typedef LJ_Potential<3,x,a,m,f,e,MinImage<x,3>,void,void> Potential;
+    typedef Delegate<Potential,void,pos&,acc&> LJ_Solver;
+    typedef PBC<pos,vel,acc,LJ_Solver,x,3> Boundary;
+    typedef Delegate<Boundary,void,pos&> PeriodicBoundary;
+    typedef Delegate<Boundary,void,pos&,vel&,acc&> List;
+    typedef VelocityVerlet<2,pos,vel,va,List> VerletModel;
+    typedef Delegate<VerletModel,void,t&> VerletSolver;
 
-    // Basic molecular dynamic model
-    MD_Model<m,t,x,v,BasicVerletSolver,PeriodicBoundary> basic_model(mass, dt, "Argon centered cubic lattice");
-    // Differential solver
-    BasicVerletModel basic_verlet(static_cast<pos&>(basic_model), static_cast<vel&>(basic_model));
-    auto basic_verlet_solver = delegate(basic_verlet, &decltype(basic_verlet)::Solve<t>);
-    basic_model.step = &basic_verlet_solver;
+    // Molecular dynamic model
+    MD_Model<m,t,x,v,VerletSolver,PeriodicBoundary> model(mass, dt, "Argon centered cubic lattice");
+    // Lennard-Jones potenial
+    Potential potential(sigma, mass, 0);
+    auto LJ_acc = delegate(potential, &Potential::Acceleration<pos,acc>);
     // Periodic bounary condition
-    PBC<x,3> pbc;
-    for(size_t i = 0; i < 3; i++)
-        pbc.range[i] = dx*(N[i]-0.5);
-    auto periodic_boundary = delegate(pbc,&decltype(pbc)::Boundary<pos>);
-    basic_model.boundary = &periodic_boundary;
-    //basic_model.boundary = &pbc;
+    Boundary pbc(LJ_acc);
+    for(size_t i = 0; i < 3; i++) {
+        pbc.origin[i] = -0.25*dx;
+        pbc.range[i] = dx*(N[i]-0.25);
+    }
+    auto periodic_boundary = delegate(pbc, &Boundary::Boundary<pos>);
+    model.boundary = &periodic_boundary;
+    auto list = delegate(pbc, &Boundary::NeighbourList);
+    auto dist_vec = delegate(static_cast<MinImage<x,3>&>(pbc), &MinImage<x,3>::Distance<x,x>);
+    auto dist = delegate(&Euclidean::Length<Vector<x,3>>);
+    auto unit_vec = delegate(&Euclidean::UnitVector<x,x,3>);
+    potential.dist_vec = &dist_vec;
+    potential.dist = &dist;
+    potential.unit_vec = &unit_vec;
+    // Verlet differential solver
+    VerletModel verlet(static_cast<pos&>(model), static_cast<vel&>(model), list);
+    auto verlet_solver = delegate(verlet, &VerletModel::Solve<t>);
+    model.step = &verlet_solver;
 
     // Lattice configuration
-    basic_model.LatticeCenteredCubic(molecule, dx, N);
-    basic_model.SetVelocityDistribution(boltz_vel);
-    auto data = static_cast<vel>(basic_model);
-    TimeStep<t,decltype(basic_model)> basic_time(basic_model);
+    model.LatticeCenteredCubic(molecule, dx, N);
+    model.SetVelocityDistribution(boltz_vel);
+    auto data = static_cast<vel>(model);
+    TimeStep<t,decltype(model)> time(model);
 
     // Task a and b
-    basic_time.Open("b.xyz");
-    basic_time.Print();
-    basic_time.Close();
+    time.Open("b.xyz");
+    time.Print();
+    time.Close();
 
     // Task c
-    auto basic_step = delegate(basic_model, &decltype(basic_model)::Step<t,decltype(basic_model)>);
-    auto BasicTime = basic_time;
-    BasicTime.Open("c.xyz");
-    Run(BasicTime, t_end, basic_step);
-    BasicTime.Close();
+    auto step = delegate(model, &decltype(model)::Step<t,decltype(model)>);
+    auto Time = time;
+    Time.Open("c.xyz");
+    Run(Time, t_end, step);
+    Time.Close();
 
     // Task d
-    auto basic_boundary= delegate(basic_model,&decltype(basic_model)::Boundary<t,decltype(basic_model)>);
-    *basic_time.data = data;
-    BasicTime = basic_time;
-    BasicTime.Open("d.xyz");
-    Run(BasicTime, t_end, basic_step, basic_boundary);
-    BasicTime.Close();
+    auto boundary = delegate(model, &decltype(model)::Boundary<t,decltype(model)>);
+    *time.data = data;
+    Time = time;
+    Time.Open("d.xyz");
+    Run(Time, t_end, step, boundary);
+    Time.Close();
+
+    // Task g
+    potential = epsilon * Boltzmann<FLOAT>::kB;
+    *time.data = data;
+    Time = time;
+    Time.Open("g.xyz");
+    verlet = 0;         // Initialize verlet solver
+    auto t0 = clock();
+    Run(Time, t_end, step, boundary);
+    time_file << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+    Time.Close();
+
+    time_file.close();
 
     return 0;
 }

@@ -28,7 +28,7 @@ template<typename C, typename T> class MathArray;
 template<typename C, typename T> class ArrayLength {
     private: T** array;
     protected: size_t length;
-    protected: Delegate<C, void, T*, size_t, size_t>* init;
+    public: Delegate<C, void, T*, size_t, size_t>* init;
     public: ArrayLength(T* &array) : init(nullptr) {
         this->length = 0;
         this->array = &array;
@@ -61,9 +61,8 @@ template<typename C, typename T> class ArrayLength {
             *this->array = array;
             if(init != nullptr)
                 (*init)(*this->array, n, length);
-            return this->length = length;
-        } else
-            return this->length;
+        }
+        return this->length = length;
     }
     public: inline operator size_t () const {
         return length;
@@ -86,6 +85,9 @@ template<typename C, typename T> class ArrayLength {
         for(size_t i = 0; i < length; i++)
             static_cast<U&>((*array)[i]) = func();
     }
+    public: void SetInit(Delegate<C,void,T*,size_t,size_t>& init) {
+        this->init = &init;
+    }
 };
 
 template<typename C, typename T> class Array : public ArrayLength<C,T> {
@@ -95,7 +97,7 @@ template<typename C, typename T> class Array : public ArrayLength<C,T> {
     }
     public: Array(size_t length) : ArrayLength<C,T>(array, length) {
     }
-    public: Array(Delegate<C, void, T*, size_t, size_t> init) : ArrayLength<C,T>(array, 0, init) {
+    public: Array(Delegate<C, void, T*, size_t, size_t>& init) : ArrayLength<C,T>(array, 0, init) {
     }
     public: Array(size_t length, Delegate<C, void, T*, size_t, size_t>& init) : ArrayLength<C,T>(array, length, init) {
     }
@@ -106,8 +108,12 @@ template<typename C, typename T> class Array : public ArrayLength<C,T> {
     public: Array(const Array<C,T>& other) : ArrayLength<C,T>(array, other.length, *other.init) {
         *this = other;
     }
+    public: inline size_t& operator=(const size_t& length) {
+        return static_cast<ArrayLength<C,T>&>(*this) = length;
+    }
     public: Array<C,T>& operator=(const Array<C,T>& other) {
-        static_cast<ArrayLength<C,T>&>(*this) = static_cast<size_t>(other);
+        *this = static_cast<size_t>(other);
+        this->init = other.init;
         for(size_t i = 0; i < other; i++)
             array[i] = other.array[i];
         return *this;

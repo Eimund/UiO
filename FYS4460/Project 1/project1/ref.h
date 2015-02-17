@@ -18,6 +18,10 @@ template<typename T> class Ref {
     }
     public: template<typename U> inline Ref(U val) : del(true), val(new T(val)) {
     }
+    public: inline Ref(const Ref<T>& other) {
+        del = false;
+        val = other.val;
+    }
     public: ~Ref() {
         if(del)
             delete val;

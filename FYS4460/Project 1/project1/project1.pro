@@ -19,7 +19,13 @@ HEADERS += \
     stream.h \
     verlet.h \
     pbc.h \
-    LJpotential.h
+    LJpotential.h \
+    property.h \
+    acceleration.h \
+    min_image.h \
+    euclidean.h \
+    chain.h \
+    space.h
 
 CONFIG += \
     C++11
