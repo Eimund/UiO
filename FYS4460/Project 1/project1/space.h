@@ -137,7 +137,7 @@ template<typename T> struct Space<T,0> {
     template<typename V> static T Cast(V& space, size_t[0]) {
         return static_cast<T>(space);
     }
-    static void Deallocate(T, size_t[0]) {
+    static void Deallocate(T&, size_t[0]) {
     }
     template<typename V> static void Mapping(typename Pointer<V,0>::Type& space, T[0], T*[0], size_t[0]) {
         space++;

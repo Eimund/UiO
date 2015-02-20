@@ -48,20 +48,20 @@ template<size_t D,typename X, typename A, typename M, typename F, typename E, ty
     }
     public: template<typename X1, typename A1> inline void Acceleration(X1& x, A1& a) {
         for(size_t i = 0; i < x; i++) {
-            for(size_t j = 0; j < D; j++)
-                a[i][j] = 0;
-        }
-        for(size_t i = 0; i < x; i++) {
+            auto ai = a[i];
+            auto xi = x[i];
             for(size_t j = i+1; j < x; j++) {
-                auto r_vec = (*dist_vec)(x[i], x[j]);
+                auto aj = a[j];
+                auto xj = x[j];
+                auto r_vec = (*dist_vec)(xi, xj);
                 auto r = (*dist)(r_vec);
                 if(r != 0) {
                     auto u_vec = (*unit_vec)(r, r_vec);
                     auto aks = Acceleration(r);
                     for(size_t k = 0; k < D; k++) {
                         auto ak = aks*u_vec[k];
-                        a[i][k] -= ak;
-                        a[j][k] += ak;
+                        ai[k] -= ak;
+                        aj[k] += ak;
                     }
                 }
             }

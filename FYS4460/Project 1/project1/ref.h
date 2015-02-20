@@ -16,7 +16,9 @@ template<typename T> class Ref {
     private: T* val;
     public: inline Ref() :del(false), val(nullptr) {
     }
-    public: template<typename U> inline Ref(U val) : del(true), val(new T(val)) {
+    public: Ref(T& val) : del(false), val(&val) {
+    }
+    public: template<typename U> inline Ref(const U& val) : del(true), val(new T(val)) {
     }
     public: inline Ref(const Ref<T>& other) {
         del = false;
@@ -39,6 +41,9 @@ template<typename T> class Ref {
         }
         this->val = &val;
         return *this;
+    }
+    public: inline auto operator[](size_t i) -> decltype((*val)[0])& {
+        return (*val)[i];
     }
     public: template<typename V> inline Ref<T>& operator+=(const V& val) {
         *this->val += val;

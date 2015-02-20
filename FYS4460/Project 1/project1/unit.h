@@ -51,6 +51,18 @@ template<typename V, typename T> class Unit<V,T> : public Unit<V> {
     public: inline bool operator>(const T& other) const {
         return this->value > other.value ? true : false;
     }
+    public: inline bool operator<=(const V& value) const {
+        return this->value <= value ? true : false;
+    }
+    public: inline bool operator<=(const T& other) const {
+        return this->value <= other.value ? true : false;
+    }
+    public: inline bool operator>=(const V& value) const {
+        return this->value >= value ? true : false;
+    }
+    public: inline bool operator>=(const T& other) const {
+        return this->value >= other.value ? true : false;
+    }
     public: inline bool operator!=(const V& other) const {
         return this->value != other ? true : false;
     }

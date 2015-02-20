@@ -88,7 +88,7 @@ int main() {
     auto sigma = x(3.405);
     auto dt = t(0.01);
     auto t_end = t(10);
-    auto N = ARRAYLIST(size_t, 1, 1, 1);
+    auto N = ARRAYLIST(size_t, 4, 4, 4);
     string molecule[4];
     molecule[0] = "Ar";
     molecule[1] = "Ar";
@@ -96,6 +96,7 @@ int main() {
     molecule[3] = "Ar";
     ofstream time_file;
     time_file.open("time.dat");
+    auto t0 = clock();
 
     // Boltzmann velocity dirstribution
     Boltzmann<FLOAT> boltz(temp, mass);
@@ -107,8 +108,10 @@ int main() {
     typedef VMD_Vel<x,v> vel;
     typedef Vector<a,3> va;
     typedef Array<void,va> acc;
+    typedef PBC<pos,vel,acc,void,x,3>::CX pref;
+    typedef PBC<pos,vel,acc,void,x,3>::CA aref;
     typedef LJ_Potential<3,x,a,m,f,e,MinImage<x,3>,void,void> Potential;
-    typedef Delegate<Potential,void,pos&,acc&> LJ_Solver;
+    typedef Delegate<Potential,void,pref&,aref&> LJ_Solver;
     typedef PBC<pos,vel,acc,LJ_Solver,x,3> Boundary;
     typedef Delegate<Boundary,void,pos&> PeriodicBoundary;
     typedef Delegate<Boundary,void,pos&,vel&,acc&> List;
@@ -119,7 +122,7 @@ int main() {
     MD_Model<m,t,x,v,VerletSolver,PeriodicBoundary> model(mass, dt, "Argon centered cubic lattice");
     // Lennard-Jones potenial
     Potential potential(sigma, mass, 0);
-    auto LJ_acc = delegate(potential, &Potential::Acceleration<pos,acc>);
+    auto LJ_acc = delegate(potential, &Potential::Acceleration<pref,aref>);
     // Periodic bounary condition
     Boundary pbc(LJ_acc);
     for(size_t i = 0; i < 3; i++) {
@@ -147,34 +150,46 @@ int main() {
     TimeStep<t,decltype(model)> time(model);
 
     // Task a and b
-    time.Open("b.xyz");
+    /*time.Open("b.xyz");
     time.Print();
-    time.Close();
+    time.Close();*/
 
     // Task c
     auto step = delegate(model, &decltype(model)::Step<t,decltype(model)>);
     auto Time = time;
-    Time.Open("c.xyz");
+    /*Time.Open("c.xyz");
     Run(Time, t_end, step);
-    Time.Close();
+    Time.Close();*/
 
     // Task d
     auto boundary = delegate(model, &decltype(model)::Boundary<t,decltype(model)>);
-    *time.data = data;
+    /**time.data = data;
     Time = time;
     Time.Open("d.xyz");
     Run(Time, t_end, step, boundary);
-    Time.Close();
+    Time.Close();*/
 
     // Task g
     potential = epsilon * Boltzmann<FLOAT>::kB;
-    *time.data = data;
+    /**time.data = data;
     Time = time;
     Time.Open("g.xyz");
     verlet = 0;         // Initialize verlet solver
-    auto t0 = clock();
+    t0 = clock();
     Run(Time, t_end, step, boundary);
     time_file << (double)(clock()-t0)/CLOCKS_PER_SEC << " & ";
+    Time.Close();*/
+
+    // Task h
+    for(size_t i = 0; i < 3; i++)
+        pbc[i] = (pbc.range[i]-pbc.origin[i])/(3*sigma);
+    *time.data = data;
+    Time = time;
+    Time.Open("h.xyz");
+    verlet = 0;         // Initialize verlet solver
+    t0 = clock();
+    Run(Time, t_end, step, boundary);
+    time_file << (double)(clock()-t0)/CLOCKS_PER_SEC << " \\\\ ";
     Time.Close();
 
     time_file.close();
