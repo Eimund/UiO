@@ -48,18 +48,9 @@ template<class T> class Chain {
             this->last = this;
             auto p = other.next;
             for(size_t i = 0; i < other.N; i++) {
-                *this += *p;
+                *this += p->e;
                 p = p->next;
             }
-            /*this->last = this->next;
-            this->ilast = 0;
-            this->N = other.N;
-            auto p = this->next;
-            for(size_t i = 0; i < this->N; i++) {
-                p->owner = this;
-                p = p->next;
-            }*/
-
         }
         this->e = other.e;
         return *this;
@@ -73,7 +64,7 @@ template<class T> class Chain {
     public: inline T operator[](const size_t& i) const {
         return Index(i).e;
     }
-    public: inline Chain<T>& operator+=(const T& element) {         // Add next LIFO
+    public: inline Chain<T>& operator+=(T element) {         // Add next LIFO
         if(next == this)
             next = new Chain<T>(element, owner, this);
         else {
@@ -83,11 +74,6 @@ template<class T> class Chain {
         last = owner->next;
         ilast = 0;
         owner->N++;
-        return *this;
-    }
-    public: inline Chain<T>& operator+=(const Chain<T>& element) {  // Add next FIFO
-        auto p = N ? Index(N-1) : *this;
-        p += element.e;
         return *this;
     }
     public: inline void Free() {

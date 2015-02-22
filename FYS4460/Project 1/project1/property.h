@@ -13,9 +13,9 @@
 
 #include "delegate.h"
 
-template<typename C, typename T> class Property {
+template<typename T> class Property {
     private: T data;
-    public: Delegate<C,void,T&,const T&>* func;
+    public: Delegate<void,T&,const T&>* func;
     public: inline Property() : func(nullptr) {
     }
     public: inline Property(const T& data) : data(data), func(nullptr) {

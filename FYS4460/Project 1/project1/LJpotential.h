@@ -13,15 +13,15 @@
 #include "delegate.h"
 #include "unit.h"
 
-template<size_t D,typename X, typename A, typename M, typename F, typename E, typename C1, typename C2,typename C3> class LJ_Potential {
+template<size_t D,typename X, typename A, typename M, typename F, typename E> class LJ_Potential {
     private: X sigma;
     private: M mass;
     private: E epsilon;
     private: F force;
     private: A acc;
-    public: Delegate<C1,Vector<X,D>,const Vector<X,D>&,const Vector<X,D>&>* dist_vec;
-    public: Delegate<C2,X,const Vector<X,D>&>* dist;
-    public: Delegate<C3,Vector<decltype(sigma/sigma),D>,const X&, const Vector<X,D>&>* unit_vec;
+    public: Delegate<Vector<X,D>,const Vector<X,D>&,const Vector<X,D>&>* dist_vec;
+    public: Delegate<X,const Vector<X,D>&>* dist;
+    public: Delegate<Vector<decltype(sigma/sigma),D>,const X&, const Vector<X,D>&>* unit_vec;
     public: inline LJ_Potential(X sigma, M mass, E epsilon) : sigma(sigma), mass(mass), epsilon(epsilon),
         force(4*epsilon/sigma), acc(force/mass), dist_vec(nullptr), dist(nullptr), unit_vec(nullptr) {
     }

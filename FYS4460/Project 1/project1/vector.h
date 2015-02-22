@@ -63,8 +63,8 @@ template<typename T, size_t D, size_t N> struct Vectors {
     inline Vector<T,D>& operator[](size_t i) {
         return v[i];
     }
-    template<typename V> inline Array<void,Ref<T>> Get(ArrayLength<void,V> other, size_t j, size_t k) {
-        Array<void,Ref<T>> data(other);
+    template<typename V> inline Array<Ref<T>> Get(ArrayLength<V> other, size_t j, size_t k) {
+        Array<Ref<T>> data(other);
         for(size_t i = 0; i < other; i++)
             data[i] = other[i][j][k];
         return data;

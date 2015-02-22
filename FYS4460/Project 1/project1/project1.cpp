@@ -107,16 +107,16 @@ int main() {
     typedef VMD<x,Vector<v,3>> pos;
     typedef VMD_Vel<x,v> vel;
     typedef Vector<a,3> va;
-    typedef Array<void,va> acc;
+    typedef Array<va> acc;
     typedef PBC<pos,vel,acc,void,x,3>::CX pref;
     typedef PBC<pos,vel,acc,void,x,3>::CA aref;
-    typedef LJ_Potential<3,x,a,m,f,e,MinImage<x,3>,void,void> Potential;
-    typedef Delegate<Potential,void,pref&,aref&> LJ_Solver;
+    typedef LJ_Potential<3,x,a,m,f,e> Potential;
+    typedef Delegate<void,pref&,aref&> LJ_Solver;
     typedef PBC<pos,vel,acc,LJ_Solver,x,3> Boundary;
-    typedef Delegate<Boundary,void,pos&> PeriodicBoundary;
-    typedef Delegate<Boundary,void,pos&,vel&,acc&> List;
+    typedef Delegate<void,pos&> PeriodicBoundary;
+    typedef Delegate<void,pos&,vel&,acc&> List;
     typedef VelocityVerlet<2,pos,vel,va,List> VerletModel;
-    typedef Delegate<VerletModel,void,t&> VerletSolver;
+    typedef Delegate<void,t&> VerletSolver;
 
     // Molecular dynamic model
     MD_Model<m,t,x,v,VerletSolver,PeriodicBoundary> model(mass, dt, "Argon centered cubic lattice");

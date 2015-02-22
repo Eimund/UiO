@@ -26,7 +26,7 @@ template<typename T, typename... P> struct VMD_Data : public Struct<Vector<T,3>,
 
 template<typename T, typename... P> class VMD : public Stream {
     protected: string comment{""};
-    protected: Array<void,VMD_Data<T,P...>> data;
+    protected: Array<VMD_Data<T,P...>> data;
     public: inline VMD(string comment = "") : Stream(" "), comment(comment) {
     }
     public: inline VMD& operator<<(const string& data) {
@@ -102,7 +102,7 @@ template<typename T1, typename T2, typename... P> class VMD_Vel : public VMD<T1,
     public: inline Vector<T2,3> operator[](size_t i) const {
         return static_cast<StructData<1,Vector<T2,3>>&>(this->data[i]).data;
     }
-    public: template<typename C, typename U> void SetVelocityDistribution(Delegate<C,U>& distribution) {
+    public: template<typename U> void SetVelocityDistribution(Delegate<U>& distribution) {
         Vector<T2,3> sum(0);
         for(size_t i = 0; i < this->data; i++) {    // Get velocity distribution
             for(size_t j = 0; j < 3; j++) {

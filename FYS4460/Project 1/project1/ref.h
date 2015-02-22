@@ -12,21 +12,16 @@
 #define REF_H
 
 template<typename T> class Ref {
-    private: bool del;
+    private: T ref;
     private: T* val;
-    public: inline Ref() :del(false), val(nullptr) {
+    public: inline Ref() : ref(0), val(&ref) {
     }
-    public: Ref(T& val) : del(false), val(&val) {
+    public: inline Ref(T& val) : ref(0), val(&val) {
     }
-    public: template<typename U> inline Ref(const U& val) : del(true), val(new T(val)) {
+    public: template<typename U> inline Ref(const U& val) : ref(val), val(&ref) {
     }
     public: inline Ref(const Ref<T>& other) {
-        del = false;
-        val = other.val;
-    }
-    public: ~Ref() {
-        if(del)
-            delete val;
+        *this = other;
     }
     public: inline operator T& () {
         return *val;
@@ -34,15 +29,19 @@ template<typename T> class Ref {
     public: inline operator const T& () const {
         return *val;
     }
+    public: inline Ref<T>& operator=(const Ref<T>& other) {
+        this->ref = other.ref;
+        if(other.val == &other.ref)
+            this->val = &this->ref;
+        else
+            this->val = other.val;
+        return *this;
+    }
     public: inline Ref<T>& operator=(T& val) {
-        if(del) {
-            delete this->val;
-            del = false;
-        }
         this->val = &val;
         return *this;
     }
-    public: inline auto operator[](size_t i) -> decltype((*val)[0])& {
+    public: inline auto operator[](const size_t i) -> decltype((*val)[0])& {
         return (*val)[i];
     }
     public: template<typename V> inline Ref<T>& operator+=(const V& val) {
